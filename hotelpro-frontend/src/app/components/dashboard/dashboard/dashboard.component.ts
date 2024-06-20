@@ -7,8 +7,6 @@ import { AuthService } from '../../../services/auth.service';
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent {
-  email = localStorage.getItem('email');
-
   constructor(private authService: AuthService) {}
 
   logOut() {

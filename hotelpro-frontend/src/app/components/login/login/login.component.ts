@@ -9,13 +9,19 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 export class LoginComponent {
   loginInForm = new FormGroup({
     email: new FormControl<string>('', [Validators.required]),
+    password: new FormControl<string>('', [Validators.required]),
   });
 
   constructor(private authService: AuthService) {}
 
   logIn() {
     if (this.loginInForm.valid) {
-      this.authService.logIn(this.loginInForm.value.email as string);
+      this.authService.logIn(this.loginInForm.value).subscribe({
+        next: (res) => {
+          console.log(res);
+        },
+        error: (err) => console.log(err.message),
+      });
     }
   }
 }
