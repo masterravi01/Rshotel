@@ -1,0 +1,97 @@
+<div class="fb-item p-3" *ngIf="loading$ | async">
+  <div class="d-flex">
+    <div class="gravatar col-lg-12" style="display: inline-flex">
+      <ngx-skeleton-loader
+        [theme]="{ width: '100px', height: '100px','min-height': '200px','min-width': '200px', 'border-radius': '20px',}"
+      >
+      </ngx-skeleton-loader>
+      <ngx-skeleton-loader
+        count="3"
+        [theme]="{
+          'border-radius': '5px',
+          height: '50px',
+          width: '100%',
+          'animation-duration': '2s'
+        }"
+        class="ms-3 w-100 mt-2"
+      >
+      </ngx-skeleton-loader>
+    </div>
+    <div class="second-section-wrapper">
+      <div class="wrapper">
+        <ngx-skeleton-loader
+          [theme]="{
+            width: '80%',
+            'border-radius': '0',
+            height: '15px',
+            'margin-bottom': '10px'
+          }"
+        ></ngx-skeleton-loader>
+      </div>
+      <div class="wrapper">
+        <ngx-skeleton-loader
+          [theme]="{
+            width: '90%',
+            'border-radius': '0',
+            height: '15px',
+            'margin-bottom': '10px'
+          }"
+        ></ngx-skeleton-loader>
+      </div>
+      <div class="wrapper">
+        <ngx-skeleton-loader
+          [theme]="{
+            width: '60%',
+            'border-radius': '0',
+            height: '15px',
+            'margin-bottom': '10px'
+          }"
+        ></ngx-skeleton-loader>
+        <div class="wrapper">
+          <ngx-skeleton-loader
+            count="3"
+            [theme]="{
+              height: '50px'
+            }"
+          ></ngx-skeleton-loader>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="first-section-wrapper">
+    <div class="gravatar">
+      <ngx-skeleton-loader
+        appearance="circle"
+        [theme]="{ width: '80px', height: '80px' }"
+      >
+      </ngx-skeleton-loader>
+      <ngx-skeleton-loader
+        count="3"
+        [theme]="{
+          'border-radius': '5px',
+          height: '50px',
+          'animation-duration': '2s'
+        }"
+      >
+      </ngx-skeleton-loader>
+    </div>
+    <div class="gravatar-title">
+      <div>
+        <ngx-skeleton-loader
+          [theme]="{
+            width: '200px',
+            'border-radius': '0',
+            height: '15px',
+            'margin-bottom': '10px'
+          }"
+        ></ngx-skeleton-loader>
+      </div>
+      <div>
+        <ngx-skeleton-loader
+          [theme]="{ width: '170px', 'border-radius': '0', height: '15px' }"
+        >
+        </ngx-skeleton-loader>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,158 @@
+<div class="parent">
+  <div class="container">
+    <div class="title">Registration</div>
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <div class="user__details">
+        <div class="input__box">
+          <span class="details">Full Name</span>
+          <input type="text" placeholder="E.g: John Smith" />
+        </div>
+        <div class="input__box">
+          <span class="details">Username</span>
+          <input
+            type="text"
+            placeholder="johnWC98"
+            formControlName="username"
+          />
+          <div
+            *ngIf="
+              userForm.get('username')?.invalid &&
+              (userForm.get('username')?.dirty ||
+                userForm.get('username')?.touched)
+            "
+          >
+            <small
+              class="text-danger"
+              *ngIf="userForm.get('username')?.errors?.['required']"
+            >
+              Username is required
+            </small>
+          </div>
+        </div>
+        <div class="input__box">
+          <span class="details">Email</span>
+          <input
+            type="email"
+            placeholder="johnsmith@hotmail.com"
+            formControlName="email"
+          />
+          <div
+            *ngIf="
+              userForm.get('email')?.invalid &&
+              (userForm.get('email')?.dirty || userForm.get('email')?.touched)
+            "
+          >
+            <small
+              class="text-danger"
+              *ngIf="userForm.get('email')?.errors?.['required']"
+            >
+              Email is required
+            </small>
+            <small
+              class="text-danger"
+              *ngIf="userForm.get('email')?.errors?.['email']"
+            >
+              Invalid email format
+            </small>
+          </div>
+        </div>
+        <div class="input__box">
+          <span class="details">Phone Number</span>
+          <input
+            type="tel"
+            pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+            placeholder="012-345-6789"
+          />
+        </div>
+        <div class="input__box">
+          <span class="details">Password</span>
+          <input
+            type="password"
+            placeholder="********"
+            formControlName="password"
+          />
+          <div
+            *ngIf="
+              userForm.get('password')?.invalid &&
+              (userForm.get('password')?.dirty ||
+                userForm.get('password')?.touched)
+            "
+          >
+            <small
+              class="text-danger"
+              *ngIf="userForm.get('password')?.errors?.['required']"
+            >
+              Password is required
+            </small>
+            <small
+              class="text-danger"
+              *ngIf="userForm.get('password')?.errors?.['minlength']"
+            >
+              Password must be at least 8 characters long
+            </small>
+            <small
+              class="text-danger"
+              *ngIf="userForm.get('password')?.errors?.['passwordStrength']"
+            >
+              Password must contain at least one uppercase letter, one lowercase
+              letter, one number, and one special character
+            </small>
+          </div>
+        </div>
+        <div class="input__box">
+          <span class="details">Confirm Password</span>
+          <input
+            type="password"
+            placeholder="********"
+            formControlName="confirmpassword"
+          />
+          <div
+            *ngIf="
+              userForm.get('confirmpassword')?.dirty ||
+              userForm.get('confirmpassword')?.touched
+            "
+          >
+            <small
+              class="text-danger"
+              *ngIf="userForm.get('confirmpassword')?.errors?.['required']"
+            >
+              Confirm Password is required
+            </small>
+            <small class="text-danger" *ngIf="userForm.errors?.['mismatch']">
+              Passwords do not match
+            </small>
+          </div>
+        </div>
+      </div>
+      <div class="gender__details">
+        <span class="gender__title">Role</span>
+        <div class="category">
+          <label>
+            <input type="radio" formControlName="role" value="USER" />
+            <span class="ms-1">User</span>
+          </label>
+          <label class="ms-3">
+            <input type="radio" formControlName="role" value="ADMIN" />
+            <span class="ms-1">Admin</span>
+          </label>
+        </div>
+        <div
+          *ngIf="
+            userForm.get('role')?.invalid &&
+            (userForm.get('role')?.dirty || userForm.get('role')?.touched)
+          "
+        >
+          <small
+            class="text-danger"
+            *ngIf="userForm.get('role')?.errors?.['required']"
+          >
+            Role is required
+          </small>
+        </div>
+      </div>
+      <div class="button">
+        <input type="submit" value="Register" [disabled]="userForm.invalid" />
+      </div>
+    </form>
+  </div>
+</div>

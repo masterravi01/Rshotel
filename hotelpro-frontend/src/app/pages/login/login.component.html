@@ -1,0 +1,112 @@
+<div class="container">
+  <img
+    src="https://png.pngtree.com/thumb_back/fh260/background/20210929/pngtree-silver-gray-abstract-background-image_908409.png"
+    class="cc"
+    alt=""
+  />
+  <div class="row justify-content-center mt-4">
+    <div
+      class="col-lg-4 col-md-6 col-sm-12 p-3"
+      style="
+        background-color: #f3f3f3;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <div class="fs-2 fw-bold">login</div>
+      <div class="">
+        Doesn't have an account yet?
+        <a routerLink="/user/registeruser">Sign Up</a>
+      </div>
+      <form [formGroup]="LoginForm" (ngSubmit)="logIn()" class="mt-3">
+        <div class="mb-3">
+          <label for="exampleInputEmail1" class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            formControlName="email"
+            id="exampleInputEmail1"
+            aria-describedby="emailHelp"
+            placeholder="you@example.com"
+          />
+          <div
+            *ngIf="
+              LoginForm.controls['email'].invalid &&
+              (LoginForm.controls['email'].dirty ||
+                LoginForm.controls['email'].touched)
+            "
+          >
+            <div *ngIf="LoginForm.controls['email'].errors?.['required']">
+              Username is required.
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <label for="exampleInputPassword1" class="form-label"
+                >Password</label
+              >
+            </div>
+            <div><a routerLink="/user/forgotpassword">forgotpassword?</a></div>
+          </div>
+          <input
+            type="password"
+            class="form-control"
+            id="exampleInputPassword1"
+            formControlName="password"
+            placeholder="Enter Password"
+          />
+          <div
+            *ngIf="
+              LoginForm.controls['password'].invalid &&
+              (LoginForm.controls['password'].dirty ||
+                LoginForm.controls['password'].touched)
+            "
+          >
+            <div *ngIf="LoginForm.controls['password'].errors?.['required']">
+              Password is required.
+            </div>
+          </div>
+        </div>
+        <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" id="exampleCheck1" />
+          <label class="form-check-label" for="exampleCheck1"
+            >Remember me
+          </label>
+        </div>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="LoginForm.invalid"
+        >
+          Login
+        </button>
+      </form>
+      <div class="line-with-text">
+        <span class="line-text">OR</span>
+      </div>
+      <br />
+      <!-- <div class="d-flex justify-content-center">
+        <div
+          id="g_id_onload"
+          data-client_id="1077907309094-cp4uihhtslrimu7og7c0uqg2nb0hea47.apps.googleusercontent.com"
+          data-context="use"
+          data-ux_mode="popup"
+          data-itp_support="true"
+          data-callback="handleCredentialResponse"
+        ></div>
+
+        <div
+          class="g_id_signin"
+          data-type="standard"
+          data-shape="pill"
+          data-theme="filled_blue"
+          data-text="signin_with"
+          data-size="large"
+          data-logo_alignment="left"
+        ></div>
+      </div> -->
+    </div>
+  </div>
+</div>

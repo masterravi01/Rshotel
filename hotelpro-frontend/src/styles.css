@@ -7,3 +7,7 @@
 body {
   font-family: "Archivo", sans-serif;
 }
+
+.backdroptrans {
+  background-color: transparent !important;
+}

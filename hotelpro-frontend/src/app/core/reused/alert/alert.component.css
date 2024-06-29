@@ -1,0 +1,9 @@
+.alert-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  position: fixed;
+  top: 20px; /* Adjust as needed */
+  width: 100%;
+  z-index: 1; /* Ensure it appears above other content */
+  /* Additional styles if necessary */
+}
