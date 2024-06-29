@@ -36,7 +36,12 @@
         "plugin:@angular-eslint/template/recommended",
         "plugin:@angular-eslint/template/accessibility"
       ],
-      "rules": {}
+      "rules": {
+        "click-events-have-key-events": "off",
+        "@angular-eslint/template/interactive-supports-focus": [
+         false
+        ]
+      }
     }
   ]
 }

@@ -29,7 +29,7 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.LoginForm = new FormGroup({
-      email: new FormControl('', [Validators.required, Validators.email]),
+      email: new FormControl('', [Validators.required]),
       password: new FormControl('', [
         Validators.required,
         Validators.minLength(4),
@@ -38,8 +38,9 @@ export class LoginComponent implements OnInit {
   }
 
   async logIn() {
-    const obj = JSON.parse(JSON.stringify(this.LoginForm.value));
     if (this.LoginForm.valid) {
+      const obj = JSON.parse(JSON.stringify(this.LoginForm.value));
+      obj.email = obj.email.toLowerCase();
       try {
         await this.authService.login(obj);
 

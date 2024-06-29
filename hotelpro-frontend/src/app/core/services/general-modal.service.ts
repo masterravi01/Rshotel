@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { NgbModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
-import { ModalComponent } from '../reused/modal/modal.component';
+import { GeneralModalComponent } from '../reused/general-modal/general-modal.component';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ModalService {
+export class GeneralModalService {
   constructor(private modalService: NgbModal) {}
 
   openModal(
@@ -15,7 +15,7 @@ export class ModalService {
     size: 'sm' | 'md' | 'lg' | 'xl' = 'md',
     options?: NgbModalOptions
   ): Promise<boolean> {
-    const modalRef = this.modalService.open(ModalComponent, {
+    const modalRef = this.modalService.open(GeneralModalComponent, {
       size,
       ...options,
       backdropClass: type !== 'confirmation' ? 'backdroptrans' : '',

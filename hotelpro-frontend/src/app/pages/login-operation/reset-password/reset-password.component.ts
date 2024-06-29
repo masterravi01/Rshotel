@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { FormsModule } from '@angular/forms';
+import { AlertService } from '../../../core/services/alert.service';
 
 @Component({
   selector: 'app-reset-password',
@@ -18,7 +19,8 @@ export class ResetPasswordComponent implements OnInit {
   constructor(
     private activeRoute: ActivatedRoute,
     private router: Router,
-    private crudService: CrudService
+    private crudService: CrudService,
+    private alertService: AlertService
   ) {}
 
   ngOnInit(): void {
@@ -53,10 +55,12 @@ export class ResetPasswordComponent implements OnInit {
       })
       .then((response: any) => {
         console.log(response);
+        this.alertService.successAlert(response.message);
         this.router.navigate(['/login']);
       })
       .catch((error) => {
         console.error('There was an error!', error);
+        this.alertService.errorAlert(error.message);
       });
   }
 }

@@ -20,9 +20,11 @@
       </div>
       <form [formGroup]="LoginForm" (ngSubmit)="logIn()" class="mt-3">
         <div class="mb-3">
-          <label for="exampleInputEmail1" class="form-label">Email</label>
+          <label for="exampleInputEmail1" class="form-label"
+            >Email / Username</label
+          >
           <input
-            type="email"
+            type="text"
             class="form-control"
             formControlName="email"
             id="exampleInputEmail1"
@@ -37,7 +39,7 @@
             "
           >
             <div *ngIf="LoginForm.controls['email'].errors?.['required']">
-              Username is required.
+              Required.
             </div>
           </div>
         </div>

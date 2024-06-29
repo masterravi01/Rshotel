@@ -18,7 +18,7 @@ export const responseHandlerInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err: any) => {
-      if (err instanceof HttpErrorResponse && err.status === 401) {
+      if (err instanceof HttpErrorResponse && err.status === 403) {
         return authService.tokenRefreshInProgress.pipe(
           filter((inProgress) => !inProgress),
           take(1),

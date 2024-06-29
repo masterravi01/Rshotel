@@ -40,6 +40,15 @@
         <li class="nav-item">
           <a class="nav-link disabled" aria-disabled="true">Subscribe</a>
         </li>
+        <li class="nav-item">
+          <div
+            class="nav-link"
+            style="cursor: pointer"
+            (click)="openChangePassword(content)"
+          >
+            Change Password
+          </div>
+        </li>
       </ul>
       <form class="d-flex" role="search">
         <input
@@ -64,3 +73,58 @@
     </div>
   </div>
 </nav>
+
+<ng-template #content let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Change Password</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <form>
+      <div class="mb-3">
+        <label for="exampleInputPassword1" class="form-label"
+          >Current Password</label
+        >
+        <input
+          type="password"
+          placeholder="Enter Current Password"
+          name="oldPassword"
+          class="form-control"
+          [(ngModel)]="oldPassword"
+        />
+      </div>
+      <div class="mb-3">
+        <label for="exampleInputPassword2" class="form-label"
+          >New Password</label
+        >
+        <input
+          type="password"
+          placeholder="Enter New Password"
+          class="form-control"
+          name="newPassword"
+          [(ngModel)]="newPassword"
+        />
+        <small class="text-danger" *ngIf="passwordValidator()">
+          Password must be at least 8 characters long ,must contain at least one
+          uppercase letter, one lowercase letter, one number, and one special
+          character
+        </small>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      [disabled]="passwordValidator()"
+      (click)="modal.close(true)"
+    >
+      Update
+    </button>
+  </div>
+</ng-template>

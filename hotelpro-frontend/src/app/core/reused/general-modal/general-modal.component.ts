@@ -11,13 +11,13 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-modal',
+  selector: 'app-general-modal',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './modal.component.html',
-  styleUrls: ['./modal.component.css'],
+  templateUrl: './general-modal.component.html',
+  styleUrl: './general-modal.component.css',
 })
-export class ModalComponent implements OnInit, OnDestroy {
+export class GeneralModalComponent implements OnInit, OnDestroy {
   @Input() message?: string;
   @Input() headerMessage?: string;
   @Input() type: 'success' | 'error' | 'confirmation' = 'confirmation';

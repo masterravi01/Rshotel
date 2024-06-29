@@ -119,7 +119,7 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findOne({
-    $or: [{ username }, { email }],
+    $or: [{ username: email }, { email: email }],
   });
 
   if (!user) {
@@ -132,18 +132,17 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(
       400,
       "You have previously registered using " +
-      user.loginType?.toLowerCase() +
-      ". Please use the " +
-      user.loginType?.toLowerCase() +
-      " login option to access your account."
+        user.loginType?.toLowerCase() +
+        ". Please use the " +
+        user.loginType?.toLowerCase() +
+        " login option to access your account."
     );
   }
 
   // Compare the incoming password with hashed password
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordValid) {
-    throw new ApiError(401, "Invalid user credentials");
+  const isPasswordCorrect = await user.isPasswordCorrect(password);
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Invalid old password");
   }
 
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
@@ -178,7 +177,6 @@ const logoutUser = asyncHandler(async (req, res) => {
     },
     { new: true }
   );
-
 
   return res
     .status(200)
@@ -395,10 +393,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user?._id);
 
   // check the old password
-  const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
-
-
-  if (!isPasswordValid) {
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  if (!isPasswordCorrect) {
     throw new ApiError(400, "Invalid old password");
   }
 
@@ -417,7 +413,6 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
 });
-
 
 module.exports = {
   changeCurrentPassword,
