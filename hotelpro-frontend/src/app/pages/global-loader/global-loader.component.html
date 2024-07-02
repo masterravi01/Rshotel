@@ -1,5 +1,9 @@
-<div class="fb-item p-3" *ngIf="loading$ | async">
-  <div class="d-flex">
+<div
+  class="p-3 fb-item"
+  [ngClass]="isUserLogin() ? 'login' : ''"
+  *ngIf="loading$ | async"
+>
+  <div class="d-flex" *ngIf="isUserLogin()">
     <div class="gravatar col-lg-12" style="display: inline-flex">
       <ngx-skeleton-loader
         [theme]="{ width: '100px', height: '100px','min-height': '200px','min-width': '200px', 'border-radius': '20px',}"
@@ -58,7 +62,7 @@
       </div>
     </div>
   </div>
-  <div class="first-section-wrapper">
+  <div class="first-section-wrapper" *ngIf="isUserLogin()">
     <div class="gravatar">
       <ngx-skeleton-loader
         appearance="circle"
@@ -92,6 +96,38 @@
         >
         </ngx-skeleton-loader>
       </div>
+    </div>
+  </div>
+  <div
+    *ngIf="!isUserLogin()"
+    style="
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    "
+  >
+    <div class="spinner-grow text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div class="spinner-grow text-secondary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div class="spinner-grow text-success" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div class="spinner-grow text-danger" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div class="spinner-grow text-warning" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div class="spinner-grow text-info" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div class="spinner-grow text-dark" role="status">
+      <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 </div>
