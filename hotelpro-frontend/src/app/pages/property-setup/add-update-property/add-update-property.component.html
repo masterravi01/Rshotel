@@ -1,3 +1,4 @@
+<!-- user-form.component.html -->
 <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
   <div class="form-row">
     <div class="col-md-4 mb-3">
@@ -66,11 +67,7 @@
     </div>
   </div>
   <button class="btn btn-primary" type="submit">Submit form</button>
-  <button class="btn btn-primary" type="button" (click)="callWebWorker()">
-    call web worker
+  <button class="btn btn-primary" type="submit" (click)="rr()">
+    Submit form
   </button>
 </form>
-
-<div style="text-align: center">
-  <p>Worker Response: {{ workerResponse | json }}</p>
-</div>

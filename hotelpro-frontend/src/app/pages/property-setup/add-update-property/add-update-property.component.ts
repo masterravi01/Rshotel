@@ -1,20 +1,23 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { APIConstant } from '../../../core/constants/APIConstant';
 import { AuthService } from '../../../core/services/auth.service';
+import { CrudService } from '../../../core/services/crud.service';
 
 @Component({
   selector: 'app-add-update-property',
   templateUrl: './add-update-property.component.html',
-  styleUrls: ['./add-update-property.component.css'],
+  styleUrl: './add-update-property.component.css',
 })
-export class AddUpdatePropertyComponent implements OnInit, OnDestroy {
+export class AddUpdatePropertyComponent implements OnInit {
   userInfo: any;
   userForm!: FormGroup;
-  private worker!: Worker;
-  public workerResponse: any;
 
-  constructor(private authService: AuthService, private fb: FormBuilder) {}
-
+  constructor(
+    private authService: AuthService,
+    private crudService: CrudService,
+    private fb: FormBuilder
+  ) {}
   ngOnInit(): void {
     this.userInfo = this.authService.getUserInfo()?.user;
 
@@ -31,47 +34,10 @@ export class AddUpdatePropertyComponent implements OnInit, OnDestroy {
       this.userForm.markAllAsTouched(); // Mark all controls as touched to display validation errors
     }
   }
-
   rr() {
     this.userForm.reset({
       username: 'ravi',
       password: 'sss',
     });
-  }
-
-  ngOnDestroy() {
-    if (this.worker) {
-      this.worker.terminate();
-    }
-  }
-  callWebWorker() {
-    if (typeof Worker !== 'undefined') {
-      // Create a new web worker
-      this.worker = new Worker(
-        new URL('../../../core/workers/api-caller.worker', import.meta.url),
-        { type: 'module' }
-      );
-
-      // Listen for messages from the worker
-      this.worker.onmessage = ({ data }) => {
-        if (data.status === 'success') {
-          this.workerResponse = data.data;
-        } else {
-          console.error(`Worker error: ${data.message}`);
-        }
-      };
-
-      // Post a message to the worker to make an API call
-      this.worker.postMessage({
-        url: 'https://fakestoreapi.com/products/', // Replace with your API URL
-        method: 'get',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add other headers as needed
-        },
-      });
-    } else {
-      console.warn('Web Workers are not supported in this environment.');
-    }
   }
 }
