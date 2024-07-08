@@ -2,6 +2,7 @@ var mongoose = require("mongoose");
 mongoose.set("returnOriginal", false);
 require("dotenv").config({ path: __dirname + "./../.env" });
 const { DB_NAME } = require("../constants");
+const { logger } = require('../logger/winston.logger')
 class HotelProDatabase {
   constructor() {
     this.apiStartTime = new Date().getTime();
@@ -31,7 +32,7 @@ class HotelProDatabase {
           // useFindAndModify: false,
         })
         .then(() => {
-          console.log("mongo connection success");
+          logger.info("mongo connection success");
         })
         .catch((err) => {
           console.log(err);

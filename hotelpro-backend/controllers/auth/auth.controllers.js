@@ -2,7 +2,7 @@ const schema = require("../../database/database.schema.js");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { UserLoginType, UserRolesEnum } = require("../../constants.js");
+const { UserLoginType, UserTypesEnum } = require("../../constants.js");
 const { ApiError } = require("../../utils/ApiError.js");
 const { ApiResponse } = require("../../utils/ApiResponse.js");
 const { asyncHandler } = require("../../utils/asyncHandler.js");
@@ -62,7 +62,7 @@ const registerUser = asyncHandler(async (req, res) => {
     password,
     username,
     isEmailVerified: false,
-    role: role || UserRolesEnum.USER,
+    role: role || UserTypesEnum.USER,
   });
 
   /**

@@ -1,5 +1,5 @@
 const schema = require("../database/database.schema.js");
-const { AvailableUserRoles } = require("../constants.js");
+const { AvailableUserTypes } = require("../constants.js");
 const { ApiError } = require("../utils/ApiError.js");
 const { asyncHandler } = require("../utils/asyncHandler.js");
 const jwt = require("jsonwebtoken");
@@ -35,7 +35,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @param {AvailableUserRoles} roles
+ * @param {AvailableUserTypes} roles
  * @description
  * * This middleware is responsible for validating multiple user role permissions at a time.
  * * So, in future if we have a route which can be accessible by multiple roles, we can achieve that with this middleware

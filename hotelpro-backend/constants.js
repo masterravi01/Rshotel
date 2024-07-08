@@ -1,7 +1,7 @@
 /**
  * @type {{ ADMIN: "admin"; CLIENT: "client"; FRONTDESK: "frontdesk"; HOUSEKEEPER: "housekeeper"; GUEST: "guest"; MANAGER: "manager"} as const}
  */
-const UserRolesEnum = {
+const UserTypesEnum = {
   ADMIN: "admin",
   CLIENT: "client",
   FRONTDESK: "frontdesk",
@@ -10,8 +10,8 @@ const UserRolesEnum = {
   MANAGER: "manager",
 };
 
-module.exports.UserRolesEnum = UserRolesEnum;
-module.exports.AvailableUserRoles = Object.values(UserRolesEnum);
+module.exports.UserTypesEnum = UserTypesEnum;
+module.exports.AvailableUserTypes = Object.values(UserTypesEnum);
 
 /**
  * @type {{ PERCENTAGE: "percentage"; FLAT: "flat"} as const}
@@ -86,6 +86,18 @@ const VehicleTypeEnum = {
 
 module.exports.VehicleTypeEnum = VehicleTypeEnum;
 module.exports.AvailableVehicleTypeEnum = Object.values(VehicleTypeEnum);
+
+/**
+ * @type {{ BASERATE: "baseRate"; ADULTRATE: "adultRate"; CHILDRATE: "childRate" } as const}
+ */
+const RateTypeEnum = {
+  BASERATE: "baseRate",
+  ADULTRATE: "adultRate",
+  CHILDRATE: "childRate",
+};
+
+module.exports.RateTypeEnum = RateTypeEnum;
+module.exports.AvailableRateTypeEnum = Object.values(RateTypeEnum);
 
 /**
  * @type {{ MON: "mon"; TUE: "tue"; WED: "wed"; THU: "thu"; FRI: "fri"; SAT: "sat"; SUN: "sun"} as const}

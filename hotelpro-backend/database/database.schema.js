@@ -4,31 +4,24 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Schema = mongoose.Schema;
 const {
-  UserRolesEnum,
+  UserTypesEnum,
   UserLoginType,
   RoomStatusEnum,
   AvailableUserLoginType,
-  AvailableUserRoles,
+  AvailableUserTypes,
   AvailableChangeValueEnum,
   AvailableRoomStatus,
   USER_TEMPORARY_TOKEN_EXPIRY,
   AvailableReservationStatusEnum,
   AvailableVehicleTypeEnum,
   AvailableWeekDayEnum,
+  AvailableRateTypeEnum,
 } = require("../constants");
+const { type } = require("os");
 
 const userSchema = new Schema(
   {
-    avatar: {
-      type: {
-        url: String,
-        localPath: String,
-      },
-      default: {
-        url: `https://via.placeholder.com/200x200.png`,
-        localPath: "",
-      },
-    },
+   
     propertyUnitId: {
       type: Schema.Types.ObjectId,
       ref: "PropertyUnit",
@@ -42,13 +35,6 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Address",
     },
-    username: {
-      type: String,
-      unique: true,
-      lowercase: true,
-      trim: true,
-      index: true,
-    },
     email: {
       type: String,
       required: true,
@@ -56,10 +42,10 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    role: {
+    userType: {
       type: String,
-      enum: AvailableUserRoles,
-      default: UserRolesEnum.USER,
+      enum: AvailableUserTypes,
+      default: UserTypesEnum.USER,
       required: true,
     },
     password: {
@@ -89,6 +75,16 @@ const userSchema = new Schema(
     },
     emailVerificationExpiry: {
       type: Date,
+    },
+    avatar: {
+      type: {
+        url: String,
+        localPath: String,
+      },
+      default: {
+        url: `https://via.placeholder.com/200x200.png`,
+        localPath: "",
+      },
     },
   },
   { timestamps: true }
@@ -152,8 +148,14 @@ const propertySchema = new Schema(
   {
     subscriptionId: String,
     propertyName: String,
-    ownerId: String,
-    vip: String,
+    ownerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User"
+    },
+    isVIP: {
+      type: Boolean,
+      default: false
+    },
   },
   { timestamps: true }
 );
@@ -341,7 +343,7 @@ const ratePlanRoomRateSchema = new Schema(
     },
     rateType: {
       type: String,
-      enum: ["baseRate", "discountRate"],
+      enum: AvailableRateTypeEnum,
     },
     baseRate: Number,
   },
