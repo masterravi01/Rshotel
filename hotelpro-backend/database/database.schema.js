@@ -38,10 +38,6 @@ const userSchema = new Schema(
     dob: String,
     isLoginable: String,
     phone: String,
-    contactId: {
-      type: Schema.Types.ObjectId,
-      ref: "Contact",
-    },
     addressId: {
       type: Schema.Types.ObjectId,
       ref: "Address",
@@ -175,7 +171,7 @@ const propertyUnitSchema = new Schema(
     propertyUnitType: String,
     managerId: {
       type: Schema.Types.ObjectId,
-      ref: "Contact",
+      ref: "User",
     },
     addressId: {
       type: Schema.Types.ObjectId,
@@ -277,29 +273,17 @@ module.exports.Room = mongoose.model("Room", roomSchema);
 
 const addressSchema = new Schema(
   {
-    address: String,
+    addressLine1: String,
+    addressLine2: String,
     city: String,
     state: String,
     country: String,
-    pinCode: String,
+    zipCode: String,
     location: String,
   },
   { timestamps: true }
 );
 module.exports.Address = mongoose.model("Address", addressSchema);
-
-const contactSchema = new Schema(
-  {
-    addressLine1: String,
-    addressLine2: String,
-    city: String,
-    state: String,
-    zipCode: String,
-    country: String,
-  },
-  { timestamps: true }
-);
-module.exports.Contact = mongoose.model("Contact", contactSchema);
 
 const ratePlanSetupSchema = new Schema(
   {
