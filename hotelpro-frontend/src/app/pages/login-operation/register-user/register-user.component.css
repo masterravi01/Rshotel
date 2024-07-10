@@ -13,7 +13,6 @@
 
 .parent {
   display: flex;
-  height: 100vh;
   justify-content: center; /*center vertically */
   align-items: center; /* center horizontally */
   background: linear-gradient(135deg, var(--main-blue), var(--main-purple));
@@ -21,7 +20,6 @@
 }
 /* container and form */
 .container {
-  max-width: 700px;
   width: 100%;
   background: #fff;
   padding: 25px 30px;
@@ -157,7 +155,6 @@ form .button input:disabled {
   }
 
   .container form .user__details {
-    max-height: 300px;
     overflow-y: scroll;
   }
 

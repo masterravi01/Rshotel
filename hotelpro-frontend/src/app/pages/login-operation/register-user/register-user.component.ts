@@ -6,12 +6,14 @@ import {
   Validators,
   AbstractControl,
   ValidationErrors,
+  FormControlOptions,
 } from '@angular/forms';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { CommonModule } from '@angular/common';
 import { AlertService } from '../../../core/services/alert.service';
 import { Router, RouterModule } from '@angular/router';
+import { CustomValidators } from '../../../core/shared/validators/custom-validators';
 
 @Component({
   selector: 'app-register-user',
@@ -23,16 +25,49 @@ import { Router, RouterModule } from '@angular/router';
 export class RegisterUserComponent {
   userForm = this.formBuilder.group(
     {
-      username: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      role: ['USER', Validators.required],
-      password: [
+      primaryPropertyName: [
         '',
-        [Validators.required, Validators.minLength(8), this.passwordValidator],
+        [
+          Validators.required,
+          CustomValidators.noLeadingSpace,
+          Validators.minLength(3),
+        ],
       ],
+      firstName: [
+        '',
+        [
+          Validators.required,
+          CustomValidators.noLeadingSpace,
+          Validators.minLength(2),
+        ],
+      ],
+      lastName: [
+        '',
+        [
+          Validators.required,
+          CustomValidators.noLeadingSpace,
+          Validators.minLength(2),
+        ],
+      ],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required]],
+      address: this.formBuilder.group({
+        street: [''],
+        city: ['', [Validators.required, CustomValidators.noLeadingSpace]],
+        state: [
+          '',
+          [
+            Validators.required,
+            Validators.pattern(/^[A-Za-z\s]+$/),
+            CustomValidators.noLeadingSpace,
+          ],
+        ],
+        zip: ['', [Validators.required, CustomValidators.zipCodeValidator]],
+      }),
+      password: ['', [Validators.required, CustomValidators.passwordValidator]],
       confirmpassword: ['', Validators.required],
     },
-    { validator: this.passwordMatchValidator }
+    { validator: this.passwordMatchValidator } as FormControlOptions
   );
 
   constructor(
@@ -43,43 +78,27 @@ export class RegisterUserComponent {
   ) {}
 
   onSubmit() {
-    console.log(this.userForm.value);
     if (this.userForm.valid) {
-      const obj = JSON.parse(JSON.stringify(this.userForm.value));
+      const obj = this.userForm.value;
       this.crudService
         .post(APIConstant.REGISTER_USER, obj)
         .then((response: any) => {
-          console.log(response);
           this.alertService.successAlert(response.message);
           this.router.navigate(['/login']);
         })
         .catch((error) => {
-          console.error('There was an error!', error);
           this.alertService.errorAlert(error.message);
         });
+    } else {
+      this.alertService.errorAlert(
+        'Please fill all required fields correctly.'
+      );
     }
   }
 
-  passwordMatchValidator(form: any) {
-    return form.controls['password'].value ===
-      form.controls['confirmpassword'].value
+  passwordMatchValidator(form: AbstractControl): ValidationErrors | null {
+    return form.get('password')?.value === form.get('confirmpassword')?.value
       ? null
       : { mismatch: true };
-  }
-
-  passwordValidator(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (!value) {
-      return null;
-    }
-    const hasUpperCase = /[A-Z]/.test(value);
-    const hasLowerCase = /[a-z]/.test(value);
-    const hasNumeric = /[0-9]/.test(value);
-    const hasSpecialCharacter = /[!@#$%^&*(),.?":{}|<>]/.test(value);
-
-    const passwordValid =
-      hasUpperCase && hasLowerCase && hasNumeric && hasSpecialCharacter;
-
-    return !passwordValid ? { passwordStrength: true } : null;
   }
 }
