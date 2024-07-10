@@ -1,23 +1,25 @@
-const schema = require("../../database/database.schema.js");
-const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const { UserLoginType, UserTypesEnum } = require("../../constants.js");
-const { ApiError } = require("../../utils/ApiError.js");
-const { ApiResponse } = require("../../utils/ApiResponse.js");
-const { asyncHandler } = require("../../utils/asyncHandler.js");
-const {
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import {
+  UserLoginType,
+  UserTypesEnum,
+} from "../../constants.js"; // Adjust path based on your structure
+import { ApiError } from "../../utils/ApiError.js"; // Adjust path based on your structure
+import { ApiResponse } from "../../utils/ApiResponse.js"; // Adjust path based on your structure
+import { asyncHandler } from "../../utils/asyncHandler.js"; // Adjust path based on your structure
+import {
   getLocalPath,
   getStaticFilePath,
   removeLocalFile,
-} = require("../../utils/helpers.js");
-const {
+} from "../../utils/helpers.js"; // Adjust path based on your structure
+import {
   emailVerificationMailgenContent,
   forgotPasswordMailgenContent,
   sendEmail,
-} = require("../../utils/mail.js");
+} from "../../utils/mail.js"; // Adjust path based on your structure
 
-const User = schema.User;
+import { User } from "../../database/database.schema.js"
 
 // TODO: Add more options to make cookie more secure and reliable
 const options = {
@@ -414,7 +416,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
 });
 
-module.exports = {
+export default {
   changeCurrentPassword,
   forgotPasswordRequest,
   getCurrentUser,

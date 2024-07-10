@@ -1,9 +1,8 @@
-const mongoose = require("mongoose");
-const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const Schema = mongoose.Schema;
-const {
+import mongoose from 'mongoose';
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import {
   UserTypesEnum,
   UserLoginType,
   RoomStatusEnum,
@@ -16,15 +15,15 @@ const {
   AvailableVehicleTypeEnum,
   AvailableWeekDayEnum,
   AvailableRateTypeEnum,
-} = require("../constants");
-const { type } = require("os");
+} from '../constants.js';
+
+const { Schema } = mongoose;
 
 const userSchema = new Schema(
   {
-   
     propertyUnitId: {
       type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
+      ref: 'PropertyUnit',
     },
     firstName: String,
     lastName: String,
@@ -33,7 +32,7 @@ const userSchema = new Schema(
     phone: String,
     addressId: {
       type: Schema.Types.ObjectId,
-      ref: "Address",
+      ref: 'Address',
     },
     email: {
       type: String,
@@ -50,7 +49,7 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: [true, 'Password is required'],
     },
     loginType: {
       type: String,
@@ -61,37 +60,27 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    refreshToken: {
-      type: String,
-    },
-    forgotPasswordToken: {
-      type: String,
-    },
-    forgotPasswordExpiry: {
-      type: Date,
-    },
-    emailVerificationToken: {
-      type: String,
-    },
-    emailVerificationExpiry: {
-      type: Date,
-    },
+    refreshToken: String,
+    forgotPasswordToken: String,
+    forgotPasswordExpiry: Date,
+    emailVerificationToken: String,
+    emailVerificationExpiry: Date,
     avatar: {
       type: {
         url: String,
         localPath: String,
       },
       default: {
-        url: `https://via.placeholder.com/200x200.png`,
-        localPath: "",
+        url: 'https://via.placeholder.com/200x200.png',
+        localPath: '',
       },
     },
   },
   { timestamps: true }
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
@@ -142,7 +131,7 @@ userSchema.methods.generateTemporaryToken = function () {
   return { unHashedToken, hashedToken, tokenExpiry };
 };
 
-module.exports.User = mongoose.model("User", userSchema);
+export const User = mongoose.model('User', userSchema);
 
 const propertySchema = new Schema(
   {
@@ -150,22 +139,22 @@ const propertySchema = new Schema(
     propertyName: String,
     ownerId: {
       type: Schema.Types.ObjectId,
-      ref: "User"
+      ref: 'User',
     },
     isVIP: {
       type: Boolean,
-      default: false
+      default: false,
     },
   },
   { timestamps: true }
 );
-module.exports.Property = mongoose.model("Property", propertySchema);
+export const Property = mongoose.model('Property', propertySchema);
 
 const propertyUnitSchema = new Schema(
   {
     propertyId: {
       type: Schema.Types.ObjectId,
-      ref: "Property",
+      ref: 'Property',
     },
     propertyUnitName: String,
     propertyUnitLegalName: String,
@@ -173,11 +162,11 @@ const propertyUnitSchema = new Schema(
     propertyUnitType: String,
     managerId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     addressId: {
       type: Schema.Types.ObjectId,
-      ref: "Address",
+      ref: 'Address',
     },
     description: String,
     website: String,
@@ -186,37 +175,31 @@ const propertyUnitSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.PropertyUnit = mongoose.model(
-  "PropertyUnit",
-  propertyUnitSchema
-);
+export const PropertyUnit = mongoose.model('PropertyUnit', propertyUnitSchema);
 
 const propertyUnitSetupSchema = new Schema(
   {
     propertyUnitId: {
       type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
+      ref: 'PropertyUnit',
     },
     checkInTime: String,
     checkOutTime: String,
   },
   { timestamps: true }
 );
-module.exports.PropertyUnitSetup = mongoose.model(
-  "PropertyUnitSetup",
-  propertyUnitSetupSchema
-);
+export const PropertyUnitSetup = mongoose.model('PropertyUnitSetup', propertyUnitSetupSchema);
 
 const taxSetSchema = new Schema(
   {
     propertyUnitId: {
       type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
+      ref: 'PropertyUnit',
     },
     taxDetailIds: [
       {
         type: Schema.Types.ObjectId,
-        ref: "TaxDetail",
+        ref: 'TaxDetail',
       },
     ],
     taxSetName: String,
@@ -224,20 +207,20 @@ const taxSetSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.TaxSet = mongoose.model("TaxSet", taxSetSchema);
+export const TaxSet = mongoose.model('TaxSet', taxSetSchema);
 
 const taxDetailSchema = new Schema(
   {
     propertyUnitId: {
       type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
+      ref: 'PropertyUnit',
     },
     taxPercentage: Number,
     taxName: String,
   },
   { timestamps: true }
 );
-module.exports.TaxDetail = mongoose.model("TaxDetail", taxDetailSchema);
+export const TaxDetail = mongoose.model('TaxDetail', taxDetailSchema);
 
 const roomTypeSchema = new Schema(
   {
@@ -248,14 +231,14 @@ const roomTypeSchema = new Schema(
     active: Boolean,
     propertyUnitId: {
       type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
+      ref: 'PropertyUnit',
     },
     adultOccupancy: Number,
     childOccupancy: Number,
   },
   { timestamps: true }
 );
-module.exports.RoomType = mongoose.model("RoomType", roomTypeSchema);
+export const RoomType = mongoose.model('RoomType', roomTypeSchema);
 
 const roomSchema = new Schema(
   {
@@ -263,7 +246,7 @@ const roomSchema = new Schema(
     roomNumber: String,
     roomTypeId: {
       type: Schema.Types.ObjectId,
-      ref: "RoomType",
+      ref: 'RoomType',
     },
     roomStatus: String,
     roomCondition: String,
@@ -271,7 +254,7 @@ const roomSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.Room = mongoose.model("Room", roomSchema);
+export const Room = mongoose.model('Room', roomSchema);
 
 const addressSchema = new Schema(
   {
@@ -285,7 +268,7 @@ const addressSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.Address = mongoose.model("Address", addressSchema);
+export const Address = mongoose.model('Address', addressSchema);
 
 const ratePlanSetupSchema = new Schema(
   {
@@ -296,50 +279,44 @@ const ratePlanSetupSchema = new Schema(
     ratePlanDescription: String,
     cancellationPolicyId: {
       type: Schema.Types.ObjectId,
-      ref: "CancellationPolicy",
+      ref: 'CancellationPolicy',
     },
     noShowPolicyId: {
       type: Schema.Types.ObjectId,
-      ref: "NoShowPolicy",
+      ref: 'NoShowPolicy',
     },
     propertyUnitId: {
       type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
+      ref: 'PropertyUnit',
     },
     isRefundable: Boolean,
   },
   { timestamps: true }
 );
-module.exports.RatePlanSetup = mongoose.model(
-  "RatePlanSetup",
-  ratePlanSetupSchema
-);
+export const RatePlanSetup = mongoose.model('RatePlanSetup', ratePlanSetupSchema);
 
 const ratePlanRoomTypeSchema = new Schema(
   {
     ratePlanSetupId: {
       type: Schema.Types.ObjectId,
-      ref: "RatePlanSetup",
+      ref: 'RatePlanSetup',
     },
     startDate: Date,
     endDate: Date,
     roomTypeId: {
       type: Schema.Types.ObjectId,
-      ref: "RoomType",
+      ref: 'RoomType',
     },
   },
   { timestamps: true }
 );
-module.exports.RatePlanRoomType = mongoose.model(
-  "RatePlanRoomType",
-  ratePlanRoomTypeSchema
-);
+export const RatePlanRoomType = mongoose.model('RatePlanRoomType', ratePlanRoomTypeSchema);
 
 const ratePlanRoomRateSchema = new Schema(
   {
     ratePlanRoomDetailId: {
       type: Schema.Types.ObjectId,
-      ref: "RatePlanRoomType",
+      ref: 'RatePlanRoomType',
     },
     rateType: {
       type: String,
@@ -349,29 +326,23 @@ const ratePlanRoomRateSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.RatePlanRoomRate = mongoose.model(
-  "RatePlanRoomRate",
-  ratePlanRoomRateSchema
-);
+export const RatePlanRoomRate = mongoose.model('RatePlanRoomRate', ratePlanRoomRateSchema);
 
 const ratePlanRoomDateRateSchema = new Schema(
   {
     ratePlanRoomDetailId: {
       type: Schema.Types.ObjectId,
-      ref: "RatePlanRoomType",
+      ref: 'RatePlanRoomType',
     },
     ratePlanRoomRateId: {
       type: Schema.Types.ObjectId,
-      ref: "RatePlanRoomRate",
+      ref: 'RatePlanRoomRate',
     },
     baseRate: Number,
   },
   { timestamps: true }
 );
-module.exports.RatePlanRoomDateRate = mongoose.model(
-  "RatePlanRoomDateRate",
-  ratePlanRoomDateRateSchema
-);
+export const RatePlanRoomDateRate = mongoose.model('RatePlanRoomDateRate', ratePlanRoomDateRateSchema);
 
 const yieldSchema = new Schema(
   {
@@ -380,26 +351,26 @@ const yieldSchema = new Schema(
     yieldDescription: String,
     propertyUnitId: {
       type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
+      ref: 'PropertyUnit',
     },
     ratePlanSetupId: {
       type: Schema.Types.ObjectId,
-      ref: "RatePlanSetup",
+      ref: 'RatePlanSetup',
     },
   },
   { timestamps: true }
 );
-module.exports.Yield = mongoose.model("Yield", yieldSchema);
+export const Yield = mongoose.model('Yield', yieldSchema);
 
 const yieldRoomTypeSchema = new Schema(
   {
     yieldId: {
       type: Schema.Types.ObjectId,
-      ref: "Yield",
+      ref: 'Yield',
     },
     roomTypeId: {
       type: Schema.Types.ObjectId,
-      ref: "RoomType",
+      ref: 'RoomType',
     },
     startDate: Date,
     endDate: Date,
@@ -413,10 +384,7 @@ const yieldRoomTypeSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.YieldRoomType = mongoose.model(
-  "YieldRoomType",
-  yieldRoomTypeSchema
-);
+export const YieldRoomType = mongoose.model('YieldRoomType', yieldRoomTypeSchema);
 
 const noShowPolicySchema = new Schema(
   {
@@ -434,10 +402,8 @@ const noShowPolicySchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.NoShowPolicy = mongoose.model(
-  "NoShowPolicy",
-  noShowPolicySchema
-);
+export const NoShowPolicy = mongoose.model("NoShowPolicy",noShowPolicySchema);
+
 
 const cancellationPolicySchema = new Schema(
   {
@@ -462,7 +428,7 @@ const cancellationPolicySchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.CancellationPolicy = mongoose.model(
+export const CancellationPolicy = mongoose.model(
   "CancellationPolicy",
   cancellationPolicySchema
 );
@@ -483,7 +449,7 @@ const earlyCheckoutPolicySchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.EarlyCheckoutPolicy = mongoose.model(
+export const EarlyCheckoutPolicy = mongoose.model(
   "EarlyCheckoutPolicy",
   earlyCheckoutPolicySchema
 );
@@ -503,7 +469,7 @@ const reservationDocumentSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.ReservationDocument = mongoose.model(
+export const ReservationDocument = mongoose.model(
   "ReservationDocument",
   reservationDocumentSchema
 );
@@ -519,7 +485,7 @@ const propertyDocumentSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.PropertyDocument = mongoose.model(
+export const PropertyDocument = mongoose.model(
   "PropertyDocument",
   propertyDocumentSchema
 );
@@ -539,7 +505,7 @@ const housekeepingTaskSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.HousekeepingTask = mongoose.model(
+export const HousekeepingTask = mongoose.model(
   "HousekeepingTask",
   housekeepingTaskSchema
 );
@@ -560,7 +526,7 @@ const housekeepingAssignSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.HousekeepingAssign = mongoose.model(
+export const HousekeepingAssign = mongoose.model(
   "HousekeepingAssign",
   housekeepingAssignSchema
 );
@@ -580,7 +546,7 @@ const bookingControlSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.BookingControl = mongoose.model(
+export const BookingControl = mongoose.model(
   "BookingControl",
   bookingControlSchema
 );
@@ -607,7 +573,7 @@ const roomMaintenanceSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.RoomMaintenance = mongoose.model(
+export const RoomMaintenance = mongoose.model(
   "RoomMaintenance",
   roomMaintenanceSchema
 );
@@ -642,7 +608,7 @@ const reservationSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.Reservation = mongoose.model("Reservation", reservationSchema);
+export const Reservation = mongoose.model("Reservation", reservationSchema);
 
 const reservationDetailSchema = new Schema(
   {
@@ -662,7 +628,7 @@ const reservationDetailSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.ReservationDetail = mongoose.model(
+export const ReservationDetail = mongoose.model(
   "ReservationDetail",
   reservationDetailSchema
 );
@@ -683,7 +649,7 @@ const roomBalanceSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.RoomBalance = mongoose.model("RoomBalance", roomBalanceSchema);
+export const RoomBalance = mongoose.model("RoomBalance", roomBalanceSchema);
 
 const shiftSchema = new Schema(
   {
@@ -705,7 +671,7 @@ const shiftSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.Shift = mongoose.model("Shift", shiftSchema);
+export const Shift = mongoose.model("Shift", shiftSchema);
 
 const vehicleSchema = new Schema(
   {
@@ -728,7 +694,7 @@ const vehicleSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.Vehicle = mongoose.model("Vehicle", vehicleSchema);
+export const Vehicle = mongoose.model("Vehicle", vehicleSchema);
 
 const hotelAmenitySchema = new Schema(
   {
@@ -742,7 +708,7 @@ const hotelAmenitySchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.HotelAmenity = mongoose.model(
+export const HotelAmenity = mongoose.model(
   "HotelAmenity",
   hotelAmenitySchema
 );
@@ -763,7 +729,7 @@ const roomAmenitySchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.RoomAmenity = mongoose.model("RoomAmenity", roomAmenitySchema);
+export const RoomAmenity = mongoose.model("RoomAmenity", roomAmenitySchema);
 
 const notificationSchema = new Schema(
   {
@@ -784,7 +750,7 @@ const notificationSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.Notification = mongoose.model(
+export const Notification = mongoose.model(
   "Notification",
   notificationSchema
 );
@@ -799,7 +765,7 @@ const newDaySchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.NewDay = mongoose.model("NewDay", newDaySchema);
+export const NewDay = mongoose.model("NewDay", newDaySchema);
 
 const nightAuditSchema = new Schema(
   {
@@ -812,4 +778,4 @@ const nightAuditSchema = new Schema(
   },
   { timestamps: true }
 );
-module.exports.NightAudit = mongoose.model("NightAudit", nightAuditSchema);
+export const NightAudit = mongoose.model("NightAudit", nightAuditSchema);

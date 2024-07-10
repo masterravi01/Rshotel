@@ -1,8 +1,7 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const user = require("../controllers/auth/auth.controllers");
-
-const { verifyJWT } = require("../middleware/auth.middlewares");
+import user from "../controllers/auth/auth.controllers.js";
+import { verifyJWT } from "../middleware/auth.middlewares.js";
 
 router.post("/register", user.registerUser);
 router.post("/login", user.loginUser);
@@ -14,4 +13,4 @@ router.post("/logout", verifyJWT, user.logoutUser);
 router.post("/change-password", verifyJWT, user.changeCurrentPassword);
 router.post("/current-user", verifyJWT, user.getCurrentUser);
 
-module.exports = router;
+export default router;

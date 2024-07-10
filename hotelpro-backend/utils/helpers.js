@@ -1,5 +1,5 @@
-const fs = require("fs");
-const mongoose = require("mongoose");
+import fs from 'fs';
+import mongoose from 'mongoose';
 
 /**
  *
@@ -42,7 +42,7 @@ const mongoose = require("mongoose");
  * 
  * ```
  */
-const filterObjectKeys = (fieldsArray, objectArray) => {
+export const filterObjectKeys = (fieldsArray, objectArray) => {
   const filteredArray = structuredClone(objectArray).map((originalObj) => {
     let obj = {};
     structuredClone(fieldsArray)?.forEach((field) => {
@@ -63,7 +63,7 @@ const filterObjectKeys = (fieldsArray, objectArray) => {
  * @param {number} limit
  * @returns {{previousPage: string | null, currentPage: string, nextPage: string | null, data: any[]}}
  */
-const getPaginatedPayload = (dataArray, page, limit) => {
+export const getPaginatedPayload = (dataArray, page, limit) => {
   const startPosition = +(page - 1) * limit;
 
   const totalItems = dataArray.length; // total documents present after applying search query
@@ -93,8 +93,8 @@ const getPaginatedPayload = (dataArray, page, limit) => {
  * @param {string} fileName
  * @description returns the file's static path from where the server is serving the static image
  */
-const getStaticFilePath = (req, fileName) => {
-  return `${req.protocol}://${req.get("host")}/images/${fileName}`;
+export const getStaticFilePath = (req, fileName) => {
+  return `${req.protocol}://${req.get('host')}/images/${fileName}`;
 };
 
 /**
@@ -102,7 +102,7 @@ const getStaticFilePath = (req, fileName) => {
  * @param {string} fileName
  * @description returns the file's local path in the file system to assist future removal
  */
-const getLocalPath = (fileName) => {
+export const getLocalPath = (fileName) => {
   return `public/images/${fileName}`;
 };
 
@@ -111,11 +111,11 @@ const getLocalPath = (fileName) => {
  * @param {string} localPath
  * @description Removed the local file from the local file system based on the file path
  */
-const removeLocalFile = (localPath) => {
+export const removeLocalFile = (localPath) => {
   fs.unlink(localPath, (err) => {
-    if (err) console.log("Error while removing local files: ", err);
+    if (err) console.log('Error while removing local files: ', err);
     else {
-      console.log("Removed local: ", localPath);
+      console.log('Removed local: ', localPath);
     }
   });
 };
@@ -126,7 +126,7 @@ const removeLocalFile = (localPath) => {
  * @param {{page: number; limit: number; customLabels: mongoose.CustomLabels;}} options
  * @returns {mongoose.PaginateOptions}
  */
-const getMongoosePaginationOptions = ({
+export const getMongoosePaginationOptions = ({
   page = 1,
   limit = 10,
   customLabels,
@@ -136,7 +136,7 @@ const getMongoosePaginationOptions = ({
     limit: Math.max(limit, 1),
     pagination: true,
     customLabels: {
-      pagingCounter: "serialNumberStartFrom",
+      pagingCounter: 'serialNumberStartFrom',
       ...customLabels,
     },
   };
@@ -145,17 +145,6 @@ const getMongoosePaginationOptions = ({
 /**
  * @param {number} max Ceil threshold (exclusive)
  */
-const getRandomNumber = (max) => {
+export const getRandomNumber = (max) => {
   return Math.floor(Math.random() * max);
-};
-
-
-module.exports = {
-  filterObjectKeys,
-  getPaginatedPayload,
-  getStaticFilePath,
-  getLocalPath,
-  removeLocalFile,
-  getMongoosePaginationOptions,
-  getRandomNumber,
 };

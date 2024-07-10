@@ -1,7 +1,7 @@
 /**
  * @type {{ ADMIN: "admin"; CLIENT: "client"; FRONTDESK: "frontdesk"; HOUSEKEEPER: "housekeeper"; GUEST: "guest"; MANAGER: "manager"} as const}
- */
-const UserTypesEnum = {
+*/
+export const UserTypesEnum = {
   ADMIN: "admin",
   CLIENT: "client",
   FRONTDESK: "frontdesk",
@@ -10,59 +10,50 @@ const UserTypesEnum = {
   MANAGER: "manager",
 };
 
-module.exports.UserTypesEnum = UserTypesEnum;
-module.exports.AvailableUserTypes = Object.values(UserTypesEnum);
-
+export const AvailableUserTypes = Object.values(UserTypesEnum);
 /**
  * @type {{ PERCENTAGE: "percentage"; FLAT: "flat"} as const}
  */
-const ChangeValueEnum = {
+
+export const ChangeValueEnum = {
   PERCENTAGE: "percentage",
   FLAT: "flat",
 };
 
-module.exports.ChangeValueEnum = ChangeValueEnum;
-module.exports.AvailableChangeValueEnum = Object.values(ChangeValueEnum);
-
+export const AvailableChangeValueEnum = Object.values(ChangeValueEnum);
 /**
  * @type {{ PENDING: "pending"; COMPLETED: "completed" } as const}
  */
-const RoomStatusEnum = {
+export const RoomStatusEnum = {
   PENDING: "pending",
   COMPLETED: "completed",
 };
 
-module.exports.RoomStatusEnum = RoomStatusEnum;
-module.exports.AvailableRoomStatus = Object.values(RoomStatusEnum);
-
+export const AvailableRoomStatus = Object.values(RoomStatusEnum);
 /**
  * @type {{ UNKNOWN:"UNKNOWN"; RAZORPAY: "RAZORPAY"; PAYPAL: "PAYPAL"; } as const}
  */
-const PaymentProviderEnum = {
+export const PaymentProviderEnum = {
   UNKNOWN: "UNKNOWN",
   RAZORPAY: "RAZORPAY",
   PAYPAL: "PAYPAL",
 };
 
-module.exports.PaymentProviderEnum = PaymentProviderEnum;
-module.exports.AvailablePaymentProviders = Object.values(PaymentProviderEnum);
-
+export const AvailablePaymentProviders = Object.values(PaymentProviderEnum);
 /**
  * @type {{ GOOGLE: "GOOGLE"; GITHUB: "GITHUB"; EMAIL_PASSWORD: "EMAIL_PASSWORD"} as const}
  */
-const UserLoginType = {
+export const UserLoginType = {
   GOOGLE: "GOOGLE",
   GITHUB: "GITHUB",
   EMAIL_PASSWORD: "EMAIL_PASSWORD",
 };
 
-module.exports.UserLoginType = UserLoginType;
-module.exports.AvailableUserLoginType = Object.values(UserLoginType);
-
+export const AvailableUserLoginType = Object.values(UserLoginType);
 /**
  * @type {{ RESERVED: "reserved"; INHOUSE: "inhouse"; CANCELLED: "cancelled"; NOSHOW: "noshow"; CHECKEDOUT: "checkedout"} as const}
  */
-const ReservationStatusEnum = {
+export const ReservationStatusEnum = {
   RESERVED: "reserved",
   INHOUSE: "inhouse",
   CANCELLED: "cancelled",
@@ -70,39 +61,31 @@ const ReservationStatusEnum = {
   CHECKEDOUT: "checkedout",
 };
 
-module.exports.ReservationStatusEnum = ReservationStatusEnum;
-module.exports.AvailableReservationStatusEnum = Object.values(
-  ReservationStatusEnum
-);
-
+export const AvailableReservationStatusEnum = Object.values(ReservationStatusEnum);
 /**
  * @type {{ BIKE: "bike"; CAR: "car"; OTHER: "other" } as const}
  */
-const VehicleTypeEnum = {
+export const VehicleTypeEnum = {
   BIKE: "bike",
   CAR: "car",
   OTHER: "other",
 };
 
-module.exports.VehicleTypeEnum = VehicleTypeEnum;
-module.exports.AvailableVehicleTypeEnum = Object.values(VehicleTypeEnum);
-
+export const AvailableVehicleTypeEnum = Object.values(VehicleTypeEnum);
 /**
  * @type {{ BASERATE: "baseRate"; ADULTRATE: "adultRate"; CHILDRATE: "childRate" } as const}
  */
-const RateTypeEnum = {
+export const RateTypeEnum = {
   BASERATE: "baseRate",
   ADULTRATE: "adultRate",
   CHILDRATE: "childRate",
 };
 
-module.exports.RateTypeEnum = RateTypeEnum;
-module.exports.AvailableRateTypeEnum = Object.values(RateTypeEnum);
-
+export const AvailableRateTypeEnum = Object.values(RateTypeEnum);
 /**
  * @type {{ MON: "mon"; TUE: "tue"; WED: "wed"; THU: "thu"; FRI: "fri"; SAT: "sat"; SUN: "sun"} as const}
  */
-const WeekDayEnum = {
+export const WeekDayEnum = {
   MON: "mon",
   TUE: "tue",
   WED: "wed",
@@ -112,13 +95,12 @@ const WeekDayEnum = {
   SUN: "sun",
 };
 
-module.exports.WeekDayEnum = WeekDayEnum;
-module.exports.AvailableWeekDayEnum = Object.values(WeekDayEnum);
+export const AvailableWeekDayEnum = Object.values(WeekDayEnum);
 
-module.exports.USER_TEMPORARY_TOKEN_EXPIRY = 20 * 60 * 1000; // 20 minutes
-module.exports.MAXIMUM_SUB_IMAGE_COUNT = 4;
-module.exports.MAXIMUM_SOCIAL_POST_IMAGE_COUNT = 6;
-module.exports.DB_NAME = "hotelpro";
-module.exports.paypalBaseUrl = {
+export const USER_TEMPORARY_TOKEN_EXPIRY = 20 * 60 * 1000; // 20 minutes
+export const MAXIMUM_SUB_IMAGE_COUNT = 4;
+export const MAXIMUM_SOCIAL_POST_IMAGE_COUNT = 6;
+export const DB_NAME = "hotelpro";
+export const paypalBaseUrl = {
   sandbox: "https://api-m.sandbox.paypal.com",
 };

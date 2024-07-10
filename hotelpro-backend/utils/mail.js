@@ -1,12 +1,12 @@
-const Mailgen = require("mailgen");
-const nodemailer = require("nodemailer");
-// const { Product } from "../models/apps/ecommerce/product.models.js";
+import Mailgen from 'mailgen';
+import nodemailer from 'nodemailer';
+// import { Product } from "../models/apps/ecommerce/product.models.js";
 
 /**
  *
  * @param {{email: string; subject: string; mailgenContent: Mailgen.Content; }} options
  */
-const sendEmail = async (options) => {
+export const sendEmail = async (options) => {
   // Initialize mailgen instance with default theme and brand configuration
   const mailGenerator = new Mailgen({
     theme: "default",
@@ -60,7 +60,7 @@ const sendEmail = async (options) => {
  * @returns {Mailgen.Content}
  * @description It designs the email verification mail
  */
-const emailVerificationMailgenContent = (username, verificationUrl) => {
+export const emailVerificationMailgenContent = (username, verificationUrl) => {
   return {
     body: {
       name: username,
@@ -87,7 +87,7 @@ const emailVerificationMailgenContent = (username, verificationUrl) => {
  * @returns {Mailgen.Content}
  * @description It designs the forgot password mail
  */
-const forgotPasswordMailgenContent = (username, passwordResetUrl) => {
+export const forgotPasswordMailgenContent = (username, passwordResetUrl) => {
   return {
     body: {
       name: username,
@@ -115,7 +115,7 @@ const forgotPasswordMailgenContent = (username, passwordResetUrl) => {
  * @returns {Mailgen.Content}
  * @description It designs the order creation invoice mail
  */
-const orderConfirmationMailgenContent = (username, items, totalCost) => {
+export const orderConfirmationMailgenContent = (username, items, totalCost) => {
   return {
     body: {
       name: username,
@@ -148,11 +148,4 @@ const orderConfirmationMailgenContent = (username, items, totalCost) => {
       ],
     },
   };
-};
-
-module.exports = {
-  sendEmail,
-  emailVerificationMailgenContent,
-  forgotPasswordMailgenContent,
-  orderConfirmationMailgenContent,
 };

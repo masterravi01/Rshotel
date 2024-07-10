@@ -1,14 +1,15 @@
-const express = require("express");
-const app = express();
-const cors = require("cors");
-require("dotenv").config();
-const cookieParser = require("cookie-parser");
-const morganMiddleware = require("./logger/morgan.logger")
+import express from 'express';
+import cors from 'cors';
+import { configDotenv } from "dotenv";
+import cookieParser from 'cookie-parser';
+import morganMiddleware from './logger/morgan.logger.js';
+import mongo from './database/database.service.js';
+import { errorHandler } from './middleware/error.middlewares.js';
+import indexRouter from './routes/index.route.js';
 
+configDotenv();
+const app = express();
 const port = process.env.APP_PORT;
-const schema = require("./database/database.schema");
-const mongo = require("./database/database.service");
-const { errorHandler } = require("./middleware/error.middlewares")
 
 // Global middlewares
 app.use(
@@ -28,7 +29,6 @@ app.use(cookieParser());
 
 app.use(morganMiddleware);
 
-const indexRouter = require("./routes/index.route");
 app.use("/hotelpro", indexRouter);
 
 app.get("/", (req, res) => {

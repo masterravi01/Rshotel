@@ -1,12 +1,10 @@
-const schema = require("../database/database.schema.js");
-const { AvailableUserTypes } = require("../constants.js");
-const { ApiError } = require("../utils/ApiError.js");
-const { asyncHandler } = require("../utils/asyncHandler.js");
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
+import { User } from "../database/database.schema.js"; // Adjust path based on your structure
+import { ApiError } from "../utils/ApiError.js"; // Adjust path based on your structure
+import { asyncHandler } from "../utils/asyncHandler.js"; // Adjust path based on your structure
+import { AvailableUserTypes } from "../constants.js"; // Adjust path based on your structure
 
-const User = schema.User;
-
-const verifyJWT = asyncHandler(async (req, res, next) => {
+export const verifyJWT = asyncHandler(async (req, res, next) => {
   const token =
     req.cookies?.accessToken ||
     req.header("Authorization")?.replace("Bearer ", "");
@@ -35,12 +33,12 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @param {AvailableUserTypes} roles
+ * @param {AvailableUserTypes[]} roles
  * @description
- * * This middleware is responsible for validating multiple user role permissions at a time.
- * * So, in future if we have a route which can be accessible by multiple roles, we can achieve that with this middleware
+ * This middleware is responsible for validating multiple user role permissions at a time.
+ * So, in future if we have a route which can be accessible by multiple roles, we can achieve that with this middleware
  */
-const verifyPermission = (roles = []) =>
+export const verifyPermission = (roles = []) =>
   asyncHandler(async (req, res, next) => {
     if (!req.user?._id) {
       throw new ApiError(401, "Unauthorized request");
@@ -52,19 +50,13 @@ const verifyPermission = (roles = []) =>
     }
   });
 
-const avoidInProduction = asyncHandler(async (req, res, next) => {
+export const avoidInProduction = asyncHandler(async (req, res, next) => {
   if (process.env.NODE_ENV === "development") {
     next();
   } else {
     throw new ApiError(
       403,
-      "This service is only available in the local environment. "
+      "This service is only available in the local environment."
     );
   }
 });
-
-module.exports = {
-  verifyJWT,
-  verifyPermission,
-  avoidInProduction,
-};

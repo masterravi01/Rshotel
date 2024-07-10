@@ -1,11 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const { Router } = require("express");
-const { verifyJWT } = require("../middleware/auth.middlewares")
-const user = require("./auth.route");
-const admin = require("./admin.route");
+import express from "express";
+import { verifyJWT } from "../middleware/auth.middlewares.js";
+import userRouter from "./auth.route.js";
+import adminRouter from "./admin.route.js";
 
-router.use("/user", user);
-router.use(verifyJWT); // apply middleware on subsequence routes
-router.use("/admin", admin);
-module.exports = router;
+const router = express.Router();
+
+router.use("/user", userRouter);
+router.use(verifyJWT); // apply middleware on subsequent routes
+router.use("/admin", adminRouter);
+
+export default router;
