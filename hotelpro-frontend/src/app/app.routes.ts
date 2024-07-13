@@ -45,7 +45,7 @@ export const routes: Routes = [
           import('../app/pages/property-setup/property-setup.module').then(
             (m) => m.PropertySetupModule
           ),
-        canActivate: [authGuard],
+        // canActivate: [authGuard],
       },
       {
         path: 'profile',
