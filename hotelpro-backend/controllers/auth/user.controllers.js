@@ -1,10 +1,7 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import {
-  UserLoginType,
-  UserTypesEnum,
-} from "../../constants.js"; // Adjust path based on your structure
+import { UserLoginType, UserTypesEnum } from "../../constants.js"; // Adjust path based on your structure
 import { ApiError } from "../../utils/ApiError.js"; // Adjust path based on your structure
 import { ApiResponse } from "../../utils/ApiResponse.js"; // Adjust path based on your structure
 import { asyncHandler } from "../../utils/asyncHandler.js"; // Adjust path based on your structure
@@ -19,7 +16,7 @@ import {
   sendEmail,
 } from "../../utils/mail.js"; // Adjust path based on your structure
 
-import { User } from "../../database/database.schema.js"
+import { User } from "../../database/database.schema.js";
 
 // TODO: Add more options to make cookie more secure and reliable
 const options = {
@@ -48,7 +45,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-  let { email, username, password, role } = req.body;
+  let { email, username, password, userType } = req.body;
 
   const existedUser = await User.findOne({
     $or: [{ username }, { email }],
@@ -64,7 +61,7 @@ const registerUser = asyncHandler(async (req, res) => {
     password,
     username,
     isEmailVerified: false,
-    role: role || UserTypesEnum.USER,
+    userType: userType || UserTypesEnum.USER,
   });
 
   /**
