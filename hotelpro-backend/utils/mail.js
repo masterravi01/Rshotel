@@ -74,8 +74,10 @@ export const emailVerificationMailgenContent = (username, verificationUrl) => {
           link: verificationUrl,
         },
       },
-      outro:
+      outro: [
+        "Your verification link will expire in the next 20 minutes.",
         "Need help, or have questions? Just reply to this email, we'd love to help.",
+      ],
     },
   };
 };

@@ -17,11 +17,17 @@ import {
 } from "../../utils/mail.js"; // Adjust path based on your structure
 
 import { User } from "../../database/database.schema.js";
+import { logger } from "../../logger/winston.logger.js";
 
 // TODO: Add more options to make cookie more secure and reliable
 const options = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
+};
+
+const InvalidContent = {
+  contentType: "Invalid URL",
+  content: "The requested URL is invalid.",
 };
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -79,14 +85,14 @@ const registerUser = asyncHandler(async (req, res) => {
   user.emailVerificationExpiry = tokenExpiry;
   await user.save();
 
-  await sendEmail({
+  sendEmail({
     email: user?.email,
     subject: "Please verify your email",
     mailgenContent: emailVerificationMailgenContent(
-      user.username || "UserName",
+      user.username,
       `${req.protocol}://${req.get(
         "host"
-      )}/hotelpro/user/verify-email?verificationToken=${unHashedToken}&email=${email}`
+      )}/hotelpro/user/verify-email?verificationToken=${unHashedToken}&userid=${user._id.toString()}`
     ),
   });
 
@@ -183,49 +189,60 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out"));
 });
 
-const verifyEmail = asyncHandler(async (req, res) => {
-  const { verificationToken, email } = req.query;
+const verifyEmail = async (req, res) => {
+  try {
+    const { verificationToken, userid: UserId } = req.query;
 
-  if (!verificationToken || !email) {
-    throw new ApiError(400, "Email verification token or Email-ID is missing");
+    if (!verificationToken || !UserId) {
+      return res.render("pages/url_validation", InvalidContent);
+    }
+
+    // Generate a hash from the token that we are receiving for comparison with the existing token in DB
+    let hashedToken = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+
+    const user = await User.findById(UserId);
+
+    if (!user) {
+      return res.render("pages/url_validation", InvalidContent);
+    }
+
+    if (user.isEmailVerified) {
+      return res.render("pages/url_validation", {
+        contentType: "Already Verified",
+        content: "Your account is already verified.",
+      });
+    }
+
+    if (
+      hashedToken !== user.emailVerificationToken ||
+      new Date().toISOString() > user.emailVerificationExpiry.toISOString()
+    ) {
+      return res.render("pages/url_validation", {
+        contentType: "Link Expired",
+        content:
+          "Your verification link is expired, please go to the home page to regenerate new link using below button",
+      });
+    }
+
+    // Scenario: Successful Email Verification
+    // If we found the user and the token is valid, update the user's verification status
+    // Remove the associated email token and expiry date as they are no longer needed
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpiry = undefined;
+    user.isEmailVerified = true;
+    await user.save();
+
+    // Return a success response indicating that the email is verified
+    return res.render("pages/email_verification");
+  } catch (error) {
+    // Handle any unexpected errors
+    logger.error(`${error.message}`);
+    return res.render("pages/url_validation", InvalidContent);
   }
-
-  // Generate a hash from the token that we are receiving for compare with exist token in DB
-  let hashedToken = crypto
-    .createHash("sha256")
-    .update(verificationToken)
-    .digest("hex");
-
-  const user = await User.findOne({ email });
-
-  if (!user) {
-    throw new ApiError(404, "User does not exist");
-  }
-
-  if (user.isEmailVerified) {
-    throw new ApiError(409, "Email is already verified!");
-  }
-
-  if (
-    hashedToken !== user.emailVerificationToken ||
-    new Date().toISOString() > user.emailVerificationExpiry.toISOString()
-  ) {
-    throw new ApiError(489, "Token is invalid or expired");
-  }
-
-  // Scenario: Successful Email Verification
-  // If we found the user and the token is valid, update the user's verification status
-  // Remove the associated email token and expiry date as they are no longer needed
-  user.emailVerificationToken = undefined;
-  user.emailVerificationExpiry = undefined;
-  user.isEmailVerified = true;
-  await user.save();
-
-  // Return a success response indicating that the email is verified
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { isEmailVerified: true }, "Email is verified"));
-});
+};
 
 // This controller is called when user is logged in and he has snackbar that your email is not verified
 // In case he did not get the email or the email verification token is expired
@@ -249,14 +266,14 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
   user.emailVerificationExpiry = tokenExpiry;
   await user.save();
 
-  await sendEmail({
+  sendEmail({
     email: user?.email,
     subject: "Please verify your email",
     mailgenContent: emailVerificationMailgenContent(
       user.username,
       `${req.protocol}://${req.get(
         "host"
-      )}/api/v1/users/verify-email?verificationToken=${unHashedToken}&email=${email}`
+      )}/hotelpro/user/verify-email?verificationToken=${unHashedToken}&userid=${user._id.toString()}`
     ),
   });
   return res
@@ -339,7 +356,7 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
       // * Ideally take the url from the .env file which should be teh url of the frontend
       `${req.protocol}://${req.get(
         "host"
-      )}/api/v1/users/reset-password/${unHashedToken}`
+      )}/hotelpro/user/reset-password/${unHashedToken}`
     ),
   });
   return res
