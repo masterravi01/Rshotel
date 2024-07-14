@@ -10,7 +10,7 @@ router.post("/login", user.loginUser);
 router.post("/refresh-token", user.refreshAccessToken);
 router.post("/forget-password", user.forgotPasswordRequest);
 router.post("/reset-password/:resetToken", user.resetForgottenPassword);
-router.post("/verify-email", user.verifyEmail);
+router.get("/verify-email", user.verifyEmail);
 
 // Verify by JWT
 router.post("/logout", verifyJWT, user.logoutUser);

@@ -33,17 +33,17 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @param {AvailableUserTypes[]} roles
+ * @param {AvailableUserTypes[]} userTypes
  * @description
- * This middleware is responsible for validating multiple user role permissions at a time.
- * So, in future if we have a route which can be accessible by multiple roles, we can achieve that with this middleware
+ * This middleware is responsible for validating multiple user userType permissions at a time.
+ * So, in future if we have a route which can be accessible by multiple userTypes, we can achieve that with this middleware
  */
-export const verifyPermission = (roles = []) =>
+export const verifyPermission = (userTypes = []) =>
   asyncHandler(async (req, res, next) => {
     if (!req.user?._id) {
       throw new ApiError(401, "Unauthorized request");
     }
-    if (roles.includes(req.user?.role)) {
+    if (userTypes.includes(req.user?.userType)) {
       next();
     } else {
       throw new ApiError(403, "You are not allowed to perform this action");

@@ -45,23 +45,22 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-  let { email, username, password, userType } = req.body;
+  let { email, password, userType } = req.body;
 
   const existedUser = await User.findOne({
-    $or: [{ username }, { email }],
+    email,
   });
 
   if (existedUser) {
-    throw new ApiError(409, "User with email or username already exists", []);
+    throw new ApiError(409, "User with email is already exists", []);
   }
   password = await bcrypt.hash(password, 10);
 
   const user = await User.create({
     email,
     password,
-    username,
     isEmailVerified: false,
-    userType: userType || UserTypesEnum.USER,
+    userType: userType || UserTypesEnum.CLIENT,
   });
 
   /**
@@ -80,16 +79,16 @@ const registerUser = asyncHandler(async (req, res) => {
   user.emailVerificationExpiry = tokenExpiry;
   await user.save();
 
-  // await sendEmail({
-  //   email: user?.email,
-  //   subject: "Please verify your email",
-  //   mailgenContent: emailVerificationMailgenContent(
-  //     user.username,
-  //     `${req.protocol}://${req.get(
-  //       "host"
-  //     )}/api/v1/users/verify-email?verificationToken=${unHashedToken}&email=${email}`
-  //   ),
-  // });
+  await sendEmail({
+    email: user?.email,
+    subject: "Please verify your email",
+    mailgenContent: emailVerificationMailgenContent(
+      user.username || "UserName",
+      `${req.protocol}://${req.get(
+        "host"
+      )}/hotelpro/user/verify-email?verificationToken=${unHashedToken}&email=${email}`
+    ),
+  });
 
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
@@ -330,19 +329,19 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   await user.save();
 
   // Send mail with the password reset link. It should be the link of the frontend url with token
-  // await sendEmail({
-  //   email: user?.email,
-  //   subject: "Password reset request",
-  //   mailgenContent: forgotPasswordMailgenContent(
-  //     user.username,
-  //     // ! NOTE: Following link should be the link of the frontend page responsible to request password reset
-  //     // ! Frontend will send the below token with the new password in the request body to the backend reset password endpoint
-  //     // * Ideally take the url from the .env file which should be teh url of the frontend
-  //     `${req.protocol}://${req.get(
-  //       "host"
-  //     )}/api/v1/users/reset-password/${unHashedToken}`
-  //   ),
-  // });
+  await sendEmail({
+    email: user?.email,
+    subject: "Password reset request",
+    mailgenContent: forgotPasswordMailgenContent(
+      user.username,
+      // ! NOTE: Following link should be the link of the frontend page responsible to request password reset
+      // ! Frontend will send the below token with the new password in the request body to the backend reset password endpoint
+      // * Ideally take the url from the .env file which should be teh url of the frontend
+      `${req.protocol}://${req.get(
+        "host"
+      )}/api/v1/users/reset-password/${unHashedToken}`
+    ),
+  });
   return res
     .status(200)
     .json(
