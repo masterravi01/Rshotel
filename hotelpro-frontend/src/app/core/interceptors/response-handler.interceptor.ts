@@ -44,7 +44,9 @@ export const responseHandlerInterceptor: HttpInterceptorFn = (req, next) => {
       }
     }),
     finalize(() => {
-      loaderService.hide();
+      if (!req.params.has('skipLoader')) {
+        loaderService.hide();
+      }
       authService.tokenRefreshInProgressSubject.next(false);
     })
   );

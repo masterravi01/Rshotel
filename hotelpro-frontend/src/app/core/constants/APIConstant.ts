@@ -8,4 +8,6 @@ export const APIConstant = {
   RESET_PASSWORD: 'user/reset-password/', //reset-password/:resetToken
   REGISTER_USER: 'user/register',
   API_TEST: 'admin/apiTest',
+  UPLOAD_PROFILE_PHOTO: 'property/upload-profile-photo',
+  UPLOAD_ROOMS_PHOTOS: 'property/upload-rooms-photos',
 };
