@@ -209,12 +209,12 @@
     </div>
 
     <!-- Property Address -->
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="propertyAddress">
       <label class="form-label">Address Line 1</label>
       <input
         type="text"
         class="form-control"
-        formControlName="propertyAddress.addressLine1"
+        formControlName="addressLine1"
         placeholder="Enter Address Line 1"
         [ngClass]="{
           'is-invalid':
@@ -234,22 +234,22 @@
       >
     </div>
 
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="propertyAddress">
       <label class="form-label">Address Line 2</label>
       <input
         type="text"
         class="form-control"
-        formControlName="propertyAddress.addressLine2"
+        formControlName="addressLine2"
         placeholder="Enter Address Line 2"
       />
     </div>
 
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="propertyAddress">
       <label class="form-label">City</label>
       <input
         type="text"
         class="form-control"
-        formControlName="propertyAddress.city"
+        formControlName="city"
         placeholder="Enter City"
         [ngClass]="{
           'is-invalid':
@@ -269,12 +269,12 @@
       >
     </div>
 
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="propertyAddress">
       <label class="form-label">State</label>
       <input
         type="text"
         class="form-control"
-        formControlName="propertyAddress.state"
+        formControlName="state"
         placeholder="Enter State"
         [ngClass]="{
           'is-invalid':
@@ -294,12 +294,12 @@
       >
     </div>
 
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="propertyAddress">
       <label class="form-label">Country</label>
       <input
         type="text"
         class="form-control"
-        formControlName="propertyAddress.country"
+        formControlName="country"
         placeholder="Enter Country"
         [ngClass]="{
           'is-invalid':
@@ -319,12 +319,12 @@
       >
     </div>
 
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="propertyAddress">
       <label class="form-label">Zip Code</label>
       <input
         type="text"
         class="form-control"
-        formControlName="propertyAddress.zipCode"
+        formControlName="zipCode"
         placeholder="Enter Zip Code"
         [ngClass]="{
           'is-invalid':
@@ -345,12 +345,12 @@
     </div>
 
     <!-- Manager Details -->
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="managerDetails">
       <label class="form-label">Manager First Name</label>
       <input
         type="text"
         class="form-control"
-        formControlName="managerDetails.firstName"
+        formControlName="firstName"
         placeholder="Enter Manager First Name"
         [ngClass]="{
           'is-invalid':
@@ -370,12 +370,12 @@
       >
     </div>
 
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="managerDetails">
       <label class="form-label">Manager Last Name</label>
       <input
         type="text"
         class="form-control"
-        formControlName="managerDetails.lastName"
+        formControlName="lastName"
         placeholder="Enter Manager Last Name"
         [ngClass]="{
           'is-invalid':
@@ -395,12 +395,12 @@
       >
     </div>
 
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="managerDetails">
       <label class="form-label">Manager Phone</label>
       <input
         type="text"
         class="form-control"
-        formControlName="managerDetails.phone"
+        formControlName="phone"
         placeholder="Enter Manager Phone"
         [ngClass]="{
           'is-invalid':
@@ -420,12 +420,12 @@
       >
     </div>
 
-    <div class="col mt-3">
+    <div class="col mt-3" formGroupName="managerDetails">
       <label class="form-label">Manager Email</label>
       <input
         type="text"
         class="form-control"
-        formControlName="managerDetails.email"
+        formControlName="email"
         placeholder="Enter Manager Email"
         [ngClass]="{
           'is-invalid':
@@ -451,3 +451,57 @@
     </div>
   </form>
 </div>
+
+<div>
+  <h3>Upload Profile Image</h3>
+  <ngx-file-drop
+    (onFileDrop)="droppedProfile($event)"
+    dropZoneClassName="my-style"
+    contentClassName="my-style"
+    [multiple]="false"
+  >
+    <ng-template
+      ngx-file-drop-content-tmp
+      let-openFileSelector="openFileSelector"
+    >
+      <button type="button" (click)="openFileSelector()">
+        Choose logo image
+      </button>
+    </ng-template>
+  </ngx-file-drop>
+  <div *ngIf="profileImagePreview">
+    <img
+      [src]="profileImagePreview"
+      alt="Profile Image Preview"
+      style="max-width: 200px"
+    />
+    <button (click)="removeProfileImage()">Remove</button>
+  </div>
+  <button (click)="uploadProfileImage()">Upload Profile Image</button>
+</div>
+
+<div>
+  <h3>Upload Room Images</h3>
+  <ngx-file-drop
+    (onFileDrop)="droppedRooms($event)"
+    dropZoneClassName="my-style"
+    contentClassName="my-style"
+    accept=".jpg, .jpeg, .png, .JPG, .JPEG, .PNG"
+  >
+    <ng-template
+      ngx-file-drop-content-tmp
+      let-openFileSelector="openFileSelector"
+    >
+      <button type="button" (click)="openFileSelector()">
+        Choose rooms image
+      </button>
+    </ng-template>
+  </ngx-file-drop>
+  <div *ngFor="let preview of roomImagesPreviews; let i = index">
+    <img [src]="preview" alt="Room Image Preview" style="max-width: 200px" />
+    <button (click)="removeRoomImage(i)">Remove</button>
+  </div>
+  <button (click)="uploadRoomImages()">Upload Room Images</button>
+</div>
+
+<button type="button" (click)="createProp()">Create Prp</button>

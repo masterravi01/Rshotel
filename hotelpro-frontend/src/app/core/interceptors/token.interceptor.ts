@@ -15,10 +15,14 @@ export const tokenInterceptor: HttpInterceptorFn = (
   const authReq = req.clone({
     withCredentials: true,
   });
-  loaderService.show();
+  if (!req.params.has('skipLoader')) {
+    loaderService.show();
+  }
   return next(authReq).pipe(
     finalize(() => {
-      loaderService.hide();
+      if (!req.params.has('skipLoader')) {
+        loaderService.hide();
+      }
     })
   );
 };

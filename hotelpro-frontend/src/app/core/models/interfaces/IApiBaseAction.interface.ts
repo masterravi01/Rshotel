@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 
-export type ParamsType = { hideLoader: boolean };
+export type ParamsType = { skipLoader: boolean };
 
 export interface IApiBaseActions {
   Get(url: string, params?: ParamsType): Observable<any>;

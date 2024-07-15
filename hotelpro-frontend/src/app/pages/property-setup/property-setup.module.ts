@@ -4,6 +4,7 @@ import { AddUpdatePropertyComponent } from './add-update-property/add-update-pro
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Routes, RouterModule } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
+import { NgxFileDropModule } from 'ngx-file-drop';
 
 const routes: Routes = [
   { path: '', redirectTo: 'Add', pathMatch: 'full' },
@@ -21,6 +22,7 @@ const routes: Routes = [
     RouterModule.forChild(routes),
     FormsModule,
     ReactiveFormsModule,
+    NgxFileDropModule,
   ],
 })
 export class PropertySetupModule {}
