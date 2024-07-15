@@ -198,14 +198,14 @@ const verifyEmail = async (req, res) => {
     }
 
     // Generate a hash from the token that we are receiving for comparison with the existing token in DB
-    let hashedToken = crypto
+    const hashedToken = crypto
       .createHash("sha256")
       .update(verificationToken)
       .digest("hex");
 
     const user = await User.findById(UserId);
 
-    if (!user) {
+    if (!user || hashedToken !== user.emailVerificationToken) {
       return res.render("pages/url_validation", InvalidContent);
     }
 
@@ -216,10 +216,7 @@ const verifyEmail = async (req, res) => {
       });
     }
 
-    if (
-      hashedToken !== user.emailVerificationToken ||
-      new Date().toISOString() > user.emailVerificationExpiry.toISOString()
-    ) {
+    if (new Date().toISOString() > user.emailVerificationExpiry.toISOString()) {
       return res.render("pages/url_validation", {
         contentType: "Link Expired",
         content:
@@ -248,7 +245,8 @@ const verifyEmail = async (req, res) => {
 // In case he did not get the email or the email verification token is expired
 // he will be able to resend the token while he is logged in
 const resendEmailVerification = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user?._id);
+  const { UserId } = req.body;
+  const user = await User.findById(UserId);
 
   if (!user) {
     throw new ApiError(404, "User does not exists", []);
