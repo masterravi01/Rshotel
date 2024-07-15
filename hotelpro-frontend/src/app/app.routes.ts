@@ -40,12 +40,12 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'property',
+        path: 'property-setup',
         loadChildren: () =>
           import('../app/pages/property-setup/property-setup.module').then(
             (m) => m.PropertySetupModule
           ),
-        // canActivate: [authGuard],
+        canActivate: [authGuard],
       },
       {
         path: 'profile',

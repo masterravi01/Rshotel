@@ -10,7 +10,7 @@ import {
   FileSystemDirectoryEntry,
 } from 'ngx-file-drop';
 import { AlertService } from '../../../core/services/alert.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FileUploadComponent } from '../../../core/reused/file-upload/file-upload.component';
 
 @Component({
@@ -21,6 +21,8 @@ import { FileUploadComponent } from '../../../core/reused/file-upload/file-uploa
 export class AddUpdatePropertyComponent implements OnInit {
   userInfo: any;
   propertyUnitForm!: FormGroup;
+  PropertyTypes: any[] = ['Villa', 'Hotel', 'Resort'];
+  propertyUnitId: string | null = 'ADD';
 
   @ViewChild(FileUploadComponent) fileUploadComponent!: FileUploadComponent;
 
@@ -29,11 +31,14 @@ export class AddUpdatePropertyComponent implements OnInit {
     private crudService: CrudService,
     private fb: FormBuilder,
     private alertService: AlertService,
-    private router: Router
+    private router: Router,
+    private activeRoute: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.userInfo = this.authService.getUserInfo()?.user;
+    this.propertyUnitId =
+      this.activeRoute.snapshot.paramMap.get('propertyUnitId');
 
     this.propertyUnitForm = this.fb.group({
       propertyUnitName: [
@@ -41,7 +46,7 @@ export class AddUpdatePropertyComponent implements OnInit {
         [Validators.required, CustomValidators.noLeadingSpace],
       ],
       propertyUnitLegalName: ['', [Validators.required]],
-      propertyUnitType: ['', [Validators.required]],
+      propertyUnitType: ['Hotel', [Validators.required]],
       description: ['', [Validators.required]],
       website: ['', [Validators.required]],
       propertyAddress: this.fb.group({
@@ -59,25 +64,52 @@ export class AddUpdatePropertyComponent implements OnInit {
         email: ['', [Validators.required]],
       }),
     });
+    this.propertyUnitId = '6695584abc45f8d7ad2ead7b';
+    if (this.propertyUnitId != 'ADD') {
+      this.crudService
+        .post(APIConstant.READ_PROPERTY_UNIT + '/' + this.propertyUnitId, {})
+        .then((response: any) => {
+          console.log(response);
+          this.alertService.successAlert(response.message);
+          this.propertyUnitForm.reset(response.data);
+        })
+        .catch((error) => {
+          this.alertService.errorAlert(error.message);
+        });
+    }
   }
 
   onSubmit(): void {
     if (this.propertyUnitForm.valid) {
       console.log(this.propertyUnitForm.value);
+      const obj = this.propertyUnitForm.value;
+      if (this.propertyUnitId == 'ADD') {
+        this.crudService
+          .post(APIConstant.CREATE_PROPERTY_UNIT, obj)
+          .then((response: any) => {
+            console.log(response);
+            this.alertService.successAlert(response.message);
+          })
+          .catch((error) => {
+            this.alertService.errorAlert(error.message);
+          });
+      } else {
+        this.crudService
+          .post(
+            APIConstant.UPDATE_PROPERTY_UNIT + '/' + this.propertyUnitId,
+            obj
+          )
+          .then((response: any) => {
+            console.log(response);
+            this.alertService.successAlert(response.message);
+          })
+          .catch((error) => {
+            this.alertService.errorAlert(error.message);
+          });
+      }
     } else {
       this.propertyUnitForm.markAllAsTouched(); // Mark all controls as touched to display validation errors
     }
-  }
-
-  createProp() {
-    this.crudService
-      .post('property/create-property', {})
-      .then((response: any) => {
-        this.alertService.successAlert(response.message);
-      })
-      .catch((error) => {
-        this.alertService.errorAlert(error.message);
-      });
   }
 
   getfile(files: File[]) {

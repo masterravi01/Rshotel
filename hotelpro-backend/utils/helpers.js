@@ -1,5 +1,5 @@
-import fs from 'fs';
-import mongoose from 'mongoose';
+import fs from "fs";
+import mongoose from "mongoose";
 
 /**
  *
@@ -94,7 +94,7 @@ export const getPaginatedPayload = (dataArray, page, limit) => {
  * @description returns the file's static path from where the server is serving the static image
  */
 export const getStaticFilePath = (req, fileName) => {
-  return `${req.protocol}://${req.get('host')}/images/${fileName}`;
+  return `${req.protocol}://${req.get("host")}/images/${fileName}`;
 };
 
 /**
@@ -113,13 +113,12 @@ export const getLocalPath = (fileName) => {
  */
 export const removeLocalFile = (localPath) => {
   fs.unlink(localPath, (err) => {
-    if (err) console.log('Error while removing local files: ', err);
+    if (err) console.log("Error while removing local files: ", err);
     else {
-      console.log('Removed local: ', localPath);
+      console.log("Removed local: ", localPath);
     }
   });
 };
-
 
 /**
  *
@@ -136,7 +135,7 @@ export const getMongoosePaginationOptions = ({
     limit: Math.max(limit, 1),
     pagination: true,
     customLabels: {
-      pagingCounter: 'serialNumberStartFrom',
+      pagingCounter: "serialNumberStartFrom",
       ...customLabels,
     },
   };
@@ -147,4 +146,8 @@ export const getMongoosePaginationOptions = ({
  */
 export const getRandomNumber = (max) => {
   return Math.floor(Math.random() * max);
+};
+
+export const generatePropertyUnitCode = () => {
+  return Math.floor(Math.random() * 1000000);
 };

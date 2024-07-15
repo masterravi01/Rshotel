@@ -8,9 +8,9 @@ import { NgxFileDropModule } from 'ngx-file-drop';
 import { FileUploadComponent } from '../../core/reused/file-upload/file-upload.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'Add', pathMatch: 'full' },
+  { path: '', redirectTo: 'property', pathMatch: 'full' },
   {
-    path: 'Add',
+    path: 'property/:propertyUnitId',
     component: AddUpdatePropertyComponent,
   },
 ];
