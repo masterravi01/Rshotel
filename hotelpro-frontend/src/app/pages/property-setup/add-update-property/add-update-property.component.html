@@ -452,56 +452,8 @@
   </form>
 </div>
 
-<div>
-  <h3>Upload Profile Image</h3>
-  <ngx-file-drop
-    (onFileDrop)="droppedProfile($event)"
-    dropZoneClassName="my-style"
-    contentClassName="my-style"
-    [multiple]="false"
-  >
-    <ng-template
-      ngx-file-drop-content-tmp
-      let-openFileSelector="openFileSelector"
-    >
-      <button type="button" (click)="openFileSelector()">
-        Choose logo image
-      </button>
-    </ng-template>
-  </ngx-file-drop>
-  <div *ngIf="profileImagePreview">
-    <img
-      [src]="profileImagePreview"
-      alt="Profile Image Preview"
-      style="max-width: 200px"
-    />
-    <button (click)="removeProfileImage()">Remove</button>
-  </div>
-  <button (click)="uploadProfileImage()">Upload Profile Image</button>
-</div>
-
-<div>
-  <h3>Upload Room Images</h3>
-  <ngx-file-drop
-    (onFileDrop)="droppedRooms($event)"
-    dropZoneClassName="my-style"
-    contentClassName="my-style"
-    accept=".jpg, .jpeg, .png, .JPG, .JPEG, .PNG"
-  >
-    <ng-template
-      ngx-file-drop-content-tmp
-      let-openFileSelector="openFileSelector"
-    >
-      <button type="button" (click)="openFileSelector()">
-        Choose rooms image
-      </button>
-    </ng-template>
-  </ngx-file-drop>
-  <div *ngFor="let preview of roomImagesPreviews; let i = index">
-    <img [src]="preview" alt="Room Image Preview" style="max-width: 200px" />
-    <button (click)="removeRoomImage(i)">Remove</button>
-  </div>
-  <button (click)="uploadRoomImages()">Upload Room Images</button>
-</div>
-
-<button type="button" (click)="createProp()">Create Prp</button>
+<app-file-upload
+  [multiple]="true"
+  [acceptTypes]="'.jpg, .jpeg, .png, .JPG, .JPEG, .PNG'"
+  (onUpload)="getfile($event)"
+></app-file-upload>

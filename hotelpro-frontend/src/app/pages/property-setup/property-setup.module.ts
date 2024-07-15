@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Routes, RouterModule } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { NgxFileDropModule } from 'ngx-file-drop';
+import { FileUploadComponent } from '../../core/reused/file-upload/file-upload.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'Add', pathMatch: 'full' },
@@ -23,6 +24,7 @@ const routes: Routes = [
     FormsModule,
     ReactiveFormsModule,
     NgxFileDropModule,
+    FileUploadComponent,
   ],
 })
 export class PropertySetupModule {}
