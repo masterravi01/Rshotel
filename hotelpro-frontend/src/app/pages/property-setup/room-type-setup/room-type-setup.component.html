@@ -1,0 +1,147 @@
+<div class="container container_form my-3 rounded">
+  <form [formGroup]="roomTypeForm" (ngSubmit)="onSubmit()">
+    <ng-container formArrayName="roomTypes">
+      <ng-container *ngFor="let roomType of roomTypes.controls; let i = index">
+        <div [formGroupName]="i" class="row row-cols-1 row-cols-md-2">
+          <div class="col mt-3">
+            <label class="form-label">RoomType Name</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="roomTypeName"
+              placeholder="Enter RoomTypeName"
+              [ngClass]="{
+                'is-invalid':
+                  (roomType.get('roomTypeName')?.dirty ||
+                    roomType.get('roomTypeName')?.touched) &&
+                  roomType.get('roomTypeName')?.invalid
+              }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="
+                (roomType.get('roomTypeName')?.dirty ||
+                  roomType.get('roomTypeName')?.touched) &&
+                roomType.get('roomTypeName')?.invalid
+              "
+              >RoomType Name is required</small
+            >
+          </div>
+          <div class="col mt-3">
+            <label class="form-label">RoomType Category</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="roomTypeCategory"
+              placeholder="Enter RoomTypeCategory"
+              [ngClass]="{
+                'is-invalid':
+                  (roomType.get('roomTypeCategory')?.dirty ||
+                    roomType.get('roomTypeCategory')?.touched) &&
+                  roomType.get('roomTypeCategory')?.invalid
+              }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="
+                (roomType.get('roomTypeCategory')?.dirty ||
+                  roomType.get('roomTypeCategory')?.touched) &&
+                roomType.get('roomTypeCategory')?.invalid
+              "
+              >RoomType Category is required</small
+            >
+          </div>
+          <!-- <div class="col mt-3">
+            <label class="form-label">Active</label>
+            <input
+              type="checkbox"
+              class="form-check-input"
+              formControlName="active"
+            />
+          </div> -->
+          <div class="col mt-3">
+            <label class="form-label">Description</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="description"
+              placeholder="Enter Description"
+              [ngClass]="{
+                'is-invalid':
+                  (roomType.get('description')?.dirty ||
+                    roomType.get('description')?.touched) &&
+                  roomType.get('description')?.invalid
+              }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="
+                (roomType.get('description')?.dirty ||
+                  roomType.get('description')?.touched) &&
+                roomType.get('description')?.invalid
+              "
+              >Description is required</small
+            >
+          </div>
+          <div class="col mt-3">
+            <label class="form-label">Adult Occupancy</label>
+            <input
+              type="number"
+              class="form-control"
+              formControlName="adultOccupancy"
+              [ngClass]="{
+                'is-invalid':
+                  (roomType.get('adultOccupancy')?.dirty ||
+                    roomType.get('adultOccupancy')?.touched) &&
+                  roomType.get('adultOccupancy')?.invalid
+              }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="
+                (roomType.get('adultOccupancy')?.dirty ||
+                  roomType.get('adultOccupancy')?.touched) &&
+                roomType.get('adultOccupancy')?.invalid
+              "
+              >Adult Occupancy is required</small
+            >
+          </div>
+          <div class="col mt-3">
+            <label class="form-label">Child Occupancy</label>
+            <input
+              type="number"
+              class="form-control"
+              formControlName="childOccupancy"
+              [ngClass]="{
+                'is-invalid':
+                  (roomType.get('childOccupancy')?.dirty ||
+                    roomType.get('childOccupancy')?.touched) &&
+                  roomType.get('childOccupancy')?.invalid
+              }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="
+                (roomType.get('childOccupancy')?.dirty ||
+                  roomType.get('childOccupancy')?.touched) &&
+                roomType.get('childOccupancy')?.invalid
+              "
+              >Child Occupancy is required</small
+            >
+          </div>
+        </div>
+        <hr class="mt-3" />
+      </ng-container>
+      <button class="btn btn-primary mt-3" (click)="addRoomType()">
+        + ADD Room Type
+      </button>
+    </ng-container>
+
+    <!-- Submit Button -->
+    <div class="col-md-12 mt-4">
+      <div class="d-flex justify-content-center">
+        <button class="btn btn-primary mb-3" type="submit">Next</button>
+      </div>
+    </div>
+  </form>
+</div>

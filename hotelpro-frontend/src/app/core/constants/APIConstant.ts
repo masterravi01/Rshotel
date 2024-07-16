@@ -10,7 +10,12 @@ export const APIConstant = {
   API_TEST: 'admin/apiTest',
   UPLOAD_PROFILE_PHOTO: 'property/upload-profile-photo',
   UPLOAD_ROOMS_PHOTOS: 'property/upload-rooms-photos',
-  UPDATE_PROPERTY_UNIT: 'propertyunit/update-propertyunit',
+  UPDATE_PROPERTY_UNIT: 'propertyunit/update-propertyunit/',
   CREATE_PROPERTY_UNIT: 'propertyunit/create-propertyunit',
-  READ_PROPERTY_UNIT: 'propertyunit/read-propertyunit',
+  READ_PROPERTY_UNIT: 'propertyunit/read-propertyunit/',
+
+  READ_ROOMTYPES: 'room/read-roomtypes/',
+  READ_ROOMTYPE_BY_ID: 'room/read-roomtypebyid/',
+  ADD_ROOMTYPES: 'room/add-roomtype/',
+  UPDATE_ROOM_TYPE: 'room/update-roomtype/',
 };
