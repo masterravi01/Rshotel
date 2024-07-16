@@ -42,8 +42,8 @@ const createRoomType = asyncHandler(async (req, res) => {
 
 // PUT update a room type by ID
 const updateRoomTypeById = asyncHandler(async (req, res) => {
-  const { roomTypeId } = req.params;
   const {
+    _id,
     roomTypeName,
     active,
     roomTypeCategory,
@@ -55,7 +55,7 @@ const updateRoomTypeById = asyncHandler(async (req, res) => {
   } = req.body;
 
   const roomType = await RoomType.findByIdAndUpdate(
-    roomTypeId,
+    _id,
     {
       roomTypeName,
       active,

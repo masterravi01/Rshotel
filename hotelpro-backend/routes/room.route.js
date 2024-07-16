@@ -7,6 +7,6 @@ const router = express.Router();
 router.post("/read-roomtypes/:propertyUnitId", roomIndex.getAllRoomTypes);
 router.post("/read-roomtypebyid/:roomTypeId", roomIndex.getRoomTypeById);
 router.post("/add-roomtype/:propertyUnitId", roomIndex.createRoomType);
-router.post("/update-roomtype/:roomTypeId", roomIndex.updateRoomTypeById);
+router.post("/update-roomtype", roomIndex.updateRoomTypeById);
 
 export default router;

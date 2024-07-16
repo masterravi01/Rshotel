@@ -40,7 +40,9 @@ export class RoomTypeSetupComponent implements OnInit {
       .then((response: any) => {
         console.log(response);
         this.alertService.successAlert(response.message);
-        // this.roomTypeForm.reset(response.data);
+        this.addRoomType(response.data.length - 1);
+
+        this.roomTypeForm.controls.roomTypes.reset(response.data);
       })
       .catch((error) => {
         this.alertService.errorAlert(error.message);
@@ -53,6 +55,7 @@ export class RoomTypeSetupComponent implements OnInit {
 
   createRoomType(): FormGroup {
     return this.fb.group({
+      _id: [null],
       roomTypeName: [
         '',
         [Validators.required, CustomValidators.noLeadingSpace],
@@ -65,8 +68,23 @@ export class RoomTypeSetupComponent implements OnInit {
     });
   }
 
-  addRoomType(): void {
-    this.roomTypes.push(this.createRoomType());
+  addRoomType(i: number): void {
+    while (i > 0) {
+      this.roomTypes.push(this.createRoomType());
+      i--;
+    }
+  }
+
+  updateRoomType(r: any) {
+    this.crudService
+      .post(APIConstant.UPDATE_ROOM_TYPE, r)
+      .then((response: any) => {
+        console.log(response);
+        this.alertService.successAlert(response.message);
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(error.message);
+      });
   }
 
   onSubmit(): void {
