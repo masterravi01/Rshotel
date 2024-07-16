@@ -3,7 +3,7 @@ import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { Property } from "../../database/database.schema.js";
 import { PropertyUnit, User, Address } from "../../database/database.schema.js";
-import { generatePropertyUnitCode } from "../../utils/helpers.js";
+import { getRandomNumber } from "../../utils/helpers.js";
 import mongoose from "mongoose";
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -88,7 +88,7 @@ const createPropertyUnit = asyncHandler(async (req, res) => {
     socialMediaLinks,
     active,
   } = req.body;
-  const propertyUnitCode = generatePropertyUnitCode();
+  const propertyUnitCode = getRandomNumber(1000000);
 
   const manager = new User(managerDetails);
 

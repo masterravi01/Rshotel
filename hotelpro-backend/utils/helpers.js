@@ -147,7 +147,3 @@ export const getMongoosePaginationOptions = ({
 export const getRandomNumber = (max) => {
   return Math.floor(Math.random() * max);
 };
-
-export const generatePropertyUnitCode = () => {
-  return Math.floor(Math.random() * 1000000);
-};
