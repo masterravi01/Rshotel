@@ -1,4 +1,4 @@
-<div class="container container_form mt-3 rounded">
+<div class="container container_form my-3 rounded">
   <form
     [formGroup]="propertyUnitForm"
     (ngSubmit)="onSubmit()"
@@ -379,14 +379,14 @@
     <!-- Submit Button -->
     <div class="col-md-12 mt-4">
       <div class="d-flex justify-content-center">
-        <button class="btn btn-primary mb-3" type="submit">Submit form</button>
+        <button class="btn btn-primary mb-3" type="submit">Next</button>
       </div>
     </div>
   </form>
 </div>
 
-<app-file-upload
+<!-- <app-file-upload
   [multiple]="true"
   [acceptTypes]="'.jpg, .jpeg, .png, .JPG, .JPEG, .PNG'"
   (onUpload)="getfile($event)"
-></app-file-upload>
+></app-file-upload> -->

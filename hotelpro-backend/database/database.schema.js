@@ -226,7 +226,11 @@ export const TaxDetail = mongoose.model("TaxDetail", taxDetailSchema);
 
 const roomTypeSchema = new Schema(
   {
-    roomTypeName: String,
+    roomTypeName: {
+      type: String,
+      required: true,
+    },
+    active: { type: Boolean, default: true },
     roomTypeCategory: String,
     description: String,
     images: [String],
@@ -250,8 +254,16 @@ const roomSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "RoomType",
     },
-    roomStatus: String,
-    roomCondition: String,
+    roomStatus: {
+      type: String,
+      enum: ["occupied", "vacant", "maintainance"],
+      default: "vacant",
+    },
+    roomCondition: {
+      type: String,
+      enum: ["dirty", "clean"],
+      default: "clean",
+    },
     dnd: Boolean,
   },
   { timestamps: true }

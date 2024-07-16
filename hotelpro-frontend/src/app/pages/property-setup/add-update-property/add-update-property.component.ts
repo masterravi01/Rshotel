@@ -64,10 +64,9 @@ export class AddUpdatePropertyComponent implements OnInit {
         email: ['', [Validators.required]],
       }),
     });
-    this.propertyUnitId = '6695584abc45f8d7ad2ead7b';
     if (this.propertyUnitId != 'ADD') {
       this.crudService
-        .post(APIConstant.READ_PROPERTY_UNIT + '/' + this.propertyUnitId, {})
+        .post(APIConstant.READ_PROPERTY_UNIT + this.propertyUnitId, {})
         .then((response: any) => {
           console.log(response);
           this.alertService.successAlert(response.message);
@@ -95,10 +94,7 @@ export class AddUpdatePropertyComponent implements OnInit {
           });
       } else {
         this.crudService
-          .post(
-            APIConstant.UPDATE_PROPERTY_UNIT + '/' + this.propertyUnitId,
-            obj
-          )
+          .post(APIConstant.UPDATE_PROPERTY_UNIT + this.propertyUnitId, obj)
           .then((response: any) => {
             console.log(response);
             this.alertService.successAlert(response.message);
