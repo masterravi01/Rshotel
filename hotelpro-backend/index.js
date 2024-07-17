@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import morganMiddleware from "./logger/morgan.logger.js";
 import mongo from "./database/database.service.js";
 import { errorHandler } from "./middleware/error.middlewares.js";
-import indexRouter from "./routes/index.route.js";
+import indexRouter from "./routes/index.routes.js";
 
 configDotenv();
 const app = express();

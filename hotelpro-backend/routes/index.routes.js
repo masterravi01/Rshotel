@@ -1,9 +1,9 @@
 import express from "express";
 import { verifyJWT } from "../middleware/auth.middlewares.js";
-import userRouter from "./auth.route.js";
-import propertyRouter from "./property.route.js";
-import propertyUnitRouter from "./propertyunit.route.js";
-import roomRouter from "./room.route.js";
+import userRouter from "./auth.routes.js";
+import propertyRouter from "./property.routes.js";
+import propertyUnitRouter from "./propertyunit.routes.js";
+import roomRouter from "./room.routes.js";
 
 const router = express.Router();
 
