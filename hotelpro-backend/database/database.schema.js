@@ -234,7 +234,6 @@ const roomTypeSchema = new Schema(
     roomTypeCategory: String,
     description: String,
     images: [String],
-    active: Boolean,
     propertyUnitId: {
       type: Schema.Types.ObjectId,
       ref: "PropertyUnit",
