@@ -17,4 +17,5 @@ export const APIConstant = {
   READ_ROOMTYPE_BY_ID: 'room/read-roomtypebyid/',
   ADD_ROOMTYPES: 'room/add-roomtype/',
   UPDATE_ROOM_TYPE: 'room/update-roomtype',
+  CREATE_ROOMTYPE_AND_ROOMS: 'room/create-roomtype-and-rooms/',
 };

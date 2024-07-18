@@ -6,7 +6,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { NgxFileDropModule } from 'ngx-file-drop';
 import { FileUploadComponent } from '../../core/reused/file-upload/file-upload.component';
-import { RoomTypeSetupComponent } from './room-type-setup/room-type-setup.component';
+import { RoomTypeRangeSetupComponent } from './room-type-range-setup/room-type-range-setup.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'property', pathMatch: 'full' },
@@ -16,14 +16,14 @@ const routes: Routes = [
     title: 'Property Setup',
   },
   {
-    path: 'roomtypesetup/:propertyUnitId',
-    component: RoomTypeSetupComponent,
-    title: 'RoomType Setup',
+    path: 'roomtyperangesetup/:propertyUnitId',
+    component: RoomTypeRangeSetupComponent,
+    title: 'Room & RoomType Setup',
   },
 ];
 
 @NgModule({
-  declarations: [AddUpdatePropertyComponent, RoomTypeSetupComponent],
+  declarations: [AddUpdatePropertyComponent, RoomTypeRangeSetupComponent],
   imports: [
     CommonModule,
     RouterModule,

@@ -1,7 +1,7 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
-import { RoomType } from "../../database/database.schema.js";
+import { RoomType, Room } from "../../database/database.schema.js";
 
 // GET all room types
 const getAllRoomTypes = asyncHandler(async (req, res) => {
@@ -90,10 +90,83 @@ const deleteRoomTypeById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { id }, "Room type deleted successfully"));
 });
 
+const createRoomTypeWithRooms = asyncHandler(async (req, res) => {
+  const {
+    roomTypeName,
+    active,
+    roomTypeCategory,
+    description,
+    adultOccupancy,
+    childOccupancy,
+    totalrooms,
+    rooms,
+  } = req.body;
+  const { propertyUnitId } = req.params;
+
+  // Create the room type
+  const newRoomType = new RoomType({
+    roomTypeName,
+    active,
+    roomTypeCategory,
+    description,
+    adultOccupancy,
+    childOccupancy,
+    totalrooms,
+    propertyUnitId,
+  });
+
+  await newRoomType.save();
+
+  // Create the rooms
+  const roomDocuments = [];
+  let totalCount = 0;
+
+  rooms.forEach((room) => {
+    const { prefix, start, end } = room;
+    for (let i = start; i <= end; i++) {
+      roomDocuments.push({
+        roomName: `${prefix}${i}`,
+        roomNumber: i.toString(),
+        roomTypeId: newRoomType._id,
+        roomStatus: "vacant",
+        roomCondition: "clean",
+        dnd: false,
+      });
+      totalCount++;
+    }
+  });
+
+  // Validate room count
+  if (totalCount !== totalrooms) {
+    return res
+      .status(400)
+      .json(
+        new ApiResponse(
+          400,
+          null,
+          "Total rooms do not match the sum of the ranges"
+        )
+      );
+  }
+
+  await Room.insertMany(roomDocuments);
+
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(
+        201,
+        { newRoomType, roomDocuments },
+        "Room type and rooms created successfully"
+      )
+    );
+});
+
 export default {
   getAllRoomTypes,
   getRoomTypeById,
   createRoomType,
   updateRoomTypeById,
   deleteRoomTypeById,
+  createRoomTypeWithRooms,
 };
