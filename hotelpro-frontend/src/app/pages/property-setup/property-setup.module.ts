@@ -7,6 +7,7 @@ import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { NgxFileDropModule } from 'ngx-file-drop';
 import { FileUploadComponent } from '../../core/reused/file-upload/file-upload.component';
 import { RoomTypeRangeSetupComponent } from './room-type-range-setup/room-type-range-setup.component';
+import { RoomsReviewComponent } from './rooms-review/rooms-review.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'property', pathMatch: 'full' },
@@ -20,10 +21,19 @@ const routes: Routes = [
     component: RoomTypeRangeSetupComponent,
     title: 'Room & RoomType Setup',
   },
+  {
+    path: 'roomsreview/:propertyUnitId',
+    component: RoomsReviewComponent,
+    title: 'Rooms Review',
+  },
 ];
 
 @NgModule({
-  declarations: [AddUpdatePropertyComponent, RoomTypeRangeSetupComponent],
+  declarations: [
+    AddUpdatePropertyComponent,
+    RoomTypeRangeSetupComponent,
+    RoomsReviewComponent,
+  ],
   imports: [
     CommonModule,
     RouterModule,

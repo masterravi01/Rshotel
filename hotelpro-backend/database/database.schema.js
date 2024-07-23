@@ -660,24 +660,6 @@ export const ReservationDetail = mongoose.model(
   reservationDetailSchema
 );
 
-const roomBalanceSchema = new Schema(
-  {
-    reservationId: {
-      type: Schema.Types.ObjectId,
-      ref: "Reservation",
-    },
-    propertyUnitId: {
-      type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
-    },
-    balanceDate: Date,
-    balance: Number,
-    balanceName: String,
-  },
-  { timestamps: true }
-);
-export const RoomBalance = mongoose.model("RoomBalance", roomBalanceSchema);
-
 const shiftSchema = new Schema(
   {
     userId: {
@@ -800,3 +782,141 @@ const nightAuditSchema = new Schema(
   { timestamps: true }
 );
 export const NightAudit = mongoose.model("NightAudit", nightAuditSchema);
+
+const billingAccountSchema = new Schema(
+  {
+    billingAccountName: String,
+    billingAccountDescription: String,
+    propertyUnitId: {
+      type: Schema.Types.ObjectId,
+      ref: "PropertyUnit",
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+  },
+  { timestamps: true }
+);
+
+export const BillingAccount = mongoose.model(
+  "BillingAccount",
+  billingAccountSchema
+);
+
+const transactionCodeSchema = new Schema(
+  {
+    transactionCode: String,
+    transactionRate: Number,
+    transactionName: String,
+    transactionDetail: String,
+    receipt: Number,
+    date: Date,
+    paymentTypeId: {
+      type: Schema.Types.ObjectId,
+      ref: "PaymentTypes",
+    },
+    transactionType: {
+      type: String,
+      enum: ["Amenity", "Card", "Tax", "Reservation", "Other"],
+    },
+    refundFlag: Boolean,
+  },
+  { timestamps: true }
+);
+
+export const TransactionCode = mongoose.model(
+  "TransactionCode",
+  transactionCodeSchema
+);
+
+const guestTransactionSchema = new Schema(
+  {
+    transactionDate: Date,
+    acknowledgementDate: Date,
+    transactionCodeId: {
+      type: Schema.Types.ObjectId,
+      ref: "TransactionCode",
+    },
+    reservationId: {
+      type: Schema.Types.ObjectId,
+      ref: "Reservation",
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    roomId: {
+      type: Schema.Types.ObjectId,
+      ref: "Room",
+    },
+    billingAccountId: {
+      type: Schema.Types.ObjectId,
+      ref: "BillingAccount",
+    },
+    billingCardId: {
+      type: Schema.Types.ObjectId,
+      ref: "BillingCard",
+    },
+    deposit: Boolean,
+  },
+  { timestamps: true }
+);
+
+export const GuestTransaction = mongoose.model(
+  "GuestTransaction",
+  guestTransactionSchema
+);
+
+const billingCardSchema = new Schema(
+  {
+    billingAccountId: {
+      type: Schema.Types.ObjectId,
+      ref: "BillingAccount",
+    },
+    billingCardOtherDetails: String,
+    cardToken: String,
+  },
+  { timestamps: true }
+);
+
+export const BillingCard = mongoose.model("BillingCard", billingCardSchema);
+
+const roomBalanceSchema = new Schema(
+  {
+    balanceDate: Date,
+    reservationId: {
+      type: Schema.Types.ObjectId,
+      ref: "Reservation",
+    },
+    guestId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    transactionId: {
+      type: Schema.Types.ObjectId,
+      ref: "GuestTransaction",
+    },
+    balance: Number,
+    balanceType: {
+      type: String,
+      enum: ["Audited", "Not Audited", "Complete", "Incomplete", "Reserved"],
+    },
+    roomId: {
+      type: Schema.Types.ObjectId,
+      ref: "Room",
+    },
+    reason: String,
+    refundFlag: Boolean,
+    balanceName: {
+      type: String,
+      enum: ["RoomCharges", "RoomServices", "HouseKeeping", "Tax"],
+    },
+    deposit: Boolean,
+    hidden: Boolean,
+    version: [Object],
+  },
+  { timestamps: true }
+);
+
+export const RoomBalance = mongoose.model("RoomBalance", roomBalanceSchema);

@@ -1,0 +1,81 @@
+<table class="table" [formGroup]="RoomReview">
+  <thead>
+    <tr>
+      <th scope="row">Sr No.</th>
+      <th class="col">Room Name</th>
+      <th class="col">Room Number</th>
+      <th class="col">Room Type</th>
+      <th class="col" *ngIf="showActionBtn">
+        <div>Action</div>
+      </th>
+    </tr>
+  </thead>
+  <tbody formArrayName="Rooms">
+    <tr
+      *ngFor="let room of rooms.controls; let i = index; trackBy: trackByFn"
+      [formGroupName]="i"
+    >
+      <th scope="row">{{ i + 1 }}</th>
+      <td>
+        <input
+          type="text"
+          class="text-center w-100 border-0 form-control"
+          formControlName="roomName"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            (room.get('roomName')?.dirty || room.get('roomName')?.touched) &&
+            room.get('roomName')?.invalid
+          "
+          >roomName is required</small
+        >
+      </td>
+      <td>
+        <input
+          type="text"
+          class="text-center w-100 border-0 form-control"
+          formControlName="roomNumber"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            (room.get('roomNumber')?.dirty ||
+              room.get('roomNumber')?.touched) &&
+            room.get('roomNumber')?.invalid
+          "
+          >roomNumber is required</small
+        >
+      </td>
+      <td>
+        <select
+          class="text-center w-100 border-0 form-control pb-1"
+          formControlName="roomType"
+        >
+          <option *ngFor="let a of roomTypes" [value]="a">{{ a }}</option>
+        </select>
+      </td>
+      <td *ngIf="showActionBtn">
+        <div class="d-flex">
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="editRecord(room.value)"
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="deleteRecord(i)"
+          >
+            Delete
+          </button>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<div>
+  <button class="btn btn-primary" (click)="addRoom()">add room</button>
+</div>
