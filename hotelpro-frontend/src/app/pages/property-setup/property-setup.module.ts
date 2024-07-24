@@ -17,9 +17,9 @@ const routes: Routes = [
     title: 'Property Setup',
   },
   {
-    path: 'roomtyperangesetup/:propertyUnitId',
+    path: 'roomtyperangesetup/:propertyUnitId/:roomTypeId',
     component: RoomTypeRangeSetupComponent,
-    title: 'Room & RoomType Setup',
+    title: 'RoomType Setup',
   },
   {
     path: 'roomsreview/:propertyUnitId',

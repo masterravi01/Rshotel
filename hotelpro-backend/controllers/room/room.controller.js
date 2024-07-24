@@ -43,11 +43,11 @@ const createRoom = asyncHandler(async (req, res) => {
 
 // PUT update a room by ID
 const updateRoomById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { roomId } = req.params;
   const { roomName, roomNumber, roomTypeId, roomStatus, roomCondition, dnd } =
     req.body;
   const room = await Room.findByIdAndUpdate(
-    id,
+    roomId,
     {
       roomName,
       roomNumber,
@@ -68,14 +68,14 @@ const updateRoomById = asyncHandler(async (req, res) => {
 
 // DELETE a room by ID
 const deleteRoomById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const room = await Room.findByIdAndDelete(id);
+  const { roomId } = req.params;
+  const room = await Room.findByIdAndDelete(roomId);
   if (!room) {
     throw new ApiError(404, "Room not found");
   }
   return res
     .status(200)
-    .json(new ApiResponse(200, { id }, "Room deleted successfully"));
+    .json(new ApiResponse(200, { roomId }, "Room deleted successfully"));
 });
 
 export default {
