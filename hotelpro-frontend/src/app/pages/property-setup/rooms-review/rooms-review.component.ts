@@ -32,7 +32,10 @@ export class RoomsReviewComponent implements OnInit {
     this.roomTypesForm = this.fb.group({
       roomTypes: this.fb.array([]),
     });
+    this.loadRoomTypes();
+  }
 
+  loadRoomTypes(): void {
     this.crudService
       .post(APIConstant.READ_ROOMTYPE_AND_ROOMS + this.propertyUnitId)
       .then((response: any) => {
@@ -65,39 +68,42 @@ export class RoomsReviewComponent implements OnInit {
   }
 
   addRoom(roomTypeIndex: number, room?: any): void {
-    console.log(this.roomTypesForm.value, room);
-    const rooms = this.getRooms(roomTypeIndex);
-    rooms.push(this.createRoom(room));
+    this.getRooms(roomTypeIndex).push(this.createRoom(room));
   }
 
   get roomTypes(): FormArray {
     return this.roomTypesForm.get('roomTypes') as FormArray;
   }
 
-  createRoomType(r?: any): FormGroup {
+  createRoomType(roomType: any = {}): FormGroup {
     const roomTypeForm = this.fb.group({
-      roomTypeId: [r?.roomTypeId || '', Validators.required],
-      roomTypeName: [r?.roomTypeName || '', Validators.required],
-      active: [r?.active || false],
-      roomTypeCategory: [r?.roomTypeCategory || 'Room', Validators.required],
-      description: [r?.description || '', Validators.required],
+      roomTypeId: [roomType.roomTypeId || '', Validators.required],
+      roomTypeName: [roomType.roomTypeName || '', Validators.required],
+      active: [roomType.active || false],
+      roomTypeCategory: [
+        roomType.roomTypeCategory || 'Room',
+        Validators.required,
+      ],
+      description: [roomType.description || '', Validators.required],
       adultOccupancy: [
-        r?.adultOccupancy || 0,
+        roomType.adultOccupancy || 0,
         [Validators.min(1), Validators.required],
       ],
-      childOccupancy: [r?.childOccupancy || 0, Validators.required],
+      childOccupancy: [roomType.childOccupancy || 0, Validators.required],
       totalrooms: [
-        r?.rooms?.length || 0,
+        roomType.rooms?.length || 0,
         [Validators.min(1), Validators.required],
       ],
       rooms: this.fb.array([]),
     });
-    if (r?.rooms) {
+
+    if (roomType.rooms) {
       const roomsArray = roomTypeForm.get('rooms') as FormArray;
-      for (let room of r.rooms) {
+      for (let room of roomType.rooms) {
         roomsArray.push(this.createRoom(room));
       }
     }
+
     return roomTypeForm;
   }
 
@@ -106,9 +112,7 @@ export class RoomsReviewComponent implements OnInit {
   }
 
   editRoomType(index: number, data: any): void {
-    const roomType = this.roomTypes.at(index);
-    roomType.patchValue(data);
-    console.log(roomType.value);
+    this.roomTypes.at(index).patchValue(data);
   }
 
   deleteRoomType(index: number): void {
@@ -117,14 +121,13 @@ export class RoomsReviewComponent implements OnInit {
 
   editRoom(roomTypeIndex: number, roomIndex: number, data: any): void {
     const room = this.getRooms(roomTypeIndex).at(roomIndex);
-    console.log(room.value);
     const obj = room.value;
-    let callapi = APIConstant.UPDATE_ROOM + obj.roomId;
-    if (!obj?.roomId) {
-      callapi = APIConstant.CREATE_ROOM;
-    }
+    const apiEndpoint = room.value.roomId
+      ? APIConstant.UPDATE_ROOM + room.value.roomId
+      : APIConstant.CREATE_ROOM;
+
     this.crudService
-      .post(callapi, obj)
+      .post(apiEndpoint, obj)
       .then((response: any) => {
         console.log(response);
         response.data.roomId = response.data._id;
@@ -140,9 +143,10 @@ export class RoomsReviewComponent implements OnInit {
 
   deleteRoom(roomTypeIndex: number, roomIndex: number): void {
     const rooms = this.getRooms(roomTypeIndex);
-    if (rooms.controls[roomIndex].value.roomId) {
+    const roomId = rooms.at(roomIndex).value.roomId;
+    if (roomId) {
       this.crudService
-        .post(APIConstant.DELETE_ROOM + rooms.controls[roomIndex].value.roomId)
+        .post(APIConstant.DELETE_ROOM + roomId)
         .then((response: any) => {
           console.log(response);
           rooms.removeAt(roomIndex);
@@ -166,11 +170,9 @@ export class RoomsReviewComponent implements OnInit {
   }
 
   toggleRow(index: number): void {
-    if (this.expandedRowIndices.has(index)) {
-      this.expandedRowIndices.delete(index);
-    } else {
-      this.expandedRowIndices.add(index);
-    }
+    this.expandedRowIndices.has(index)
+      ? this.expandedRowIndices.delete(index)
+      : this.expandedRowIndices.add(index);
   }
 
   isRowExpanded(index: number): boolean {
