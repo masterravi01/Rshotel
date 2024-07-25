@@ -42,7 +42,11 @@ export class TaxSetComponent implements OnInit {
   }
 
   private loadTaxes(): void {
-    // Replace with your API call
+    if (!this.propertyUnitId) {
+      this.alertService.errorAlert('Property Unit ID is missing');
+      return;
+    }
+
     this.crudService
       .post(APIConstant.GET_ALL_TAXES + this.propertyUnitId)
       .then((response: any) => {
@@ -73,31 +77,21 @@ export class TaxSetComponent implements OnInit {
         console.log(this.taxDetailsForm.value);
         const obj = this.taxDetailsForm.value;
         obj.propertyUnitId = this.propertyUnitId;
-        if (tax) {
-          this.crudService
-            .post(APIConstant.UPDATE_TAX + tax._id, obj)
-            .then((response: any) => {
-              console.log(response);
-              this.loadTaxes();
-              this.alertService.successAlert(response.message);
-            })
-            .catch((error: any) => {
-              this.alertService.errorAlert(error.message);
-              console.log(error);
-            });
-        } else {
-          this.crudService
-            .post(APIConstant.CREATE_TAX, obj)
-            .then((response: any) => {
-              console.log(response);
-              this.loadTaxes();
-              this.alertService.successAlert(response.message);
-            })
-            .catch((error: any) => {
-              this.alertService.errorAlert(error.message);
-              console.log(error);
-            });
-        }
+        const apiEndpoint = tax
+          ? APIConstant.UPDATE_TAX + tax._id
+          : APIConstant.CREATE_TAX;
+
+        this.crudService
+          .post(apiEndpoint, obj)
+          .then((response: any) => {
+            console.log(response);
+            this.loadTaxes();
+            this.alertService.successAlert(response.message);
+          })
+          .catch((error: any) => {
+            this.alertService.errorAlert(error.message);
+            console.log(error);
+          });
       }
     });
   }
