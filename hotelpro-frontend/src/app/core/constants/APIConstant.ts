@@ -23,4 +23,10 @@ export const APIConstant = {
   CREATE_ROOM: 'room/create-room',
   UPDATE_ROOM: 'room/update-room/',
   DELETE_ROOM: 'room/delete-room/',
+
+  CREATE_TAX: 'propertyunit/create-tax',
+  UPDATE_TAX: 'propertyunit/update-tax/',
+  GET_TAX_BY_ID: 'propertyunit/get-tax-by-id/',
+  DELETE_TAX: 'propertyunit/delete-tax/',
+  GET_ALL_TAXES: 'propertyunit/get-all-taxes/',
 };
