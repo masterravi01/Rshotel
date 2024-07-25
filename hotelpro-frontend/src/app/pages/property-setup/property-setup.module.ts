@@ -8,6 +8,7 @@ import { NgxFileDropModule } from 'ngx-file-drop';
 import { FileUploadComponent } from '../../core/reused/file-upload/file-upload.component';
 import { RoomTypeRangeSetupComponent } from './room-type-range-setup/room-type-range-setup.component';
 import { RoomsReviewComponent } from './rooms-review/rooms-review.component';
+import { TaxSetComponent } from './tax-set/tax-set.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'property', pathMatch: 'full' },
@@ -26,6 +27,11 @@ const routes: Routes = [
     component: RoomsReviewComponent,
     title: 'Rooms Review',
   },
+  {
+    path: 'taxsetup/:propertyUnitId',
+    component: TaxSetComponent,
+    title: 'Tax Setup',
+  },
 ];
 
 @NgModule({
@@ -33,6 +39,7 @@ const routes: Routes = [
     AddUpdatePropertyComponent,
     RoomTypeRangeSetupComponent,
     RoomsReviewComponent,
+    TaxSetComponent,
   ],
   imports: [
     CommonModule,

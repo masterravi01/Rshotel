@@ -195,26 +195,7 @@ export const PropertyUnitSetup = mongoose.model(
   propertyUnitSetupSchema
 );
 
-const taxSetSchema = new Schema(
-  {
-    propertyUnitId: {
-      type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
-    },
-    taxDetailIds: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "TaxDetail",
-      },
-    ],
-    taxSetName: String,
-    active: Boolean,
-  },
-  { timestamps: true }
-);
-export const TaxSet = mongoose.model("TaxSet", taxSetSchema);
-
-const taxDetailSchema = new Schema(
+const taxSchema = new Schema(
   {
     propertyUnitId: {
       type: Schema.Types.ObjectId,
@@ -222,10 +203,11 @@ const taxDetailSchema = new Schema(
     },
     taxPercentage: Number,
     taxName: String,
+    active: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
-export const TaxDetail = mongoose.model("TaxDetail", taxDetailSchema);
+export const Tax = mongoose.model("Tax", taxSchema);
 
 const roomTypeSchema = new Schema(
   {
