@@ -1,20 +1,20 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { UserLoginType, UserTypesEnum } from "../../constants.js"; // Adjust path based on your structure
-import { ApiError } from "../../utils/ApiError.js"; // Adjust path based on your structure
-import { ApiResponse } from "../../utils/ApiResponse.js"; // Adjust path based on your structure
-import { asyncHandler } from "../../utils/asyncHandler.js"; // Adjust path based on your structure
+import { UserLoginType, UserTypesEnum } from "../../constants.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { ApiResponse } from "../../utils/ApiResponse.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
 import {
   getLocalPath,
   getStaticFilePath,
   removeLocalFile,
-} from "../../utils/helpers.js"; // Adjust path based on your structure
+} from "../../utils/helpers.js";
 import {
   emailVerificationMailgenContent,
   forgotPasswordMailgenContent,
   sendEmail,
-} from "../../utils/mail.js"; // Adjust path based on your structure
+} from "../../utils/mail.js";
 
 import { User } from "../../database/database.schema.js";
 import { logger } from "../../logger/winston.logger.js";
@@ -146,7 +146,14 @@ const loginUser = asyncHandler(async (req, res) => {
   // Compare the incoming password with hashed password
   const isPasswordCorrect = await user.isPasswordCorrect(password);
   if (!isPasswordCorrect) {
-    throw new ApiError(400, "Invalid old password");
+    throw new ApiError(400, "Your password is wrong");
+  }
+
+  if (!user.isEmailVerified) {
+    throw new ApiError(
+      400,
+      "Your account is not verified, please check your mail and verify your account"
+    );
   }
 
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
@@ -352,9 +359,7 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
       // ! NOTE: Following link should be the link of the frontend page responsible to request password reset
       // ! Frontend will send the below token with the new password in the request body to the backend reset password endpoint
       // * Ideally take the url from the .env file which should be teh url of the frontend
-      `${req.protocol}://${req.get(
-        "host"
-      )}/hotelpro/user/reset-password/${unHashedToken}`
+      `${process.env.FRONTEND_URL}/user/resetpassword/${unHashedToken}`
     ),
   });
   return res
