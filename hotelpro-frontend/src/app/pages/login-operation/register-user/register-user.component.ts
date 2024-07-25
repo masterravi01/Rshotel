@@ -52,7 +52,7 @@ export class RegisterUserComponent {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
       address: this.formBuilder.group({
-        street: [''],
+        addressLine1: [''],
         city: ['', [Validators.required, CustomValidators.noLeadingSpace]],
         state: [
           '',
@@ -62,7 +62,7 @@ export class RegisterUserComponent {
             CustomValidators.noLeadingSpace,
           ],
         ],
-        zip: ['', [Validators.required, CustomValidators.zipCodeValidator]],
+        zipCode: ['', [Validators.required, CustomValidators.zipCodeValidator]],
       }),
       password: ['', [Validators.required, CustomValidators.passwordValidator]],
       confirmpassword: ['', Validators.required],
@@ -81,13 +81,13 @@ export class RegisterUserComponent {
     if (this.userForm.valid) {
       const obj = this.userForm.value;
       this.crudService
-        .post(APIConstant.REGISTER_USER, obj)
+        .post(APIConstant.CREATE_PROPERTY, obj)
         .then((response: any) => {
           this.alertService.successAlert(response.message);
           this.router.navigate(['/login']);
         })
         .catch((error) => {
-          this.alertService.errorAlert(error.message);
+          this.alertService.errorAlert(error?.error?.message || error.message);
         });
     } else {
       this.alertService.errorAlert(

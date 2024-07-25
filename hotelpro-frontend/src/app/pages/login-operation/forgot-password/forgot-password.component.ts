@@ -44,7 +44,7 @@ export class ForgotPasswordComponent {
         })
         .catch((error) => {
           console.error('There was an error!', error);
-          this.alertService.errorAlert(error.message);
+          this.alertService.errorAlert(error?.error?.message);
         });
       // Redirect to a confirmation page or display a success message
     } else {

@@ -144,7 +144,7 @@
         </div>
         <div class="input__box" formGroupName="address">
           <span class="details">Street</span>
-          <input type="text" placeholder="Street" formControlName="street" />
+          <input type="text" placeholder="Street" formControlName="addressLine1" />
         </div>
         <div class="input__box" formGroupName="address">
           <span class="details">City</span>
@@ -196,24 +196,24 @@
           </div>
         </div>
         <div class="input__box" formGroupName="address">
-          <span class="details">Zip</span>
-          <input type="text" placeholder="Zip" formControlName="zip" />
+          <span class="details">ZIP Code</span>
+          <input type="text" placeholder="ZIP Code" formControlName="zipCode" />
           <div
             *ngIf="
-              userForm.get('address.zip')?.invalid &&
-              (userForm.get('address.zip')?.dirty ||
-                userForm.get('address.zip')?.touched)
+              userForm.get('address.zipCode')?.invalid &&
+              (userForm.get('address.zipCode')?.dirty ||
+                userForm.get('address.zipCode')?.touched)
             "
           >
             <small
               class="text-danger"
-              *ngIf="userForm.get('address.zip')?.errors?.['required']"
-              >Zip is required</small
+              *ngIf="userForm.get('address.zipCode')?.errors?.['required']"
+              >ZIP Code is required. <br> </small
             >
             <small
               class="text-danger"
-              *ngIf="userForm.get('address.zip')?.errors?.['zipCode']"
-              >Zip must be 6-8 digits long</small
+              *ngIf="userForm.get('address.zipCode')?.errors?.['zipCode']"
+              >ZIP Code must be 6-8 digits long</small
             >
           </div>
         </div>
@@ -266,7 +266,7 @@
             <small
               class="text-danger"
               *ngIf="userForm.get('confirmpassword')?.errors?.['required']"
-              >Confirm Password is required</small
+              >Confirm Password is required <br></small
             >
             <small class="text-danger" *ngIf="userForm.errors?.['mismatch']"
               >Passwords must match</small

@@ -28,7 +28,10 @@ const userSchema = new Schema(
     firstName: String,
     lastName: String,
     dob: String,
-    isLoginable: String,
+    isLoginable: {
+      type: Boolean,
+      default: false,
+    },
     phone: String,
     addressId: {
       type: Schema.Types.ObjectId,
