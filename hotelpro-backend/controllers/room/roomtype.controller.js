@@ -8,7 +8,11 @@ const ObjectId = mongoose.Types.ObjectId;
 // GET all room types
 const getAllRoomTypes = asyncHandler(async (req, res) => {
   const { propertyUnitId } = req.params;
-  const roomTypes = await RoomType.find({ propertyUnitId });
+  const roomTypes = await RoomType.aggregate([
+    { $match: { propertyUnitId: new ObjectId(propertyUnitId) } },
+    { $addFields: { roomTypeId: "$_id" } },
+    { $project: { _id: 0 } },
+  ]);
   return res
     .status(200)
     .json(

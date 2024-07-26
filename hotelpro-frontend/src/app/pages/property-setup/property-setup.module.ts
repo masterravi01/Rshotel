@@ -9,6 +9,7 @@ import { FileUploadComponent } from '../../core/reused/file-upload/file-upload.c
 import { RoomTypeRangeSetupComponent } from './room-type-range-setup/room-type-range-setup.component';
 import { RoomsReviewComponent } from './rooms-review/rooms-review.component';
 import { TaxSetComponent } from './tax-set/tax-set.component';
+import { RateplanComponent } from './rateplan/rateplan.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'property', pathMatch: 'full' },
@@ -32,6 +33,11 @@ const routes: Routes = [
     component: TaxSetComponent,
     title: 'Tax Setup',
   },
+  {
+    path: 'rateplansetup/:propertyUnitId',
+    component: RateplanComponent,
+    title: 'Base Rate Setup',
+  },
 ];
 
 @NgModule({
@@ -40,6 +46,7 @@ const routes: Routes = [
     RoomTypeRangeSetupComponent,
     RoomsReviewComponent,
     TaxSetComponent,
+    RateplanComponent,
   ],
   imports: [
     CommonModule,
