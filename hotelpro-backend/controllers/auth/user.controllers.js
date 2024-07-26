@@ -146,7 +146,7 @@ const loginUser = asyncHandler(async (req, res) => {
   // Compare the incoming password with hashed password
   const isPasswordCorrect = await user.isPasswordCorrect(password);
   if (!isPasswordCorrect) {
-    throw new ApiError(400, "Your password is wrong");
+    throw new ApiError(400, "Please enter correct password!");
   }
 
   if (!user.isEmailVerified) {
@@ -212,7 +212,7 @@ const verifyEmail = async (req, res) => {
 
     const user = await User.findById(UserId);
 
-    if (!user || hashedToken !== user.emailVerificationToken) {
+    if (!user) {
       return res.render("pages/url_validation", InvalidContent);
     }
 
@@ -223,11 +223,17 @@ const verifyEmail = async (req, res) => {
       });
     }
 
-    if (new Date().toISOString() > user.emailVerificationExpiry.toISOString()) {
-      return res.render("pages/url_validation", {
+    if (
+      new Date().toISOString() > user.emailVerificationExpiry.toISOString() ||
+      hashedToken !== user.emailVerificationToken
+    ) {
+      return res.render("pages/link_expired", {
         contentType: "Link Expired",
         content:
-          "Your verification link is expired, please go to the home page to regenerate new link using below button",
+          "Your verification link is expired, Click below button to regenerate new link",
+        link: `${req.protocol}://${req.get(
+          "host"
+        )}/hotelpro/user/resend-email-verification?userid=${user._id.toString()}`,
       });
     }
 
@@ -251,40 +257,47 @@ const verifyEmail = async (req, res) => {
 // This controller is called when user is logged in and he has snackbar that your email is not verified
 // In case he did not get the email or the email verification token is expired
 // he will be able to resend the token while he is logged in
-const resendEmailVerification = asyncHandler(async (req, res) => {
-  const { UserId } = req.body;
-  const user = await User.findById(UserId);
+const resendEmailVerification = async (req, res) => {
+  try {
+    const { userid: UserId } = req.query;
+    const user = await User.findById(UserId);
 
-  if (!user) {
-    throw new ApiError(404, "User does not exists", []);
+    if (!user) {
+      throw new ApiError(404, "User does not exists", []);
+    }
+
+    // if email is already verified throw an error
+    if (user.isEmailVerified) {
+      throw new ApiError(409, "Email is already verified!");
+    }
+
+    const { unHashedToken, hashedToken, tokenExpiry } =
+      user.generateTemporaryToken(); // generate email verification creds
+
+    user.emailVerificationToken = hashedToken;
+    user.emailVerificationExpiry = tokenExpiry;
+    await user.save();
+
+    sendEmail({
+      email: user?.email,
+      subject: "Please verify your email",
+      mailgenContent: emailVerificationMailgenContent(
+        user.username,
+        `${req.protocol}://${req.get(
+          "host"
+        )}/hotelpro/user/verify-email?verificationToken=${unHashedToken}&userid=${user._id.toString()}`
+      ),
+    });
+    return res.render("pages/url_validation", {
+      contentType: "Regenerate",
+      content: "We have resent you a link. Please check your email.",
+    });
+  } catch (error) {
+    // Handle any unexpected errors
+    logger.error(`${error.message}`);
+    return res.render("pages/url_validation", InvalidContent);
   }
-
-  // if email is already verified throw an error
-  if (user.isEmailVerified) {
-    throw new ApiError(409, "Email is already verified!");
-  }
-
-  const { unHashedToken, hashedToken, tokenExpiry } =
-    user.generateTemporaryToken(); // generate email verification creds
-
-  user.emailVerificationToken = hashedToken;
-  user.emailVerificationExpiry = tokenExpiry;
-  await user.save();
-
-  sendEmail({
-    email: user?.email,
-    subject: "Please verify your email",
-    mailgenContent: emailVerificationMailgenContent(
-      user.username,
-      `${req.protocol}://${req.get(
-        "host"
-      )}/hotelpro/user/verify-email?verificationToken=${unHashedToken}&userid=${user._id.toString()}`
-    ),
-  });
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Mail has been sent to your mail ID"));
-});
+};
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =

@@ -110,7 +110,13 @@ const createProperty = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, property, "Property created successfully"));
+    .json(
+      new ApiResponse(
+        201,
+        property,
+        "Property created successfully. Check your email for the verification link and verify your email."
+      )
+    );
 });
 
 // PUT update a property by ID
