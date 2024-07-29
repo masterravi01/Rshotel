@@ -24,6 +24,8 @@ export class RateplanComponent implements OnInit {
   propertyUnitId: string | null = '';
   cancelPolicyForm!: FormGroup;
   noshowPolicyForm!: FormGroup;
+  cancellationPolicyList: any[] = [];
+  noshowPolicyList: any[] = [];
 
   constructor(
     private crudService: CrudService,
@@ -34,6 +36,10 @@ export class RateplanComponent implements OnInit {
     private generalModal: GeneralModalService,
     private modalService: NgbModal
   ) {}
+
+  //   read roomtype
+  // read,create,update rateplan
+  // read,update,create cancel &  no show
 
   ngOnInit() {
     this.propertyUnitId =
@@ -47,8 +53,8 @@ export class RateplanComponent implements OnInit {
     });
     this.cancelPolicyForm = this.fb.group({
       cancelPolicyName: ['', Validators.required],
-      insideWindowType: ['percentage', Validators.required],
-      outsideWindowType: ['percentage', Validators.required],
+      windowRange: ['24h', Validators.required],
+      windowType: ['percentage', Validators.required],
       insideWindowCharge: [10, Validators.required],
       outsideWindowCharge: [10, Validators.required],
       propertyUnitId: [''],
@@ -68,23 +74,23 @@ export class RateplanComponent implements OnInit {
       roomTypeRates: this.fb.array([]),
     });
     this.readRoomTypes();
-    // this.readRate();
+    this.readRate();
   }
   readRoomTypes() {
-    this.crudService
-      .post(APIConstant.READ_ROOMTYPES + this.propertyUnitId)
-      .then((response: any) => {
-        console.log(response);
-        for (let r of response.data) {
-          this.addRoomType(r);
-        }
-        console.log(this.ratePlanForm.value);
-        this.alertService.successAlert(response.message);
-      })
-      .catch((error: any) => {
-        console.log(error);
-        this.alertService.errorAlert(error.message);
-      });
+    // this.crudService
+    //   .post(APIConstant.READ_ROOMTYPES + this.propertyUnitId)
+    //   .then((response: any) => {
+    //     console.log(response);
+    //     for (let r of response.data) {
+    //       this.addRoomType(r);
+    //     }
+    //     console.log(this.ratePlanForm.value);
+    //     this.alertService.successAlert(response.message);
+    //   })
+    //   .catch((error: any) => {
+    //     console.log(error);
+    //     this.alertService.errorAlert(error.message);
+    //   });
   }
 
   createRoomTypeRate(r?: any): FormGroup {
@@ -133,12 +139,29 @@ export class RateplanComponent implements OnInit {
 
   onSubmit() {
     console.log(this.ratePlanForm.value);
+
+    if (this.ratePlanForm.get('_id')?.value) {
+    }
+    const callApiUrl = this.ratePlanForm.get('_id')?.value
+      ? APIConstant.UPDATE_RATEPLAN
+      : APIConstant.CREATE_RATEPLAN;
     this.generalModal
-      .openModal('confirmation for payment', '')
+      .openModal('Are You Sure Want submit this details ?', '')
       .then((result) => {
         if (result) {
           // User confirmed
-          console.log('yes');
+          let obj = this.ratePlanForm.value;
+          obj.propertyUnitId = this.propertyUnitId;
+          this.crudService
+            .post(callApiUrl, obj)
+            .then((response: any) => {
+              console.log(response);
+              this.alertService.successAlert(response.message);
+            })
+            .catch((error: any) => {
+              console.log(error);
+              this.alertService.errorAlert(error.message);
+            });
         } else {
           // User cancelled
           console.log('no');
@@ -147,26 +170,20 @@ export class RateplanComponent implements OnInit {
   }
 
   readRate() {
-    const rate = {
-      ratePlanName: 'Best Available Rate',
-      ratePlanShortName: 'BAR',
-      ratePlanDescription: 'this is base rate',
-      isBaseRate: true,
-      active: true,
-      cancellationPolicyId: '6695584abc45f8d7ad3ead7b',
-      noShowPolicyId: '6695584abc45f8d7ad2eav7b',
-      propertyUnitId: '6695584abc45f8d7ad2ead7b',
-      isRefundable: true,
-      roomTypeRates: [
-        {
-          adultRate: 100,
-          baseRate: 500,
-          childRate: 50,
-          roomTypeId: '6697bc959a7a761cc89fd4f0',
-          roomTypeName: 'Suit',
-        },
-      ],
-    };
-    this.ratePlanForm.reset(rate);
+    this.crudService
+      .post(APIConstant.READ_RATEPLAN, { propertyUnitId: this.propertyUnitId })
+      .then((response: any) => {
+        console.log(response);
+        this.ratePlanForm.reset(response.data);
+        for (let r of response.data.rateRoomTypes) {
+          this.addRoomType(r);
+        }
+        console.log(this.ratePlanForm.value);
+        this.alertService.successAlert(response.message);
+      })
+      .catch((error: any) => {
+        console.log(error);
+        this.alertService.errorAlert(error.message);
+      });
   }
 }

@@ -425,15 +425,11 @@ const cancellationPolicySchema = new Schema(
       ref: "PropertyUnit",
     },
     policyDescription: String,
-    insideWindowRange: String,
-    outsideWindowRange: String,
-    insideWindowType: {
+    windowRange: String,
+    windowType: {
       type: String,
       enum: AvailableChangeValueEnum,
-    },
-    outsideWindowType: {
-      type: String,
-      enum: AvailableChangeValueEnum,
+      default: "percentage",
     },
     insideWindowCharge: Number,
     outsideWindowCharge: Number,

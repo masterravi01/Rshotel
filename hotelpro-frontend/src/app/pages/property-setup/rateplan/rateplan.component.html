@@ -326,42 +326,29 @@
         </small>
       </div>
       <div class="mb-3">
-        <label class="form-label">insideWindowType Type</label>
-        <input
-          type="text"
-          placeholder="Enter charge Type"
+        <label class="form-label">windowRange </label>
+        <select
+          id="options"
+          formControlName="windowRange"
           class="form-control"
-          formControlName="insideWindowType"
-        />
-        <small
-          class="text-danger"
-          *ngIf="
-            (cancelPolicyForm.get('insideWindowType')?.dirty ||
-              cancelPolicyForm.get('insideWindowType')?.touched) &&
-            cancelPolicyForm.get('insideWindowType')?.invalid
-          "
+          style="appearance: auto"
         >
-          insideWindowType is required
-        </small>
+          <option value="24h">24 Hours</option>
+          <option value="48h">48 Hours</option>
+        </select>
       </div>
+
       <div class="mb-3">
-        <label class="form-label">outsideWindowType Type</label>
-        <input
-          type="text"
-          placeholder="Enter charge Type"
+        <label class="form-label">windowType </label>
+        <select
+          id="options"
+          formControlName="windowType"
           class="form-control"
-          formControlName="outsideWindowType"
-        />
-        <small
-          class="text-danger"
-          *ngIf="
-            (cancelPolicyForm.get('outsideWindowType')?.dirty ||
-              cancelPolicyForm.get('outsideWindowType')?.touched) &&
-            cancelPolicyForm.get('outsideWindowType')?.invalid
-          "
+          style="appearance: auto"
         >
-          outsideWindowType is required
-        </small>
+          <option value="percentage">Percentage</option>
+          <option value="flat">Flat Fee</option>
+        </select>
       </div>
       <div class="mb-3">
         <label class="form-label">insideWindowCharge</label>

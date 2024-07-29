@@ -31,4 +31,22 @@ export const APIConstant = {
   GET_TAX_BY_ID: 'propertyunit/get-tax-by-id/',
   DELETE_TAX: 'propertyunit/delete-tax/',
   GET_ALL_TAXES: 'propertyunit/get-all-taxes/',
+
+  CREATE_NOSHOW_POLICY: 'ratemanagement/create-noshow-policy',
+  UPDATE_NOSHOW_POLICY: 'ratemanagement/update-noshow-policy/',
+  GET_NOSHOW_POLICY_BY_ID: 'ratemanagement/get-noshow-policy-by-id/',
+  DELETE_NOSHOW_POLICY: 'ratemanagement/delete-noshow-policy/',
+  GET_ALL_NOSHOW_POLICIES: 'ratemanagement/get-all-noshow-policies/',
+
+  CREATE_CANCELLATION_POLICY: 'ratemanagement/create-cancellation-policy',
+  UPDATE_CANCELLATION_POLICY: 'ratemanagement/update-cancellation-policy/',
+  GET_CANCELLATION_POLICY_BY_ID:
+    'ratemanagement/get-cancellation-policy-by-id/',
+  DELETE_CANCELLATION_POLICY: 'ratemanagement/delete-cancellation-policy/',
+  GET_ALL_CANCELLATION_POLICIES:
+    'ratemanagement/get-all-cancellation-policies/',
+
+  READ_RATEPLAN: 'ratemanagement/read-rateplan/',
+  CREATE_RATEPLAN: 'ratemanagement/create-rateplan',
+  UPDATE_RATEPLAN: 'ratemanagement/update-rateplan/',
 };
