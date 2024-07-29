@@ -76,6 +76,48 @@
         >
       </div>
       <div class="col mt-3">
+        <label class="form-label">No Show Policy</label>
+        <div>
+          <select
+            id="options"
+            formControlName="noShowPolicyId"
+            class="form-control"
+            style="appearance: auto"
+            (change)="openNoShow(noShowModal)"
+          >
+            <option value="">Select NoShow Policy</option>
+            <option
+              *ngFor="let option of noshowPolicyList"
+              [value]="option._id"
+            >
+              {{ option.noShowPolicyName }}
+            </option>
+            <option>Add New NoShow Policy</option>
+          </select>
+        </div>
+      </div>
+      <div class="col mt-3">
+        <label class="form-label">Cancellation Policy</label>
+        <div>
+          <select
+            id="options"
+            formControlName="cancellationPolicyId"
+            class="form-control"
+            style="appearance: auto"
+            (change)="openCancellation(cancellationModal)"
+          >
+            <option value="">Select Cancellation Policy</option>
+            <option
+              *ngFor="let option of cancellationPolicyList"
+              [value]="option._id"
+            >
+              {{ option.cancelPolicyName }}
+            </option>
+            <option>Add New Cancellation Policy</option>
+          </select>
+        </div>
+      </div>
+      <div class="col mt-3">
         <div class="mb-3 form-check">
           <input
             type="checkbox"
@@ -184,6 +226,7 @@
           <button
             class="btn btn-primary mb-3"
             type="button"
+            [disabled]="ratePlanForm.invalid"
             (click)="onSubmit()"
           >
             Submit
@@ -272,10 +315,10 @@
         </small>
       </div>
       <div class="mb-3">
-        <label class="form-label">charge Type</label>
+        <label class="form-label">policyDescription </label>
         <input
           type="text"
-          placeholder="Enter charge Type"
+          placeholder="Enter policyDescription"
           class="form-control"
           formControlName="policyDescription"
         />
@@ -296,7 +339,7 @@
 
 <ng-template #cancellationModal let-modal>
   <div class="modal-header">
-    <h4 class="modal-title" id="modal-basic-title">No Show Policy</h4>
+    <h4 class="modal-title" id="modal-basic-title">Cancel Policy</h4>
     <button
       type="button"
       class="btn-close"

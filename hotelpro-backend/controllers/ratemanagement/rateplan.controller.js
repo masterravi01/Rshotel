@@ -130,8 +130,8 @@ const createRatePlan = asyncHandler(async (req, res) => {
     ratePlanName,
     ratePlanShortName,
     ratePlanDescription,
-    // cancellationPolicyId,
-    // // noShowPolicyId,
+    cancellationPolicyId,
+    noShowPolicyId,
     propertyUnitId,
     isRefundable,
   });
@@ -199,9 +199,9 @@ const updateRatePlan = asyncHandler(async (req, res) => {
       ratePlanName,
       ratePlanShortName,
       ratePlanDescription,
-      // cancellationPolicyId,
-      // noShowPolicyId,
-      // propertyUnitId,
+      cancellationPolicyId,
+      noShowPolicyId,
+      propertyUnitId,
       isRefundable,
     },
     { new: true }

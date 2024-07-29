@@ -45,6 +45,7 @@ export class RateplanComponent implements OnInit {
     this.propertyUnitId =
       this.activeRoute.snapshot.paramMap.get('propertyUnitId');
     this.noshowPolicyForm = this.fb.group({
+      _id: [''],
       noShowPolicyName: ['', Validators.required],
       chargeType: ['percentage', Validators.required],
       chargeValue: [10, Validators.required],
@@ -52,12 +53,13 @@ export class RateplanComponent implements OnInit {
       policyDescription: [''],
     });
     this.cancelPolicyForm = this.fb.group({
+      _id: [''],
       cancelPolicyName: ['', Validators.required],
       windowRange: ['24h', Validators.required],
       windowType: ['percentage', Validators.required],
       insideWindowCharge: [10, Validators.required],
       outsideWindowCharge: [10, Validators.required],
-      propertyUnitId: [''],
+      propertyUnitId: ['', Validators.required],
       policyDescription: [''],
     });
     this.ratePlanForm = this.fb.group({
@@ -67,14 +69,16 @@ export class RateplanComponent implements OnInit {
       ratePlanDescription: ['', Validators.required],
       isBaseRate: [true],
       active: [true],
-      cancellationPolicyId: [''],
-      noShowPolicyId: [''],
+      cancellationPolicyId: ['', Validators.required],
+      noShowPolicyId: ['', Validators.required],
       propertyUnitId: [''],
       isRefundable: [false],
       roomTypeRates: this.fb.array([]),
     });
     this.readRoomTypes();
     this.readRate();
+    this.readAllCancelationPolicies();
+    this.readAllNoShowPolicies();
   }
   readRoomTypes() {
     // this.crudService
@@ -119,19 +123,55 @@ export class RateplanComponent implements OnInit {
   get roomTypeRates(): FormArray {
     return this.ratePlanForm.get('roomTypeRates') as FormArray;
   }
-  openNoShow(content: TemplateRef<any>, data?: any): void {
+  openNoShow(content: TemplateRef<any>): void {
+    console.log(this.ratePlanForm.value);
+    const data = this.noshowPolicyList.find(
+      (n) => n._id == this.ratePlanForm.get('noShowPolicyId')?.value
+    );
+    if (data) {
+      this.noshowPolicyForm.reset(data);
+    } else {
+      this.noshowPolicyForm.get('_id')?.setValue('');
+      this.noshowPolicyForm.get('noShowPolicyName')?.setValue('');
+      this.noshowPolicyForm.get('chargeType')?.setValue('percentage');
+      this.noshowPolicyForm.get('chargeValue')?.setValue(10);
+      this.noshowPolicyForm
+        .get('propertyUnitId')
+        ?.setValue(this.propertyUnitId);
+      this.noshowPolicyForm.get('policyDescription')?.setValue('');
+    }
     this.modalService.open(content).result.then((result) => {
       console.log(result, this.noshowPolicyForm.value);
       if (result) {
+        this.addUpdateNoShowPolicy();
       } else {
       }
     });
   }
 
-  openCancellation(content: TemplateRef<any>, data?: any): void {
+  openCancellation(content: TemplateRef<any>): void {
+    console.log(this.ratePlanForm.value);
+    const data = this.cancellationPolicyList.find(
+      (n) => n._id == this.ratePlanForm.get('cancellationPolicyId')?.value
+    );
+    if (data) {
+      this.cancelPolicyForm.reset(data);
+    } else {
+      this.cancelPolicyForm.get('_id')?.setValue('');
+      this.cancelPolicyForm.get('cancelPolicyName')?.setValue('');
+      this.cancelPolicyForm.get('windowRange')?.setValue('24h');
+      this.cancelPolicyForm.get('windowType')?.setValue('percentage');
+      this.cancelPolicyForm.get('insideWindowCharge')?.setValue(10);
+      this.cancelPolicyForm.get('outsideWindowCharge')?.setValue(10);
+      this.cancelPolicyForm
+        .get('propertyUnitId')
+        ?.setValue(this.propertyUnitId);
+      this.cancelPolicyForm.get('policyDescription')?.setValue('');
+    }
     this.modalService.open(content).result.then((result) => {
       console.log(result, this.cancelPolicyForm.value);
       if (result) {
+        this.addUpdateCancelPolicy();
       } else {
       }
     });
@@ -180,6 +220,88 @@ export class RateplanComponent implements OnInit {
         }
         console.log(this.ratePlanForm.value);
         this.alertService.successAlert(response.message);
+      })
+      .catch((error: any) => {
+        console.log(error);
+        this.alertService.errorAlert(error.message);
+      });
+  }
+  readAllNoShowPolicies() {
+    this.crudService
+      .post(APIConstant.GET_ALL_NOSHOW_POLICIES + this.propertyUnitId)
+      .then((response: any) => {
+        console.log(response);
+        this.noshowPolicyList = response.data;
+      })
+      .catch((error: any) => {
+        console.log(error);
+        this.alertService.errorAlert(error.message);
+      });
+  }
+  readAllCancelationPolicies() {
+    this.crudService
+      .post(APIConstant.GET_ALL_CANCELLATION_POLICIES + this.propertyUnitId)
+      .then((response: any) => {
+        console.log(response);
+        this.cancellationPolicyList = response.data;
+      })
+      .catch((error: any) => {
+        console.log(error);
+        this.alertService.errorAlert(error.message);
+      });
+  }
+  addUpdateNoShowPolicy() {
+    const callApiUrl = this.noshowPolicyForm.get('_id')?.value
+      ? APIConstant.UPDATE_NOSHOW_POLICY +
+        this.noshowPolicyForm.get('_id')?.value
+      : APIConstant.CREATE_NOSHOW_POLICY;
+    this.crudService
+      .post(callApiUrl, this.noshowPolicyForm.value)
+      .then((response: any) => {
+        console.log(response);
+        if (this.noshowPolicyForm.get('_id')?.value) {
+          this.noshowPolicyList = this.noshowPolicyList.map((obj) => {
+            if (obj._id === this.noshowPolicyForm.get('_id')?.value) {
+              return response?.data;
+            }
+            return obj;
+          });
+        } else {
+          this.noshowPolicyList.push(response?.data);
+        }
+
+        this.ratePlanForm.get('noShowPolicyId')?.setValue(response?.data?._id);
+      })
+      .catch((error: any) => {
+        console.log(error);
+        this.alertService.errorAlert(error.message);
+      });
+  }
+  addUpdateCancelPolicy() {
+    const callApiUrl = this.cancelPolicyForm.get('_id')?.value
+      ? APIConstant.UPDATE_CANCELLATION_POLICY +
+        this.cancelPolicyForm.get('_id')?.value
+      : APIConstant.CREATE_CANCELLATION_POLICY;
+    this.crudService
+      .post(callApiUrl, this.cancelPolicyForm.value)
+      .then((response: any) => {
+        console.log(response);
+        if (this.cancelPolicyForm.get('_id')?.value) {
+          this.cancellationPolicyList = this.cancellationPolicyList.map(
+            (obj) => {
+              if (obj._id === this.cancelPolicyForm.get('_id')?.value) {
+                return response?.data;
+              }
+              return obj;
+            }
+          );
+        } else {
+          this.cancellationPolicyList.push(response?.data);
+        }
+
+        this.ratePlanForm
+          .get('cancellationPolicyId')
+          ?.setValue(response?.data?._id);
       })
       .catch((error: any) => {
         console.log(error);
