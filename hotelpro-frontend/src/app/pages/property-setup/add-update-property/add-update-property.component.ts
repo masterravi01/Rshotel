@@ -1,5 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AuthService } from '../../../core/services/auth.service';
 import { CrudService } from '../../../core/services/crud.service';
@@ -8,13 +14,24 @@ import {
   NgxFileDropEntry,
   FileSystemFileEntry,
   FileSystemDirectoryEntry,
+  NgxFileDropModule,
 } from 'ngx-file-drop';
 import { AlertService } from '../../../core/services/alert.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FileUploadComponent } from '../../../core/reused/file-upload/file-upload.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-add-update-property',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NgxFileDropModule,
+    FileUploadComponent,
+  ],
   templateUrl: './add-update-property.component.html',
   styleUrls: ['./add-update-property.component.css'],
 })

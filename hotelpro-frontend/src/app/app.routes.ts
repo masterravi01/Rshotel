@@ -10,9 +10,12 @@ import { loginGuard } from './core/guards/login.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
+
+  //login-operation
   {
     path: 'login',
     component: LoginComponent,
+    title: 'Login',
     canActivate: [loginGuard],
   },
   {
@@ -21,6 +24,7 @@ export const routes: Routes = [
       import(
         './pages/login-operation/register-user/register-user.component'
       ).then((m) => m.RegisterUserComponent),
+    title: 'Register User',
     canActivate: [loginGuard],
   },
   {
@@ -29,6 +33,7 @@ export const routes: Routes = [
       import(
         './pages/login-operation/forgot-password/forgot-password.component'
       ).then((m) => m.ForgotPasswordComponent),
+    title: 'Forgot Password',
     canActivate: [loginGuard],
   },
   {
@@ -37,12 +42,17 @@ export const routes: Routes = [
       import(
         './pages/login-operation/reset-password/reset-password.component'
       ).then((m) => m.ResetPasswordComponent),
+    title: 'Reset Password',
     canActivate: [loginGuard],
   },
   {
     path: 'signup',
     component: SignupComponent,
+    title: 'Sign Up',
   },
+
+  //main components
+
   {
     path: '',
     component: LayoutComponent,
@@ -53,26 +63,75 @@ export const routes: Routes = [
           import('./pages/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent
           ),
+        title: 'Dashboard',
+        canActivate: [authGuard],
+      },
+
+      //property-setup components
+
+      {
+        path: 'property-setup/:propertyUnitId',
+        loadComponent: () =>
+          import(
+            './pages/property-setup/add-update-property/add-update-property.component'
+          ).then((m) => m.AddUpdatePropertyComponent),
+        title: 'Property Setup',
+        canActivate: [authGuard],
+      },
+
+      {
+        path: 'roomtype-setup/:propertyUnitId/:roomTypeId',
+        loadComponent: () =>
+          import(
+            './pages/property-setup/room-type-range-setup/room-type-range-setup.component'
+          ).then((m) => m.RoomTypeRangeSetupComponent),
+        title: 'RoomType Setup',
         canActivate: [authGuard],
       },
       {
-        path: 'property-setup',
-        loadChildren: () =>
-          import('./pages/property-setup/property-setup.module').then(
-            (m) => m.PropertySetupModule
-          ),
+        path: 'rooms-review/:propertyUnitId',
+        loadComponent: () =>
+          import(
+            './pages/property-setup/rooms-review/rooms-review.component'
+          ).then((m) => m.RoomsReviewComponent),
+        title: 'Rooms Review',
+        canActivate: [authGuard],
       },
+      {
+        path: 'tax-setup/:propertyUnitId',
+        loadComponent: () =>
+          import('./pages/property-setup/tax-set/tax-set.component').then(
+            (m) => m.TaxSetComponent
+          ),
+        title: 'Tax Setup',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'rateplan-setup/:propertyUnitId',
+        loadComponent: () =>
+          import('./pages/property-setup/rateplan/rateplan.component').then(
+            (m) => m.RateplanComponent
+          ),
+        title: 'RatePlan Setup',
+        canActivate: [authGuard],
+      },
+
       {
         path: 'profile',
         component: UserProfileComponent,
+        title: 'User Profile',
         resolve: { userDetails: userDetailsResolver },
       },
+
+      //reservation collection
+
       {
         path: 'create-reservation',
         loadComponent: () =>
           import(
             './pages/reservation-collection/create-reservation/create-reservation.component'
           ).then((m) => m.CreateReservationComponent),
+        title: 'Create Reservation',
         canActivate: [authGuard],
       },
       {
@@ -81,12 +140,16 @@ export const routes: Routes = [
           import(
             './pages/reservation-collection/reservation-info/reservation-info.component'
           ).then((m) => m.ReservationInfoComponent),
+        title: 'Reservation Info',
         canActivate: [authGuard],
       },
     ],
   },
+
+  //wild card route
   {
     path: '**',
     component: PageNotFoundComponent,
+    title: 'Page Not Found',
   },
 ];

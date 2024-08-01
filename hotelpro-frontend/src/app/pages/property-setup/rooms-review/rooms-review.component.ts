@@ -1,12 +1,22 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormArray, FormBuilder, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import {
+  FormGroup,
+  FormArray,
+  FormBuilder,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-rooms-review',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './rooms-review.component.html',
   styleUrls: ['./rooms-review.component.css'],
 })

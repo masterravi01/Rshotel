@@ -9,9 +9,7 @@
           Action
           <button
             class="btn btn-primary"
-            [routerLink]="
-              '/property-setup/roomtyperangesetup/' + propertyUnitId + '/ADD'
-            "
+            [routerLink]="'/roomtype-setup/' + propertyUnitId + '/ADD'"
           >
             Add RoomType
           </button>
@@ -31,7 +29,7 @@
           <td>
             <a
               [routerLink]="
-                '/property-setup/roomtyperangesetup/' +
+                '/roomtype-setup/' +
                 propertyUnitId +
                 '/' +
                 roomType.get('roomTypeId')?.value

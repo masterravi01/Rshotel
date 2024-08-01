@@ -6,16 +6,21 @@ import {
   FormArray,
   AbstractControl,
   ValidatorFn,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { GeneralModalService } from '../../../core/services/general-modal.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-rateplan',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './rateplan.component.html',
   styleUrl: './rateplan.component.css',
 })

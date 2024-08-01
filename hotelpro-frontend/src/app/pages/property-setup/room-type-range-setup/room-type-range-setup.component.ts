@@ -6,14 +6,19 @@ import {
   FormArray,
   AbstractControl,
   ValidatorFn,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-room-type-range-setup',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './room-type-range-setup.component.html',
   styleUrls: ['./room-type-range-setup.component.css'],
 })
@@ -59,9 +64,7 @@ export class RoomTypeRangeSetupComponent implements OnInit {
         .catch((error: any) => {
           this.alertService.errorAlert(error.message);
           this.router.navigate([
-            '/property-setup/roomtyperangesetup/' +
-              this.propertyUnitId +
-              '/ADD',
+            '/roomtype-setup/' + this.propertyUnitId + '/ADD',
           ]);
           this.ngOnInit();
         });
@@ -103,9 +106,7 @@ export class RoomTypeRangeSetupComponent implements OnInit {
           .then((response: any) => {
             console.log(response);
             this.alertService.successAlert(response.message);
-            this.router.navigate([
-              '/property-setup/roomsreview/' + this.propertyUnitId,
-            ]);
+            this.router.navigate(['/rooms-review/' + this.propertyUnitId]);
           })
           .catch((error: any) => {
             this.alertService.errorAlert(error.message);
@@ -119,9 +120,7 @@ export class RoomTypeRangeSetupComponent implements OnInit {
           .then((response: any) => {
             console.log(response);
             this.alertService.successAlert(response.message);
-            this.router.navigate([
-              '/property-setup/roomsreview/' + this.propertyUnitId,
-            ]);
+            this.router.navigate(['/rooms-review/' + this.propertyUnitId]);
           })
           .catch((error: any) => {
             this.alertService.errorAlert(error.message);

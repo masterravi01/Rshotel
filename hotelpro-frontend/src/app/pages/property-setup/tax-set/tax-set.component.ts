@@ -1,13 +1,22 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-tax-set',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './tax-set.component.html',
   styleUrls: ['./tax-set.component.css'],
 })
