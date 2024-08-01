@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
 import {
   FormControl,
   FormGroup,
@@ -9,7 +9,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AlertService } from '../../core/services/alert.service';
+import { AlertService } from '../../../core/services/alert.service';
 
 @Component({
   selector: 'app-login',

@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { SignupComponent } from './pages/signup/signup.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
-import { LoginComponent } from './pages/login/login.component';
+import { LoginComponent } from './pages/login-operation/login/login.component';
 import { LayoutComponent } from './pages/layout/layout.component';
 import { PageNotFoundComponent } from './pages/page-not-found/page-not-found.component';
 import { loginGuard } from './core/guards/login.guard';
@@ -16,11 +16,27 @@ export const routes: Routes = [
     canActivate: [loginGuard],
   },
   {
-    path: 'user',
-    loadChildren: () =>
-      import('../app/pages/login-operation/login-operation.module').then(
-        (m) => m.LoginOperationModule
-      ),
+    path: 'registeruser',
+    loadComponent: () =>
+      import(
+        './pages/login-operation/register-user/register-user.component'
+      ).then((m) => m.RegisterUserComponent),
+    canActivate: [loginGuard],
+  },
+  {
+    path: 'forgotpassword',
+    loadComponent: () =>
+      import(
+        './pages/login-operation/forgot-password/forgot-password.component'
+      ).then((m) => m.ForgotPasswordComponent),
+    canActivate: [loginGuard],
+  },
+  {
+    path: 'resetpassword/:resettoken',
+    loadComponent: () =>
+      import(
+        './pages/login-operation/reset-password/reset-password.component'
+      ).then((m) => m.ResetPasswordComponent),
     canActivate: [loginGuard],
   },
   {
@@ -33,19 +49,18 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        loadChildren: () =>
-          import('../app/pages/dashboard/dashboard.module').then(
-            (m) => m.DashboardModule
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard.component').then(
+            (m) => m.DashboardComponent
           ),
         canActivate: [authGuard],
       },
       {
         path: 'property-setup',
         loadChildren: () =>
-          import('../app/pages/property-setup/property-setup.module').then(
+          import('./pages/property-setup/property-setup.module').then(
             (m) => m.PropertySetupModule
           ),
-        // canActivate: [authGuard],
       },
       {
         path: 'profile',

@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { APIConstant } from '../../../core/constants/APIConstant';
-import { AuthService } from '../../../core/services/auth.service';
-import { CrudService } from '../../../core/services/crud.service';
+import { APIConstant } from '../../core/constants/APIConstant';
+import { AuthService } from '../../core/services/auth.service';
+import { CrudService } from '../../core/services/crud.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
