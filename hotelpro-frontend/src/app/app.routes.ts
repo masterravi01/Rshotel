@@ -52,6 +52,22 @@ export const routes: Routes = [
         component: UserProfileComponent,
         resolve: { userDetails: userDetailsResolver },
       },
+      {
+        path: 'create-reservation',
+        loadComponent: () =>
+          import(
+            './pages/reservation-collection/create-reservation/create-reservation.component'
+          ).then((m) => m.CreateReservationComponent),
+        canActivate: [authGuard],
+      },
+      {
+        path: 'reservation-info',
+        loadComponent: () =>
+          import(
+            './pages/reservation-collection/reservation-info/reservation-info.component'
+          ).then((m) => m.ReservationInfoComponent),
+        canActivate: [authGuard],
+      },
     ],
   },
   {
