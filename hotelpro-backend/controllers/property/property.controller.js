@@ -1,17 +1,17 @@
+import fs from "fs";
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
 import { UserTypesEnum } from "../../constants.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
-import { Property, User, Address } from "../../database/database.schema.js";
-
 import {
   emailVerificationMailgenContent,
   sendEmail,
 } from "../../utils/mail.js";
 
-import fs from "fs";
+import { Property, User, Address } from "../../database/database.schema.js";
 
 // GET all properties
 const getAllProperties = asyncHandler(async (req, res) => {
@@ -182,6 +182,57 @@ const uploadProfilePhoto = asyncHandler(async (req, res) => {
   return res.status(201).json(new ApiResponse(201, {}, "Upload  successfully"));
 });
 
+const readClientDashboard = asyncHandler(async (req, res) => {
+  const { ClientId } = req.body;
+  const response = {};
+
+  const property = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(ClientId),
+      },
+    },
+    {
+      $lookup: {
+        from: "properties",
+        localField: "_id",
+        foreignField: "ownerId",
+        as: "property",
+      },
+    },
+    {
+      $unwind: {
+        path: "$property",
+      },
+    },
+    {
+      $lookup: {
+        from: "propertyunits",
+        localField: "property._id",
+        foreignField: "propertyId",
+        as: "propertyunits",
+      },
+    },
+    {
+      $project: {
+        propertyId: "$property._id",
+        propertyName: "$property.propertyName",
+        isVIP: "$property.isVIP",
+        propertyUnits: "$propertyunits",
+      },
+    },
+  ]);
+
+  if (!property || property.length == 0) {
+    throw new ApiError(404, "Property not found");
+  }
+
+  response.property = property[0];
+  return res
+    .status(200)
+    .json(new ApiResponse(200, response, "Property retrieved successfully"));
+});
+
 export default {
   getAllProperties,
   getPropertyById,
@@ -190,4 +241,5 @@ export default {
   deletePropertyById,
   uploadProfilePhoto,
   uploadRoomsPhotos,
+  readClientDashboard,
 };
