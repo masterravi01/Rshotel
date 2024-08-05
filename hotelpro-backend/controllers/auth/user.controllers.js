@@ -160,10 +160,41 @@ const loginUser = asyncHandler(async (req, res) => {
     user._id
   );
 
-  // get the user document ignoring the password and refreshToken field
-  const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
-  );
+  let loggedInUser;
+  if (user.userType == "client") {
+    loggedInUser = await User.aggregate([
+      {
+        $match: {
+          _id: user._id,
+        },
+      },
+      {
+        $lookup: {
+          from: "properties",
+          localField: "_id",
+          foreignField: "ownerId",
+          as: "property",
+        },
+      },
+      {
+        $unwind: {
+          path: "$property",
+        },
+      },
+      {
+        $project: {
+          firstName: "$firstName",
+          lastName: "$lastName",
+          email: "$email",
+          userType: "$userType",
+          avatar: "$avatar",
+          isVIP: "$property.isVIP",
+          propertyId: "$property._id",
+          propertyName: "$property.propertyName",
+        },
+      },
+    ]);
+  }
 
   return res
     .status(200)
@@ -172,7 +203,7 @@ const loginUser = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { user: loggedInUser, accessToken, refreshToken }, // send access and refresh token in response if client decides to save them by themselves
+        { user: loggedInUser[0], accessToken, refreshToken }, // send access and refresh token in response if client decides to save them by themselves
         "User logged in successfully"
       )
     );

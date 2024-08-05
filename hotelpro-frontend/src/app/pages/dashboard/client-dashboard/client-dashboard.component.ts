@@ -16,7 +16,7 @@ import { AlertService } from '../../../core/services/alert.service';
 })
 export class ClientDashboardComponent {
   userInfo: any;
-  propertyData: any;
+  dashboardData: any;
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -29,10 +29,10 @@ export class ClientDashboardComponent {
     console.log(this.userInfo);
     
     this.crudService
-        .post(APIConstant.READ_CLIENT_DASHBOARD, {ClientId: this.userInfo._id})
+        .post(APIConstant.READ_CLIENT_DASHBOARD, {propertyId: this.userInfo.propertyId})
         .then((response: any) => {
-          console.log(response.data.property);
-          this.propertyData = response.data.property;
+          this.dashboardData = response.data;
+          console.log(this.dashboardData);
         })
         .catch((error) => {
           this.alertService.errorAlert(error?.error?.message || error.message);
@@ -40,8 +40,12 @@ export class ClientDashboardComponent {
     
   }
   
-  addProperty() {
+  addPropertyUnit() {
     this.router.navigate(['/property-setup/ADD']);
+  }
+
+  editPropertyUnit(propertyUnitId: any) { 
+    this.router.navigate(['/property-setup', propertyUnitId]);
   }
 
 }

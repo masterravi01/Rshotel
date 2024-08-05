@@ -65,20 +65,41 @@ export class AddUpdatePropertyComponent implements OnInit {
       propertyUnitLegalName: ['', [Validators.required]],
       propertyUnitType: ['Hotel', [Validators.required]],
       description: ['', [Validators.required]],
-      website: ['', [Validators.required]],
+      website: [''],
       propertyAddress: this.fb.group({
         addressLine1: ['', [Validators.required]],
         addressLine2: [''],
-        city: ['', [Validators.required]],
-        state: ['', [Validators.required]],
+        city: ['', [Validators.required, CustomValidators.noLeadingSpace]],
+        state: [
+          '',
+          [
+            Validators.required,
+            Validators.pattern(/^[A-Za-z\s]+$/),
+            CustomValidators.noLeadingSpace,
+          ],
+        ],
         country: ['', [Validators.required]],
-        zipCode: ['', [Validators.required]],
+        zipCode: ['', [Validators.required, CustomValidators.zipCodeValidator]],
       }),
       managerDetails: this.fb.group({
-        firstName: ['', [Validators.required]],
-        lastName: ['', [Validators.required]],
+        firstName: [
+          '',
+          [
+            Validators.required,
+            CustomValidators.noLeadingSpace,
+            Validators.minLength(2),
+          ],
+        ],
+        lastName: [
+          '',
+          [
+            Validators.required,
+            CustomValidators.noLeadingSpace,
+            Validators.minLength(2),
+          ],
+        ],
         phone: ['', [Validators.required]],
-        email: ['', [Validators.required]],
+        email: ['', [Validators.required, Validators.email]],
       }),
     });
     if (this.propertyUnitId != 'ADD') {
@@ -86,7 +107,6 @@ export class AddUpdatePropertyComponent implements OnInit {
         .post(APIConstant.READ_PROPERTY_UNIT + this.propertyUnitId, {})
         .then((response: any) => {
           console.log(response);
-          this.alertService.successAlert(response.message);
           this.propertyUnitForm.reset(response.data);
         })
         .catch((error) => {
@@ -99,12 +119,14 @@ export class AddUpdatePropertyComponent implements OnInit {
     if (this.propertyUnitForm.valid) {
       console.log(this.propertyUnitForm.value);
       const obj = this.propertyUnitForm.value;
+      obj.propertyId = this.userInfo.propertyId;
       if (this.propertyUnitId == 'ADD') {
         this.crudService
           .post(APIConstant.CREATE_PROPERTY_UNIT, obj)
           .then((response: any) => {
             console.log(response);
             this.alertService.successAlert(response.message);
+            this.router.navigate(['/rooms-review', this.propertyUnitId]);
           })
           .catch((error) => {
             this.alertService.errorAlert(error.message);
@@ -115,6 +137,7 @@ export class AddUpdatePropertyComponent implements OnInit {
           .then((response: any) => {
             console.log(response);
             this.alertService.successAlert(response.message);
+            this.router.navigate(['/rooms-review', this.propertyUnitId]);
           })
           .catch((error) => {
             this.alertService.errorAlert(error.message);

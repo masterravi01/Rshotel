@@ -2,12 +2,12 @@
   <form [formGroup]="ratePlanForm">
     <div class="row row-cols-1 row-cols-md-2">
       <div class="col mt-3">
-        <label class="form-label">ratePlan Name</label>
+        <label class="form-label">Rate Plan Name</label>
         <input
           type="text"
           class="form-control"
           formControlName="ratePlanName"
-          placeholder="Enter RoomTypeName"
+          placeholder="Enter Room Plan Name"
           [ngClass]="{
             'is-invalid':
               (ratePlanForm.get('ratePlanName')?.dirty ||
@@ -27,12 +27,12 @@
       </div>
 
       <div class="col mt-3">
-        <label class="form-label">ratePlanShortName</label>
+        <label class="form-label">Rate Plan Short Name</label>
         <input
           type="text"
           class="form-control"
           formControlName="ratePlanShortName"
-          placeholder="Enter RoomTypeCategory"
+          placeholder="Enter Rate Plan Short Name"
           [ngClass]="{
             'is-invalid':
               (ratePlanForm.get('ratePlanShortName')?.dirty ||
@@ -85,14 +85,14 @@
             style="appearance: auto"
             (change)="openNoShow(noShowModal)"
           >
-            <option value="">Select NoShow Policy</option>
+            <option value="">Select No Show Policy</option>
             <option
               *ngFor="let option of noshowPolicyList"
               [value]="option._id"
             >
               {{ option.noShowPolicyName }}
             </option>
-            <option>Add New NoShow Policy</option>
+            <option>Add New No Show Policy</option>
           </select>
         </div>
       </div>

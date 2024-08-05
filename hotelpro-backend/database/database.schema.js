@@ -173,7 +173,10 @@ const propertyUnitSchema = new Schema(
     description: String,
     website: String,
     socialMediaLinks: [String],
-    active: Boolean,
+    active: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

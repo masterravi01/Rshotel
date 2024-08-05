@@ -183,44 +183,94 @@ const uploadProfilePhoto = asyncHandler(async (req, res) => {
 });
 
 const readClientDashboard = asyncHandler(async (req, res) => {
-  const { ClientId } = req.body;
+  const { propertyId } = req.body;
   const response = {};
 
-  const property = await User.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(ClientId),
+  const [property, rooms] = await Promise.all([
+    Property.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(propertyId),
+        },
       },
-    },
-    {
-      $lookup: {
-        from: "properties",
-        localField: "_id",
-        foreignField: "ownerId",
-        as: "property",
+      {
+        $lookup: {
+          from: "propertyunits",
+          localField: "_id",
+          foreignField: "propertyId",
+          as: "propertyunits",
+          pipeline: [
+            {
+              $project: {
+                propertyUnitName: 1,
+              },
+            },
+          ],
+        },
       },
-    },
-    {
-      $unwind: {
-        path: "$property",
+      {
+        $project: {
+          propertyId: "$_id",
+          propertyName: "$propertyName",
+          isVIP: "$isVIP",
+          propertyUnits: "$propertyunits",
+        },
       },
-    },
-    {
-      $lookup: {
-        from: "propertyunits",
-        localField: "property._id",
-        foreignField: "propertyId",
-        as: "propertyunits",
+    ]),
+    Property.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(propertyId),
+        },
       },
-    },
-    {
-      $project: {
-        propertyId: "$property._id",
-        propertyName: "$property.propertyName",
-        isVIP: "$property.isVIP",
-        propertyUnits: "$propertyunits",
+      {
+        $lookup: {
+          from: "propertyunits",
+          localField: "_id",
+          foreignField: "propertyId",
+          as: "propertyUnits",
+        },
       },
-    },
+      {
+        $unwind: {
+          path: "$propertyUnits",
+        },
+      },
+      {
+        $lookup: {
+          from: "roomtypes",
+          localField: "propertyUnits._id",
+          foreignField: "propertyUnitId",
+          as: "roomTypes",
+        },
+      },
+      {
+        $unwind: {
+          path: "$roomTypes",
+        },
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "roomTypes._id",
+          foreignField: "roomTypeId",
+          as: "rooms",
+        },
+      },
+      {
+        $unwind: {
+          path: "$rooms",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          totalRooms: {
+            $sum: 1,
+          },
+        },
+      },
+    ]),
   ]);
 
   if (!property || property.length == 0) {
@@ -228,6 +278,7 @@ const readClientDashboard = asyncHandler(async (req, res) => {
   }
 
   response.property = property[0];
+  response.rooms = rooms[0];
   return res
     .status(200)
     .json(new ApiResponse(200, response, "Property retrieved successfully"));

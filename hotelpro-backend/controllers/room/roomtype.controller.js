@@ -210,7 +210,7 @@ const getRoomTypeAndRooms = asyncHandler(async (req, res) => {
         new ApiResponse(
           400,
           roomTypeDetails,
-          "No RoomType Found for this property!"
+          "Room setup not found for this property!"
         )
       );
   }
