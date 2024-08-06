@@ -14,5 +14,6 @@ router.post(
   upload.array("file", 10),
   propertyController.uploadRoomsPhotos
 );
+router.post("/read-client-dashboard", propertyController.readClientDashboard);
 
 export default router;

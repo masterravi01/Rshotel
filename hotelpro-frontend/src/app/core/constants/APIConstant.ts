@@ -9,6 +9,7 @@ export const APIConstant = {
   REGISTER_USER: 'user/register',
 
   CREATE_PROPERTY: 'property/create-property',
+  READ_CLIENT_DASHBOARD: 'property/read-client-dashboard',
   UPLOAD_PROFILE_PHOTO: 'property/upload-profile-photo',
   UPLOAD_ROOMS_PHOTOS: 'property/upload-rooms-photos',
   UPDATE_PROPERTY_UNIT: 'propertyunit/update-propertyunit/',

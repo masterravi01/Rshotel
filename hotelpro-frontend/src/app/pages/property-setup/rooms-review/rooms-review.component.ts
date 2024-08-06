@@ -7,7 +7,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
@@ -33,7 +33,8 @@ export class RoomsReviewComponent implements OnInit {
     private crudService: CrudService,
     private fb: FormBuilder,
     private alertService: AlertService,
-    private activeRoute: ActivatedRoute
+    private activeRoute: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -53,10 +54,9 @@ export class RoomsReviewComponent implements OnInit {
         for (let roomtype of response.data) {
           this.addRoomType(roomtype);
         }
-        this.alertService.successAlert(response.message);
       })
       .catch((error: any) => {
-        this.alertService.errorAlert(error.message);
+        this.alertService.errorAlert(error?.error?.message);
         console.log(error);
       });
   }
@@ -187,5 +187,8 @@ export class RoomsReviewComponent implements OnInit {
 
   isRowExpanded(index: number): boolean {
     return this.expandedRowIndices.has(index);
+  }
+  next() { 
+    this.router.navigate(['/rateplan-setup', this.propertyUnitId]);
   }
 }

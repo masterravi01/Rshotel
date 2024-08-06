@@ -1,4 +1,11 @@
 <div class="container-fluid">
+  <div class="col-md-12 mt-4">
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-primary" [routerLink]="'/roomtype-setup/' + propertyUnitId + '/ADD'">
+        Add RoomType
+      </button>
+    </div>
+  </div>
   <table class="table" [formGroup]="roomTypesForm">
     <thead>
       <tr>
@@ -7,12 +14,6 @@
         <th class="col">Status</th>
         <th class="col">
           Action
-          <button
-            class="btn btn-primary"
-            [routerLink]="'/roomtype-setup/' + propertyUnitId + '/ADD'"
-          >
-            Add RoomType
-          </button>
         </th>
       </tr>
     </thead>
@@ -165,4 +166,9 @@
       </ng-container>
     </tbody>
   </table>
+  <div class="col-md-12 mt-4">
+    <div class="d-flex justify-content-center">
+      <button class="btn btn-primary mb-3" (click)="next()">Next</button>
+    </div>
+  </div>
 </div>

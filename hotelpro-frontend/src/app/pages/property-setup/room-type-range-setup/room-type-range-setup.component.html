@@ -2,12 +2,12 @@
   <form [formGroup]="roomTypeForm">
     <div class="row row-cols-1 row-cols-md-2">
       <div class="col mt-3">
-        <label class="form-label">RoomType Name</label>
+        <label class="form-label">Room Type Name</label>
         <input
           type="text"
           class="form-control"
           formControlName="roomTypeName"
-          placeholder="Enter RoomTypeName"
+          placeholder="Enter Room Type Name"
           [ngClass]="{
             'is-invalid':
               (roomTypeForm.get('roomTypeName')?.dirty ||
@@ -22,17 +22,17 @@
               roomTypeForm.get('roomTypeName')?.touched) &&
             roomTypeForm.get('roomTypeName')?.invalid
           "
-          >RoomType Name is required</small
+          >Room Type Name is required</small
         >
       </div>
 
       <div class="col mt-3">
-        <label class="form-label">RoomType Category</label>
+        <label class="form-label">Room Type Category</label>
         <input
           type="text"
           class="form-control"
           formControlName="roomTypeCategory"
-          placeholder="Enter RoomTypeCategory"
+          placeholder="Enter Room Type Category"
           [ngClass]="{
             'is-invalid':
               (roomTypeForm.get('roomTypeCategory')?.dirty ||
@@ -47,7 +47,7 @@
               roomTypeForm.get('roomTypeCategory')?.touched) &&
             roomTypeForm.get('roomTypeCategory')?.invalid
           "
-          >RoomType Category is required</small
+          >Room Type Category is required</small
         >
       </div>
 
