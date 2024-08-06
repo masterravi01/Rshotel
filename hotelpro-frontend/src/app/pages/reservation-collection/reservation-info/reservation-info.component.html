@@ -1,1 +1,122 @@
-<p>reservation-info works!</p>
+<form [formGroup]="groupReservationForm">
+  <div formArrayName="reservations">
+    <div
+      *ngFor="let reservation of reservations.controls; let i = index"
+      [formGroupName]="i"
+    >
+      <h3>Reservation {{ i + 1 }}</h3>
+      <div>
+        <label>Room Type ID:</label>
+        <input formControlName="roomTypeId" />
+      </div>
+      <div>
+        <label>Room ID:</label>
+        <input formControlName="roomId" />
+      </div>
+      <div>
+        <label>Rate Plan ID:</label>
+        <input formControlName="rateplanId" />
+      </div>
+      <div>
+        <label>Rate Name:</label>
+        <input formControlName="rateName" />
+      </div>
+      <div>
+        <label>Room Type:</label>
+        <input formControlName="roomtype" />
+      </div>
+      <div>
+        <label>Adult Occupant:</label>
+        <input formControlName="adultOccupant" />
+      </div>
+      <div>
+        <label>Child Occupant:</label>
+        <input formControlName="childOccupant" />
+      </div>
+      <div>
+        <label>Room Price:</label>
+        <input formControlName="roomPrice" />
+      </div>
+      <div>
+        <label>Room Cost:</label>
+        <input formControlName="roomCost" />
+      </div>
+      <div formArrayName="dateRate">
+        <div
+          *ngFor="
+            let dateRate of getDateRates(reservation).controls;
+            let j = index
+          "
+          [formGroupName]="j"
+        >
+          <h4>Date Rate {{ j + 1 }}</h4>
+          <div>
+            <label>Date:</label>
+            <input formControlName="date" />
+          </div>
+          <div>
+            <label>Base Rate:</label>
+            <input formControlName="baserate" />
+          </div>
+          <div>
+            <label>Adult Rate:</label>
+            <input formControlName="adultrate" />
+          </div>
+          <div>
+            <label>Child Rate:</label>
+            <input formControlName="childrate" />
+          </div>
+        </div>
+      </div>
+      <div formArrayName="guests">
+        <div
+          *ngFor="let guest of getGuests(reservation).controls; let k = index"
+          [formGroupName]="k"
+        >
+          <h4>Guest {{ k + 1 }}</h4>
+          <div>
+            <label>First Name:</label>
+            <input formControlName="firstName" />
+          </div>
+          <div>
+            <label>Last Name:</label>
+            <input formControlName="lastName" />
+          </div>
+          <div>
+            <label>Email:</label>
+            <input formControlName="email" />
+          </div>
+          <div>
+            <label>Phone:</label>
+            <input formControlName="phone" />
+          </div>
+          <div>
+            <label>Address Line 1:</label>
+            <input formControlName="addressLine1" />
+          </div>
+          <div>
+            <label>City:</label>
+            <input formControlName="city" />
+          </div>
+          <div>
+            <label>State:</label>
+            <input formControlName="state" />
+          </div>
+          <div>
+            <label>Zip Code:</label>
+            <input formControlName="zipCode" />
+          </div>
+          <button
+            type="button"
+            (click)="removeGuest(i, k)"
+            [disabled]="getGuests(reservation).length <= 1"
+          >
+            Remove Guest
+          </button>
+        </div>
+      </div>
+      <button (click)="addGuest(i)">Add Guest</button>
+    </div>
+  </div>
+</form>
+<div><button class="btn btn-primary" (click)="onSubmit()">submit</button></div>
