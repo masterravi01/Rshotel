@@ -1,1 +1,196 @@
-<p>create-reservation works!</p>
+<div class="container container_form my-3 rounded">
+  <form [formGroup]="groupForm">
+    <div class="row row-cols-1 row-cols-md-2">
+      <div class="col mt-3">
+        <label class="form-label">checkIn Date </label>
+        <input
+          type="date"
+          class="form-control"
+          formControlName="checkInDate"
+          placeholder="Enter checkInDate"
+          [ngClass]="{
+            'is-invalid':
+              (groupForm.get('checkInDate')?.dirty ||
+                groupForm.get('checkInDate')?.touched) &&
+              groupForm.get('checkInDate')?.invalid
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            (groupForm.get('checkInDate')?.dirty ||
+              groupForm.get('checkInDate')?.touched) &&
+            groupForm.get('checkInDate')?.invalid
+          "
+          >checkInDate is required</small
+        >
+      </div>
+      <div class="col mt-3">
+        <label class="form-label">checkOut Date </label>
+        <input
+          type="date"
+          class="form-control"
+          formControlName="checkOutDate"
+          placeholder="Enter checkOutDate"
+          [ngClass]="{
+            'is-invalid':
+              (groupForm.get('checkOutDate')?.dirty ||
+                groupForm.get('checkOutDate')?.touched) &&
+              groupForm.get('checkOutDate')?.invalid
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            (groupForm.get('checkOutDate')?.dirty ||
+              groupForm.get('checkOutDate')?.touched) &&
+            groupForm.get('checkOutDate')?.invalid
+          "
+          >checkOutDate is required</small
+        >
+      </div>
+      <div class="col mt-3">
+        <label class="form-label">Adults </label>
+        <input
+          type="number"
+          class="form-control"
+          formControlName="adults"
+          placeholder="Enter adults"
+          [ngClass]="{
+            'is-invalid':
+              (groupForm.get('adults')?.dirty ||
+                groupForm.get('adults')?.touched) &&
+              groupForm.get('adults')?.invalid
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            (groupForm.get('adults')?.dirty ||
+              groupForm.get('adults')?.touched) &&
+            groupForm.get('adults')?.invalid
+          "
+          >adults is required</small
+        >
+      </div>
+      <div class="col mt-3">
+        <label class="form-label">Childs </label>
+        <input
+          type="number"
+          class="form-control"
+          formControlName="childs"
+          placeholder="Enter childs"
+          [ngClass]="{
+            'is-invalid':
+              (groupForm.get('childs')?.dirty ||
+                groupForm.get('childs')?.touched) &&
+              groupForm.get('childs')?.invalid
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            (groupForm.get('childs')?.dirty ||
+              groupForm.get('childs')?.touched) &&
+            groupForm.get('childs')?.invalid
+          "
+          >childs is required</small
+        >
+      </div>
+      <div class="col mt-3">
+        <button
+          class="btn btn-primary"
+          (click)="readRooms()"
+          [disabled]="groupForm.invalid"
+        >
+          Show Availability
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="container-fluid" *ngIf="roomsData.length > 0">
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="col">Room Type Name</th>
+        <th class="col">Sleeps</th>
+        <th class="col">Rate</th>
+        <th class="col">Cost</th>
+        <th class="col">No.of Rooms</th>
+        <th class="col">Room</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let r of roomsData; let i = index; trackBy: trackByFn">
+        <th>
+          {{ r.id + " " + r.rateName }}
+        </th>
+        <td>
+          {{ r.adultOccupant + r.childOccupant }}
+        </td>
+        <td>
+          {{ r.roomPrice }}
+        </td>
+        <td>
+          {{ r.roomCost }}
+        </td>
+        <td>
+          <button
+            class="btn btn-primary"
+            (click)="addRoomCount(i)"
+            [disabled]="r?.dropdownSettings?.limitSelection >= r.availability"
+          >
+            <i class="material-symbols-rounded" style="vertical-align: middle">
+              add
+            </i>
+          </button>
+
+          <span>
+            {{ r?.dropdownSettings?.limitSelection }}
+          </span>
+          <button
+            class="btn btn-primary"
+            (click)="removeRoomCount(i)"
+            [disabled]="r?.dropdownSettings?.limitSelection == 0"
+          >
+            <i class="material-symbols-rounded" style="vertical-align: middle">
+              remove
+            </i>
+          </button>
+        </td>
+        <td>
+          <ng-multiselect-dropdown
+            name="roomtype"
+            [placeholder]="'Select Room'"
+            [settings]="r.dropdownSettings"
+            [data]="r.rooms"
+            [(ngModel)]="selectedItems[i]"
+            style="background: white !important"
+            class="multiselect_dropdown"
+          >
+          </ng-multiselect-dropdown>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <button
+    class="btn btn-primary"
+    (click)="onSubmit()"
+    [disabled]="
+      totalGuests?.adults + totalGuests?.childs <
+      this.groupForm.get('adults')?.value + this.groupForm.get('childs')?.value
+    "
+  >
+    Next
+    <ng-container
+      *ngIf="
+        totalGuests?.adults + totalGuests?.childs >=
+        this.groupForm.get('adults')?.value +
+          this.groupForm.get('childs')?.value
+      "
+    >
+      (Total Cost {{ totalGuests?.Cost }})
+    </ng-container>
+  </button>
+</div>

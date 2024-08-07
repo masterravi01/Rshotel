@@ -1,12 +1,155 @@
-import { Component } from '@angular/core';
+import { CommonModule, DatePipe, JsonPipe } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+  FormArray,
+  FormsModule,
+  ReactiveFormsModule,
+  AbstractControl,
+} from '@angular/forms';
 
 @Component({
   selector: 'app-reservation-info',
   standalone: true,
-  imports: [],
+  imports: [JsonPipe, FormsModule, ReactiveFormsModule, CommonModule, DatePipe],
   templateUrl: './reservation-info.component.html',
-  styleUrl: './reservation-info.component.css'
+  styleUrls: ['./reservation-info.component.css'],
 })
-export class ReservationInfoComponent {
+export class ReservationInfoComponent implements OnInit {
+  reservationForm!: FormGroup;
+  groupForm!: FormGroup;
+  propertyUnitId: string | null = '';
+  roomsData: any[] = [];
+  taxSets: any[] = [];
 
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    let x = sessionStorage.getItem('reservationDetails');
+
+    if (x) {
+      this.reservationForm = this.fb.group({
+        reservations: this.fb.array([]),
+      });
+      this.populateReservations(JSON.parse(x));
+    }
+    let nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 2);
+
+    this.groupForm = this.fb.group({
+      checkInDate: [
+        new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd'),
+        Validators.required,
+      ],
+      checkOutDate: [
+        new DatePipe('en-US').transform(nextDate, 'yyyy-MM-dd'),
+        Validators.required,
+      ],
+      adults: [2, [Validators.min(1), Validators.required]],
+      childs: [0, Validators.required],
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required]],
+      addressLine1: [''],
+      addressLine2: [''],
+      country: ['', [Validators.required]],
+      city: ['', [Validators.required]],
+      state: ['', [Validators.required, Validators.pattern(/^[A-Za-z\s]+$/)]],
+      zipCode: ['', [Validators.required]],
+    });
+  }
+
+  createReservation(room?: any): FormGroup {
+    return this.fb.group({
+      roomTypeId: [room?.roomTypeId || '', Validators.required],
+      roomId: [room?.roomId || '', Validators.required],
+      rateplanId: [room?.rateplanId || '', Validators.required],
+      rateName: [room?.rateName || '', Validators.required],
+      roomtype: [room?.roomtype || '', Validators.required],
+      adultOccupant: [room?.adultOccupant || 0, Validators.required],
+      childOccupant: [room?.childOccupant || 0],
+      roomPrice: [room?.roomPrice || 0, Validators.required],
+      roomCost: [room?.roomCost || 0, Validators.required],
+      images: [room?.images || [], Validators.required],
+      dateRate: this.fb.array(
+        room ? this.createDateRates(room.dateRate) : [this.createDateRate()]
+      ),
+      guests: this.fb.array(
+        room?.guests ? this.createGuests(room.guests) : [this.createGuest()]
+      ),
+    });
+  }
+
+  createDateRates(dateRates: any[]): FormGroup[] {
+    return dateRates.map((dateRate) => this.createDateRate(dateRate));
+  }
+
+  createDateRate(dateRate?: any): FormGroup {
+    return this.fb.group({
+      date: [dateRate?.date || '', Validators.required],
+      baserate: [dateRate?.baserate || '', Validators.required],
+      adultrate: [dateRate?.adultrate || '', Validators.required],
+      childrate: [dateRate?.childrate || '', Validators.required],
+    });
+  }
+
+  createGuests(guests: any[]): FormGroup[] {
+    return guests.map((guest) => this.createGuest(guest));
+  }
+
+  createGuest(guest?: any): FormGroup {
+    return this.fb.group({
+      firstName: [guest?.firstName || '', Validators.required],
+      lastName: [guest?.lastName || '', Validators.required],
+      email: [guest?.email || '', [Validators.required, Validators.email]],
+      phone: [guest?.phone || '', Validators.required],
+      addressLine1: [guest?.addressLine1 || '', Validators.required],
+      city: [guest?.city || '', Validators.required],
+      state: [guest?.state || '', Validators.required],
+      zipCode: [guest?.zipCode || '', Validators.required],
+    });
+  }
+
+  populateReservations(rooms: any[]): void {
+    const reservationArray = this.reservationForm.get(
+      'reservations'
+    ) as FormArray;
+    rooms.forEach((room) => {
+      reservationArray.push(this.createReservation(room));
+    });
+  }
+
+  get reservations(): FormArray {
+    return this.reservationForm.get('reservations') as FormArray;
+  }
+
+  addReservation() {
+    this.reservations.push(this.createReservation());
+  }
+
+  getDateRates(reservation: AbstractControl): FormArray {
+    return reservation.get('dateRate') as FormArray;
+  }
+
+  getGuests(reservation: AbstractControl): FormArray {
+    return reservation.get('guests') as FormArray;
+  }
+
+  addGuest(reservationIndex: number) {
+    const guests = this.getGuests(this.reservations.at(reservationIndex));
+    guests.push(this.createGuest());
+  }
+
+  removeGuest(reservationIndex: number, guestIndex: number) {
+    const guests = this.getGuests(this.reservations.at(reservationIndex));
+    if (guests.length > 1) {
+      guests.removeAt(guestIndex);
+    }
+  }
+  onSubmit() {
+    console.log(this.reservationForm.value);
+  }
 }
