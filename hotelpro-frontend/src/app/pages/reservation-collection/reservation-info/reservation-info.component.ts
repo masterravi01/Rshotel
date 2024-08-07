@@ -1,4 +1,4 @@
-import { CommonModule, JsonPipe } from '@angular/common';
+import { CommonModule, DatePipe, JsonPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
   FormGroup,
@@ -13,12 +13,16 @@ import {
 @Component({
   selector: 'app-reservation-info',
   standalone: true,
-  imports: [JsonPipe, FormsModule, ReactiveFormsModule, CommonModule],
+  imports: [JsonPipe, FormsModule, ReactiveFormsModule, CommonModule, DatePipe],
   templateUrl: './reservation-info.component.html',
   styleUrls: ['./reservation-info.component.css'],
 })
 export class ReservationInfoComponent implements OnInit {
-  groupReservationForm!: FormGroup;
+  reservationForm!: FormGroup;
+  groupForm!: FormGroup;
+  propertyUnitId: string | null = '';
+  roomsData: any[] = [];
+  taxSets: any[] = [];
 
   constructor(private fb: FormBuilder) {}
 
@@ -26,11 +30,36 @@ export class ReservationInfoComponent implements OnInit {
     let x = sessionStorage.getItem('reservationDetails');
 
     if (x) {
-      this.groupReservationForm = this.fb.group({
+      this.reservationForm = this.fb.group({
         reservations: this.fb.array([]),
       });
       this.populateReservations(JSON.parse(x));
     }
+    let nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 2);
+
+    this.groupForm = this.fb.group({
+      checkInDate: [
+        new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd'),
+        Validators.required,
+      ],
+      checkOutDate: [
+        new DatePipe('en-US').transform(nextDate, 'yyyy-MM-dd'),
+        Validators.required,
+      ],
+      adults: [2, [Validators.min(1), Validators.required]],
+      childs: [0, Validators.required],
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required]],
+      addressLine1: [''],
+      addressLine2: [''],
+      country: ['', [Validators.required]],
+      city: ['', [Validators.required]],
+      state: ['', [Validators.required, Validators.pattern(/^[A-Za-z\s]+$/)]],
+      zipCode: ['', [Validators.required]],
+    });
   }
 
   createReservation(room?: any): FormGroup {
@@ -85,7 +114,7 @@ export class ReservationInfoComponent implements OnInit {
   }
 
   populateReservations(rooms: any[]): void {
-    const reservationArray = this.groupReservationForm.get(
+    const reservationArray = this.reservationForm.get(
       'reservations'
     ) as FormArray;
     rooms.forEach((room) => {
@@ -94,7 +123,7 @@ export class ReservationInfoComponent implements OnInit {
   }
 
   get reservations(): FormArray {
-    return this.groupReservationForm.get('reservations') as FormArray;
+    return this.reservationForm.get('reservations') as FormArray;
   }
 
   addReservation() {
@@ -121,6 +150,6 @@ export class ReservationInfoComponent implements OnInit {
     }
   }
   onSubmit() {
-    console.log(this.groupReservationForm.value);
+    console.log(this.reservationForm.value);
   }
 }

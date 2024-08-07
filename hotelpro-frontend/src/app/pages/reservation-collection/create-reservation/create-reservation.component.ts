@@ -10,8 +10,9 @@ import {
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
+import { APIConstant } from '../../../core/constants/APIConstant';
 
 @Component({
   selector: 'app-create-reservation',
@@ -22,6 +23,7 @@ import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
     ReactiveFormsModule,
     RouterModule,
     NgMultiSelectDropDownModule,
+    DatePipe,
   ],
   templateUrl: './create-reservation.component.html',
   styleUrl: './create-reservation.component.css',
@@ -31,9 +33,13 @@ export class CreateReservationComponent implements OnInit {
   reservationForm!: FormGroup;
   propertyUnitId: string | null = '';
   roomsData: any[] = [];
-
+  taxSets: any[] = [];
   selectedItems: any = [];
-
+  totalGuests: any = {
+    adults: 0,
+    childs: 0,
+    totalCost: 0,
+  };
   constructor(
     private crudService: CrudService,
     private fb: FormBuilder,
@@ -45,20 +51,28 @@ export class CreateReservationComponent implements OnInit {
   ngOnInit(): void {
     this.propertyUnitId =
       this.activeRoute.snapshot.paramMap.get('propertyUnitId');
+    let nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 2);
 
     this.groupForm = this.fb.group({
-      checkInDate: ['', Validators.required],
-      checkOutDate: ['', Validators.required],
-      adults: [0, [Validators.min(1), Validators.required]],
+      checkInDate: [
+        new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd'),
+        Validators.required,
+      ],
+      checkOutDate: [
+        new DatePipe('en-US').transform(nextDate, 'yyyy-MM-dd'),
+        Validators.required,
+      ],
+      adults: [2, [Validators.min(1), Validators.required]],
       childs: [0, Validators.required],
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required]],
-      addressLine1: [''],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required, Validators.pattern(/^[A-Za-z\s]+$/)]],
-      zipCode: ['', [Validators.required]],
+      // firstName: ['', [Validators.required, Validators.minLength(2)]],
+      // lastName: ['', [Validators.required, Validators.minLength(2)]],
+      // email: ['', [Validators.required, Validators.email]],
+      // phone: ['', [Validators.required]],
+      // addressLine1: [''],
+      // city: ['', [Validators.required]],
+      // state: ['', [Validators.required, Validators.pattern(/^[A-Za-z\s]+$/)]],
+      // zipCode: ['', [Validators.required]],
     });
     this.reservationForm = this.fb.group({
       checkInDate: ['', Validators.required],
@@ -67,7 +81,6 @@ export class CreateReservationComponent implements OnInit {
       childs: [0, Validators.required],
       rooms: this.fb.array([]),
     });
-    this.readRooms();
   }
 
   get rooms(): FormArray {
@@ -83,6 +96,17 @@ export class CreateReservationComponent implements OnInit {
   }
 
   readRooms() {
+    this.totalGuests.adults = 0;
+    this.totalGuests.childs = 0;
+    this.totalGuests.Cost = 0;
+    console.log(
+      this.groupForm.value,
+      this.totalGuests,
+      this.totalGuests?.adults,
+      this.totalGuests?.childs,
+      this.groupForm.get('adults')?.value,
+      this.groupForm.get('childs')?.value
+    );
     this.roomsData = [
       {
         id: 'Classic',
@@ -211,7 +235,7 @@ export class CreateReservationComponent implements OnInit {
         roomAmenities: [],
         rateplanId: 'nrf',
         rateName: 'Non refund rate',
-        adultOccupant: 3,
+        adultOccupant: 2,
         childOccupant: 0,
         images: [
           'ROOMIMGDIR/c23b69d4-6da8-4ba9-8393-7796de4b4774',
@@ -238,6 +262,35 @@ export class CreateReservationComponent implements OnInit {
         availability: 3,
       },
     ];
+    this.taxSets = [
+      {
+        _id: '66a22c9bcf0cd16300f72a39',
+        propertyUnitId: '6695584abc45f8d7ad2ead7b',
+        taxPercentage: 11,
+        taxName: 'SGST',
+        active: false,
+        createdAt: {
+          $date: '2024-07-25T10:44:43.102Z',
+        },
+        updatedAt: {
+          $date: '2024-07-25T10:45:02.431Z',
+        },
+        __v: 0,
+      },
+    ];
+    // this.crudService
+    //   .post(
+    //     APIConstant.READ_ROOMTYPE_AND_ROOMS + this.propertyUnitId,
+    //     this.groupForm.value
+    //   )
+    //   .then((response: any) => {
+    //     console.log(response);
+    //     this.roomsData = response.data;
+    //   })
+    //   .catch((error: any) => {
+    //     this.alertService.errorAlert(error?.error?.message);
+    //     console.log(error);
+    //   });
     for (let r of this.roomsData) {
       r.dropdownSettings = {
         singleSelection: false,
@@ -249,6 +302,13 @@ export class CreateReservationComponent implements OnInit {
         itemsShowLimit: 3,
         allowSearchFilter: true,
       };
+      for (let d of r.dateRate) {
+        r.roomPrice += Number(d.adultrate);
+      }
+      for (let t of this.taxSets) {
+        r.roomCost += Math.round((r.roomPrice / t.taxPercentage) * 100) / 100;
+      }
+      r.roomCost += r.roomPrice;
       this.selectedItems.push([]);
     }
   }
@@ -260,6 +320,10 @@ export class CreateReservationComponent implements OnInit {
         limitSelection: this.roomsData[i].dropdownSettings.limitSelection + 1,
       }
     );
+    this.totalGuests.adults += this.roomsData[i].adultOccupant;
+    this.totalGuests.childs += this.roomsData[i].childOccupant;
+    this.totalGuests.Cost += this.roomsData[i].roomCost;
+    console.log(this.totalGuests);
   }
   removeRoomCount(i: number) {
     this.roomsData[i].dropdownSettings = Object.assign(
@@ -269,6 +333,10 @@ export class CreateReservationComponent implements OnInit {
         limitSelection: this.roomsData[i].dropdownSettings.limitSelection - 1,
       }
     );
+    this.totalGuests.adults -= this.roomsData[i].adultOccupant;
+    this.totalGuests.childs -= this.roomsData[i].childOccupant;
+    this.totalGuests.Cost -= this.roomsData[i].roomCost;
+    console.log(this.totalGuests);
     if (
       this.selectedItems[i].length >
       this.roomsData[i].dropdownSettings.limitSelection
@@ -313,5 +381,6 @@ export class CreateReservationComponent implements OnInit {
     }
     console.log(sendarray);
     sessionStorage.setItem('reservationDetails', JSON.stringify(sendarray));
+    this.router.navigate(['/reservation-info']);
   }
 }

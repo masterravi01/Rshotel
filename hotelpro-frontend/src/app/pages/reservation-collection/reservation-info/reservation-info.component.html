@@ -1,122 +1,447 @@
-<form [formGroup]="groupReservationForm">
-  <div formArrayName="reservations">
-    <div
-      *ngFor="let reservation of reservations.controls; let i = index"
-      [formGroupName]="i"
-    >
-      <h3>Reservation {{ i + 1 }}</h3>
-      <div>
-        <label>Room Type ID:</label>
-        <input formControlName="roomTypeId" />
-      </div>
-      <div>
-        <label>Room ID:</label>
-        <input formControlName="roomId" />
-      </div>
-      <div>
-        <label>Rate Plan ID:</label>
-        <input formControlName="rateplanId" />
-      </div>
-      <div>
-        <label>Rate Name:</label>
-        <input formControlName="rateName" />
-      </div>
-      <div>
-        <label>Room Type:</label>
-        <input formControlName="roomtype" />
-      </div>
-      <div>
-        <label>Adult Occupant:</label>
-        <input formControlName="adultOccupant" />
-      </div>
-      <div>
-        <label>Child Occupant:</label>
-        <input formControlName="childOccupant" />
-      </div>
-      <div>
-        <label>Room Price:</label>
-        <input formControlName="roomPrice" />
-      </div>
-      <div>
-        <label>Room Cost:</label>
-        <input formControlName="roomCost" />
-      </div>
-      <div formArrayName="dateRate">
-        <div
-          *ngFor="
-            let dateRate of getDateRates(reservation).controls;
-            let j = index
-          "
-          [formGroupName]="j"
-        >
-          <h4>Date Rate {{ j + 1 }}</h4>
-          <div>
-            <label>Date:</label>
-            <input formControlName="date" />
-          </div>
-          <div>
-            <label>Base Rate:</label>
-            <input formControlName="baserate" />
-          </div>
-          <div>
-            <label>Adult Rate:</label>
-            <input formControlName="adultrate" />
-          </div>
-          <div>
-            <label>Child Rate:</label>
-            <input formControlName="childrate" />
-          </div>
+<div class="m-3 row g-0">
+  <div class="col-9">
+    <form [formGroup]="groupForm" class="container_form p-3 m-2 rounded">
+      <div class="row row-cols-1 row-cols-md-2">
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">Customer Details</label>
         </div>
-      </div>
-      <div formArrayName="guests">
-        <div
-          *ngFor="let guest of getGuests(reservation).controls; let k = index"
-          [formGroupName]="k"
-        >
-          <h4>Guest {{ k + 1 }}</h4>
-          <div>
-            <label>First Name:</label>
-            <input formControlName="firstName" />
-          </div>
-          <div>
-            <label>Last Name:</label>
-            <input formControlName="lastName" />
-          </div>
-          <div>
-            <label>Email:</label>
-            <input formControlName="email" />
-          </div>
-          <div>
-            <label>Phone:</label>
-            <input formControlName="phone" />
-          </div>
-          <div>
-            <label>Address Line 1:</label>
-            <input formControlName="addressLine1" />
-          </div>
-          <div>
-            <label>City:</label>
-            <input formControlName="city" />
-          </div>
-          <div>
-            <label>State:</label>
-            <input formControlName="state" />
-          </div>
-          <div>
-            <label>Zip Code:</label>
-            <input formControlName="zipCode" />
-          </div>
-          <button
-            type="button"
-            (click)="removeGuest(i, k)"
-            [disabled]="getGuests(reservation).length <= 1"
+        <div class="col mt-3">
+          <label class="form-label"> First Name</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="firstName"
+            placeholder="Enter  First Name"
+            [ngClass]="{
+              'is-invalid':
+                (groupForm.get('firstName')?.dirty ||
+                  groupForm.get('firstName')?.touched) &&
+                groupForm.get('firstName')?.invalid
+            }"
+          />
+          <small
+            class="text-danger"
+            *ngIf="
+              (groupForm.get('firstName')?.dirty ||
+                groupForm.get('firstName')?.touched) &&
+              groupForm.get('firstName')?.invalid
+            "
+            >First Name is required</small
           >
-            Remove Guest
-          </button>
+        </div>
+
+        <div class="col mt-3">
+          <label class="form-label"> Last Name</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="lastName"
+            placeholder="Enter  Last Name"
+            [ngClass]="{
+              'is-invalid':
+                (groupForm.get('lastName')?.dirty ||
+                  groupForm.get('lastName')?.touched) &&
+                groupForm.get('lastName')?.invalid
+            }"
+          />
+          <small
+            class="text-danger"
+            *ngIf="
+              (groupForm.get('lastName')?.dirty ||
+                groupForm.get('lastName')?.touched) &&
+              groupForm.get('lastName')?.invalid
+            "
+            >Last Name is required</small
+          >
+        </div>
+
+        <div class="col mt-3">
+          <label class="form-label"> Phone</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="phone"
+            placeholder="Enter  Phone"
+            [ngClass]="{
+              'is-invalid':
+                (groupForm.get('phone')?.dirty ||
+                  groupForm.get('phone')?.touched) &&
+                groupForm.get('phone')?.invalid
+            }"
+          />
+          <small
+            class="text-danger"
+            *ngIf="
+              (groupForm.get('phone')?.dirty ||
+                groupForm.get('phone')?.touched) &&
+              groupForm.get('phone')?.invalid
+            "
+            >Phone is required</small
+          >
+        </div>
+
+        <div class="col mt-3">
+          <label class="form-label"> Email</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="email"
+            placeholder="Enter  Email"
+            [ngClass]="{
+              'is-invalid':
+                (groupForm.get('email')?.dirty ||
+                  groupForm.get('email')?.touched) &&
+                groupForm.get('email')?.invalid
+            }"
+          />
+          <small
+            class="text-danger"
+            *ngIf="
+              (groupForm.get('email')?.dirty ||
+                groupForm.get('email')?.touched) &&
+              groupForm.get('email')?.invalid
+            "
+            >Email is required</small
+          >
+        </div>
+
+        <div class="col mt-3">
+          <label class="form-label">Address Line 1</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="addressLine1"
+            placeholder="Enter Address Line 1"
+            [ngClass]="{
+              'is-invalid':
+                (groupForm.get('addressLine1')?.dirty ||
+                  groupForm.get('addressLine1')?.touched) &&
+                groupForm.get('addressLine1')?.invalid
+            }"
+          />
+          <small
+            class="text-danger"
+            *ngIf="
+              (groupForm.get('addressLine1')?.dirty ||
+                groupForm.get('addressLine1')?.touched) &&
+              groupForm.get('addressLine1')?.invalid
+            "
+            >Address Line 1 is required</small
+          >
+        </div>
+
+        <div class="col mt-3">
+          <label class="form-label">Address Line 2</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="addressLine2"
+            placeholder="Enter Address Line 2"
+          />
+        </div>
+
+        <div class="col mt-3">
+          <label class="form-label">City</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="city"
+            placeholder="Enter City"
+            [ngClass]="{
+              'is-invalid':
+                (groupForm.get('city')?.dirty ||
+                  groupForm.get('city')?.touched) &&
+                groupForm.get('city')?.invalid
+            }"
+          />
+          <small
+            class="text-danger"
+            *ngIf="
+              (groupForm.get('city')?.dirty ||
+                groupForm.get('city')?.touched) &&
+              groupForm.get('city')?.invalid
+            "
+            >City is required</small
+          >
+        </div>
+
+        <div class="col mt-3">
+          <label class="form-label">State</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="state"
+            placeholder="Enter State"
+            [ngClass]="{
+              'is-invalid':
+                (groupForm.get('state')?.dirty ||
+                  groupForm.get('state')?.touched) &&
+                groupForm.get('state')?.invalid
+            }"
+          />
+          <small
+            class="text-danger"
+            *ngIf="
+              (groupForm.get('state')?.dirty ||
+                groupForm.get('state')?.touched) &&
+              groupForm.get('state')?.invalid
+            "
+            >State is required</small
+          >
+        </div>
+
+        <div class="col mt-3">
+          <label class="form-label">Country</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="country"
+            placeholder="Enter Country"
+            [ngClass]="{
+              'is-invalid':
+                (groupForm.get('country')?.dirty ||
+                  groupForm.get('country')?.touched) &&
+                groupForm.get('country')?.invalid
+            }"
+          />
+          <small
+            class="text-danger"
+            *ngIf="
+              (groupForm.get('country')?.dirty ||
+                groupForm.get('country')?.touched) &&
+              groupForm.get('country')?.invalid
+            "
+            >Country is required</small
+          >
+        </div>
+
+        <div class="col mt-3">
+          <label class="form-label">Zip Code</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="zipCode"
+            placeholder="Enter Zip Code"
+            [ngClass]="{
+              'is-invalid':
+                (groupForm.get('zipCode')?.dirty ||
+                  groupForm.get('zipCode')?.touched) &&
+                groupForm.get('zipCode')?.invalid
+            }"
+          />
+          <small
+            class="text-danger"
+            *ngIf="
+              (groupForm.get('zipCode')?.dirty ||
+                groupForm.get('zipCode')?.touched) &&
+              groupForm.get('zipCode')?.invalid
+            "
+            >Zip Code is required</small
+          >
         </div>
       </div>
-      <button (click)="addGuest(i)">Add Guest</button>
+    </form>
+  </div>
+  <div class="col-3">
+    <div class="card container_form p-3 m-2 rounded">
+      <label class="form-label fw-semibold">Reservation Summary</label>
+      <div class="card-body">
+        <h5 class="card-title">Card title</h5>
+        <label class="form-label">
+          CheckIn Date :
+          <span class="fw-semibold">{{
+            groupForm.get("checkInDate")?.value
+          }}</span></label
+        >
+        <label class="form-label">
+          CheckOut Date :
+          <span class="fw-semibold">{{
+            groupForm.get("checkOutDate")?.value
+          }}</span></label
+        >
+        <label class="form-label">
+          Adults:
+          <span class="fw-semibold">{{ groupForm.get("adults")?.value }}</span>
+          Childs:
+          <span class="fw-semibold">{{
+            groupForm.get("childs")?.value
+          }}</span></label
+        >
+      </div>
+      <form [formGroup]="reservationForm">
+        <ul formArrayName="reservations" class="list-group list-group-flush">
+          <li
+            *ngFor="let reservation of reservations.controls; let i = index"
+            [formGroupName]="i"
+            class="list-group-item"
+          >
+            <div class="d-flex justify-content-between">
+              <div>
+                {{ reservation?.get("roomtype")?.value }}
+              </div>
+              <div>
+                {{ reservation?.get("roomPrice")?.value }}
+              </div>
+            </div>
+          </li>
+        </ul>
+      </form>
+
+      <div class="card-body">
+        <a href="#" class="card-link">Card link</a>
+        <a href="#" class="card-link">Another link</a>
+      </div>
     </div>
   </div>
-</form>
-<div><button class="btn btn-primary" (click)="onSubmit()">submit</button></div>
+  <div class="col-9">
+    <form [formGroup]="reservationForm" class="container_form p-3 m-2 rounded">
+      <div formArrayName="reservations">
+        <div
+          *ngFor="let reservation of reservations.controls; let i = index"
+          [formGroupName]="i"
+          class="row row-cols-1 row-cols-md-2"
+        >
+          <h3>Reservation {{ i + 1 }}</h3>
+          <div>
+            <label>Room Type ID:</label>
+            <input formControlName="roomTypeId" />
+          </div>
+          <div>
+            <label>Room ID:</label>
+            <input formControlName="roomId" />
+          </div>
+          <div>
+            <label>Rate Plan ID:</label>
+            <input formControlName="rateplanId" />
+          </div>
+          <div>
+            <label>Rate Name:</label>
+            <input formControlName="rateName" />
+          </div>
+          <div>
+            <label>Room Type:</label>
+            <input formControlName="roomtype" />
+          </div>
+          <div>
+            <label>Adult Occupant:</label>
+            <input formControlName="adultOccupant" />
+          </div>
+          <div>
+            <label>Child Occupant:</label>
+            <input formControlName="childOccupant" />
+          </div>
+          <div>
+            <label>Room Price:</label>
+            <input formControlName="roomPrice" />
+          </div>
+          <div>
+            <label>Room Cost:</label>
+            <input formControlName="roomCost" />
+          </div>
+          <div formArrayName="dateRate">
+            <div
+              *ngFor="
+                let dateRate of getDateRates(reservation).controls;
+                let j = index
+              "
+              [formGroupName]="j"
+            >
+              <h4>Date Rate {{ j + 1 }}</h4>
+              <div>
+                <label>Date:</label>
+                <input formControlName="date" />
+              </div>
+              <div>
+                <label>Base Rate:</label>
+                <input formControlName="baserate" />
+              </div>
+              <div>
+                <label>Adult Rate:</label>
+                <input formControlName="adultrate" />
+              </div>
+              <div>
+                <label>Child Rate:</label>
+                <input formControlName="childrate" />
+              </div>
+            </div>
+          </div>
+          <div formArrayName="guests">
+            <div
+              *ngFor="
+                let guest of getGuests(reservation).controls;
+                let k = index
+              "
+              [formGroupName]="k"
+            >
+              <h4>Guest {{ k + 1 }}</h4>
+              <div>
+                <label>First Name:</label>
+                <input formControlName="firstName" />
+              </div>
+              <div>
+                <label>Last Name:</label>
+                <input formControlName="lastName" />
+              </div>
+              <div>
+                <label>Email:</label>
+                <input formControlName="email" />
+              </div>
+              <div>
+                <label>Phone:</label>
+                <input formControlName="phone" />
+              </div>
+              <div>
+                <label>Address Line 1:</label>
+                <input formControlName="addressLine1" />
+              </div>
+              <div>
+                <label>City:</label>
+                <input formControlName="city" />
+              </div>
+              <div>
+                <label>State:</label>
+                <input formControlName="state" />
+              </div>
+              <div>
+                <label>Zip Code:</label>
+                <input formControlName="zipCode" />
+              </div>
+              <button
+                type="button"
+                (click)="removeGuest(i, k)"
+                [disabled]="getGuests(reservation).length <= 1"
+              >
+                Remove Guest
+              </button>
+            </div>
+          </div>
+          <button (click)="addGuest(i)">Add Guest</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="col-3">
+    <div class="card container_form p-3 m-2 rounded">
+      <img src="..." class="card-img-top" alt="..." />
+      <div class="card-body">
+        <h5 class="card-title">Card title</h5>
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+      </div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">An item</li>
+        <li class="list-group-item">A second item</li>
+        <li class="list-group-item">A third item</li>
+      </ul>
+      <div class="card-body">
+        <a href="#" class="card-link">Card link</a>
+        <a href="#" class="card-link">Another link</a>
+      </div>
+    </div>
+  </div>
+  <div>
+    <button class="btn btn-primary" (click)="onSubmit()">submit</button>
+  </div>
+</div>

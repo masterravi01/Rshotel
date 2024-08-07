@@ -52,7 +52,7 @@
       <div class="col mt-3">
         <label class="form-label">Adults </label>
         <input
-          type="text"
+          type="number"
           class="form-control"
           formControlName="adults"
           placeholder="Enter adults"
@@ -76,7 +76,7 @@
       <div class="col mt-3">
         <label class="form-label">Childs </label>
         <input
-          type="text"
+          type="number"
           class="form-control"
           formControlName="childs"
           placeholder="Enter childs"
@@ -97,16 +97,26 @@
           >childs is required</small
         >
       </div>
+      <div class="col mt-3">
+        <button
+          class="btn btn-primary"
+          (click)="readRooms()"
+          [disabled]="groupForm.invalid"
+        >
+          Show Availability
+        </button>
+      </div>
     </div>
   </form>
 </div>
-<div class="container-fluid">
+<div class="container-fluid" *ngIf="roomsData.length > 0">
   <table class="table">
     <thead>
       <tr>
         <th class="col">Room Type Name</th>
         <th class="col">Sleeps</th>
         <th class="col">Rate</th>
+        <th class="col">Cost</th>
         <th class="col">No.of Rooms</th>
         <th class="col">Room</th>
       </tr>
@@ -118,6 +128,9 @@
         </th>
         <td>
           {{ r.adultOccupant + r.childOccupant }}
+        </td>
+        <td>
+          {{ r.roomPrice }}
         </td>
         <td>
           {{ r.roomCost }}
@@ -161,5 +174,23 @@
       </tr>
     </tbody>
   </table>
-  <button class="btn btn-primary" (click)="onSubmit()">Submit</button>
+  <button
+    class="btn btn-primary"
+    (click)="onSubmit()"
+    [disabled]="
+      totalGuests?.adults + totalGuests?.childs <
+      this.groupForm.get('adults')?.value + this.groupForm.get('childs')?.value
+    "
+  >
+    Next
+    <ng-container
+      *ngIf="
+        totalGuests?.adults + totalGuests?.childs >=
+        this.groupForm.get('adults')?.value +
+          this.groupForm.get('childs')?.value
+      "
+    >
+      (Total Cost {{ totalGuests?.Cost }})
+    </ng-container>
+  </button>
 </div>
