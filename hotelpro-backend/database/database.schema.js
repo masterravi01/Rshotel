@@ -889,10 +889,6 @@ const roomBalanceSchema = new Schema(
       ref: "GuestTransaction",
     },
     balance: Number,
-    balanceType: {
-      type: String,
-      enum: ["Audited", "Not Audited", "Complete", "Incomplete", "Reserved"],
-    },
     roomId: {
       type: Schema.Types.ObjectId,
       ref: "Room",
