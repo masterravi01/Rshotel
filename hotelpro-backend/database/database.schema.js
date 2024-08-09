@@ -23,6 +23,7 @@ import {
   AvailableRoomConditionEnum,
   AvailableBalanceNameEnum,
   ReservationStatusEnum,
+  BalanceNameEnum,
 } from "../constants.js";
 
 const { Schema } = mongoose;
@@ -944,6 +945,7 @@ const roomBalanceSchema = new Schema(
     balanceName: {
       type: String,
       enum: AvailableBalanceNameEnum,
+      default: BalanceNameEnum.ROOMCHARGES,
     },
     deposit: Boolean,
     hidden: Boolean,
