@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe, JsonPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import {
   FormGroup,
   FormBuilder,
@@ -9,6 +9,11 @@ import {
   ReactiveFormsModule,
   AbstractControl,
 } from '@angular/forms';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { CrudService } from '../../../core/services/crud.service';
+import { APIConstant } from '../../../core/constants/APIConstant';
+import { AlertService } from '../../../core/services/alert.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-reservation-info',
@@ -23,12 +28,22 @@ export class ReservationInfoComponent implements OnInit {
   propertyUnitId: string | null = '';
   roomsData: any[] = [];
   taxSets: any[] = [];
+  updateDateRate: any[] = [];
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private modalService: NgbModal,
+    private crudService: CrudService,
+    private alertService: AlertService,
+    private activeRoute: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
     let x = sessionStorage.getItem('reservationDetails');
-
+    let gropFormDetails = sessionStorage.getItem('groupDetails');
+    this.propertyUnitId =
+      this.activeRoute.snapshot.paramMap.get('propertyUnitId');
+    this.propertyUnitId = '6695584abc45f8d7ad2ead7b';
     if (x) {
       this.reservationForm = this.fb.group({
         reservations: this.fb.array([]),
@@ -39,11 +54,11 @@ export class ReservationInfoComponent implements OnInit {
     nextDate.setDate(nextDate.getDate() + 2);
 
     this.groupForm = this.fb.group({
-      checkInDate: [
+      arrival: [
         new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd'),
         Validators.required,
       ],
-      checkOutDate: [
+      departure: [
         new DatePipe('en-US').transform(nextDate, 'yyyy-MM-dd'),
         Validators.required,
       ],
@@ -60,6 +75,9 @@ export class ReservationInfoComponent implements OnInit {
       state: ['', [Validators.required, Validators.pattern(/^[A-Za-z\s]+$/)]],
       zipCode: ['', [Validators.required]],
     });
+    if (gropFormDetails) {
+      this.groupForm.patchValue(JSON.parse(gropFormDetails));
+    }
   }
 
   createReservation(room?: any): FormGroup {
@@ -80,6 +98,7 @@ export class ReservationInfoComponent implements OnInit {
       guests: this.fb.array(
         room?.guests ? this.createGuests(room.guests) : [this.createGuest()]
       ),
+      isDetailsVisiable: [true],
     });
   }
 
@@ -88,11 +107,12 @@ export class ReservationInfoComponent implements OnInit {
   }
 
   createDateRate(dateRate?: any): FormGroup {
+    debugger;
     return this.fb.group({
       date: [dateRate?.date || '', Validators.required],
-      baserate: [dateRate?.baserate || '', Validators.required],
-      adultrate: [dateRate?.adultrate || '', Validators.required],
-      childrate: [dateRate?.childrate || '', Validators.required],
+      baseRate: [dateRate?.baseRate || '', Validators.required],
+      adultRate: [dateRate?.adultRate || '', Validators.required],
+      childRate: [dateRate?.childRate || '', Validators.required],
     });
   }
 
@@ -106,10 +126,13 @@ export class ReservationInfoComponent implements OnInit {
       lastName: [guest?.lastName || '', Validators.required],
       email: [guest?.email || '', [Validators.required, Validators.email]],
       phone: [guest?.phone || '', Validators.required],
-      addressLine1: [guest?.addressLine1 || '', Validators.required],
+      addressLine1: [guest?.addressLine1 || ''],
+      addressLine2: [guest?.addressLine2 || ''],
+      country: [''],
       city: [guest?.city || '', Validators.required],
       state: [guest?.state || '', Validators.required],
       zipCode: [guest?.zipCode || '', Validators.required],
+      isSameAsCustomer: [false],
     });
   }
 
@@ -149,7 +172,38 @@ export class ReservationInfoComponent implements OnInit {
       guests.removeAt(guestIndex);
     }
   }
+
+  sameAsCustomer(guestForm: AbstractControl, event: any) {
+    if (event.target.checked) {
+      guestForm.patchValue(this.groupForm.value);
+    }
+  }
+  openUpdateRate(content: TemplateRef<any>, daterate: any): void {
+    this.updateDateRate = JSON.parse(JSON.stringify(daterate));
+    this.modalService.open(content).result.then((result) => {
+      console.log(result, this.updateDateRate);
+      if (result) {
+      } else {
+      }
+    });
+  }
   onSubmit() {
-    console.log(this.reservationForm.value);
+    let sendObj = {
+      reservationsArray: this.reservationForm.get('reservations')?.value,
+      groupDetails: {
+        propertyUnitId: this.propertyUnitId,
+        ...this.groupForm.value,
+      },
+    };
+    console.log(this.reservationForm.value, this.groupForm.value);
+    this.crudService
+      .post(APIConstant.CREATE_RESERVATION, sendObj)
+      .then((response: any) => {
+        console.log(response);
+      })
+      .catch((error: any) => {
+        this.alertService.errorAlert(error?.error?.message);
+        console.log(error);
+      });
   }
 }
