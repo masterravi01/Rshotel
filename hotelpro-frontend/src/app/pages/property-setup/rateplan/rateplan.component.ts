@@ -228,7 +228,7 @@ export class RateplanComponent implements OnInit {
       })
       .catch((error: any) => {
         console.log(error);
-        this.alertService.errorAlert(error.message);
+        this.alertService.errorAlert(error?.error?.message);
       });
   }
   readAllNoShowPolicies() {
@@ -312,5 +312,9 @@ export class RateplanComponent implements OnInit {
         console.log(error);
         this.alertService.errorAlert(error.message);
       });
+  }
+
+  next() { 
+    this.router.navigate(['/tax-setup', this.propertyUnitId]);
   }
 }

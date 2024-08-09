@@ -5,16 +5,23 @@ import bcrypt from "bcrypt";
 import {
   UserTypesEnum,
   UserLoginType,
+  MaintenanceStatusEnum,
+  USER_TEMPORARY_TOKEN_EXPIRY,
   RoomStatusEnum,
+  RoomConditionEnum,
+  ChangeValueEnum,
+  //
   AvailableUserLoginType,
   AvailableUserTypes,
   AvailableChangeValueEnum,
-  AvailableRoomStatus,
-  USER_TEMPORARY_TOKEN_EXPIRY,
+  AvailableMaintenanceStatus,
   AvailableReservationStatusEnum,
   AvailableVehicleTypeEnum,
   AvailableWeekDayEnum,
   AvailableRateTypeEnum,
+  AvailableRoomStatusEnum,
+  AvailableRoomConditionEnum,
+  AvailableBalanceNameEnum,
   ReservationStatusEnum,
 } from "../constants.js";
 
@@ -241,13 +248,13 @@ const roomSchema = new Schema(
     },
     roomStatus: {
       type: String,
-      enum: ["occupied", "vacant", "maintainance"],
-      default: "vacant",
+      enum: AvailableRoomStatusEnum,
+      default: RoomStatusEnum.VACANT,
     },
     roomCondition: {
       type: String,
-      enum: ["dirty", "clean"],
-      default: "clean",
+      enum: AvailableRoomConditionEnum,
+      default: RoomConditionEnum.CLEAN,
     },
     dnd: Boolean,
   },
@@ -430,7 +437,7 @@ const cancellationPolicySchema = new Schema(
     windowType: {
       type: String,
       enum: AvailableChangeValueEnum,
-      default: "percentage",
+      default: ChangeValueEnum.PERCENTAGE,
     },
     insideWindowCharge: Number,
     outsideWindowCharge: Number,
@@ -576,8 +583,8 @@ const roomMaintenanceSchema = new Schema(
     description: String,
     status: {
       type: String,
-      enum: AvailableRoomStatus,
-      default: RoomStatusEnum.PENDING,
+      enum: AvailableMaintenanceStatus,
+      default: MaintenanceStatusEnum.PENDING,
     },
   },
   { timestamps: true }
@@ -928,10 +935,6 @@ const roomBalanceSchema = new Schema(
       ref: "GuestTransaction",
     },
     balance: Number,
-    balanceType: {
-      type: String,
-      enum: ["Audited", "Not Audited", "Complete", "Incomplete", "Reserved"],
-    },
     roomId: {
       type: Schema.Types.ObjectId,
       ref: "Room",
@@ -940,8 +943,7 @@ const roomBalanceSchema = new Schema(
     refundFlag: Boolean,
     balanceName: {
       type: String,
-      enum: ["RoomCharges", "RoomServices", "HouseKeeping", "Tax"],
-      default: "RoomCharges",
+      enum: AvailableBalanceNameEnum,
     },
     deposit: Boolean,
     hidden: Boolean,

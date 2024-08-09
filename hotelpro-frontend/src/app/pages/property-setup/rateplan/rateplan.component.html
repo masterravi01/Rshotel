@@ -1,3 +1,15 @@
+<div class="mt-2">
+  <div class="d-flex justify-content-end mx-5">
+    <button class="btn btn-outline-success" (click)="openNoShow(noShowModal)">
+      no show
+    </button>
+    
+    <button class="btn btn-outline-success mx-2" (click)="openCancellation(cancellationModal)">
+      cancellation
+    </button>
+  </div>
+</div>
+
 <div class="container container_form my-3 rounded">
   <form [formGroup]="ratePlanForm">
     <div class="row row-cols-1 row-cols-md-2">
@@ -236,15 +248,13 @@
     </div>
   </form>
 </div>
-<button class="btn btn-outline-success" (click)="openNoShow(noShowModal)">
-  no show
-</button>
-<button
-  class="btn btn-outline-success"
-  (click)="openCancellation(cancellationModal)"
->
-  cancellation
-</button>
+
+<div class="col-md-12 mt-2">
+  <div class="d-flex justify-content-center">
+    <button class="btn btn-primary" (click)="next()">Next</button>
+  </div>
+</div>
+
 <ng-template #noShowModal let-modal>
   <div class="modal-header">
     <h4 class="modal-title" id="modal-basic-title">No Show Policy</h4>

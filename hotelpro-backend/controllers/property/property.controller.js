@@ -203,6 +203,7 @@ const readClientDashboard = asyncHandler(async (req, res) => {
             {
               $project: {
                 propertyUnitName: 1,
+                active: 1,
               },
             },
           ],
