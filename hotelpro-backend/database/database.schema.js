@@ -22,6 +22,8 @@ import {
   AvailableRoomStatusEnum,
   AvailableRoomConditionEnum,
   AvailableBalanceNameEnum,
+  ReservationStatusEnum,
+  BalanceNameEnum,
 } from "../constants.js";
 
 const { Schema } = mongoose;
@@ -57,10 +59,7 @@ const userSchema = new Schema(
       default: UserTypesEnum.CLIENT,
       required: true,
     },
-    password: {
-      type: String,
-      required: [true, "Password is required"],
-    },
+    password: String,
     loginType: {
       type: String,
       enum: AvailableUserLoginType,
@@ -596,25 +595,53 @@ export const RoomMaintenance = mongoose.model(
   roomMaintenanceSchema
 );
 
-const reservationSchema = new Schema(
+const groupReservationSchema = new Schema(
   {
-    roomIds: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Room",
-      },
-    ],
     propertyUnitId: {
       type: Schema.Types.ObjectId,
       ref: "PropertyUnit",
     },
     arrival: Date,
     departure: Date,
+    adults: Number,
+    childs: Number,
+    notes: String,
+  },
+  { timestamps: true }
+);
+
+export const GroupReservation = mongoose.model(
+  "GroupReservation",
+  groupReservationSchema
+);
+
+const reservationSchema = new Schema(
+  {
+    groupId: {
+      type: Schema.Types.ObjectId,
+      ref: "GroupReservation",
+    },
+    propertyUnitId: {
+      type: Schema.Types.ObjectId,
+      ref: "PropertyUnit",
+    },
+    roomId: {
+      type: Schema.Types.ObjectId,
+      ref: "Room",
+    },
+    tantative: {
+      type: Boolean,
+      default: false,
+    },
+    arrival: Date,
+    departure: Date,
     reservationStatus: {
       type: String,
       enum: AvailableReservationStatusEnum,
+      default: ReservationStatusEnum.RESERVED,
     },
     notes: String,
+    confirmationNumber: String,
     ratePlanSetupId: {
       type: Schema.Types.ObjectId,
       ref: "RatePlanSetup",
@@ -623,6 +650,12 @@ const reservationSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    secondaryUserIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );
@@ -639,10 +672,28 @@ const reservationDetailSchema = new Schema(
     noShowDate: Date,
     cancellationDate: Date,
     confirmationNumber: String,
-    adults: Number,
-    children: Number,
+    adults: {
+      type: Number,
+      default: 2,
+    },
+    childs: {
+      type: Number,
+      default: 0,
+    },
     checkInTime: Date,
     checkOutTime: Date,
+    roomCost: {
+      type: Number,
+      default: 0,
+    },
+    deposit: {
+      type: Number,
+      default: 0,
+    },
+    payment: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
@@ -880,10 +931,6 @@ const roomBalanceSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Reservation",
     },
-    guestId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
     transactionId: {
       type: Schema.Types.ObjectId,
       ref: "GuestTransaction",
@@ -898,6 +945,7 @@ const roomBalanceSchema = new Schema(
     balanceName: {
       type: String,
       enum: AvailableBalanceNameEnum,
+      default: BalanceNameEnum.ROOMCHARGES,
     },
     deposit: Boolean,
     hidden: Boolean,

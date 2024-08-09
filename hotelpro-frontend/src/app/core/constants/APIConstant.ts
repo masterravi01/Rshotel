@@ -56,4 +56,7 @@ export const APIConstant = {
   READ_RATEPLAN: 'ratemanagement/read-rateplan/',
   CREATE_RATEPLAN: 'ratemanagement/create-rateplan',
   UPDATE_RATEPLAN: 'ratemanagement/update-rateplan/',
+
+  READ_RESERVATION_RATE: 'reservation/read-reservation-rate/',
+  CREATE_RESERVATION: 'reservation/create-reservation',
 };
