@@ -19,9 +19,16 @@ router.post(
 );
 
 router.post("/create-room", roomIndex.createRoom);
-
 router.post("/update-room/:roomId", roomIndex.updateRoomById);
-
 router.post("/delete-room/:roomId", roomIndex.deleteRoomById);
+
+router.post("/read-room-maintenance", roomIndex.getRoomMaintenance);
+router.post("/create-room-maintenance", roomIndex.createRoomMaintenance);
+router.post("/update-room-maintenance", roomIndex.updateRoomMaintenance);
+router.post("/delete-room-maintenance", roomIndex.deleteRoomMaintenance);
+router.post(
+  "/update-room-maintenance-range",
+  roomIndex.updateRoomMaintenanceRange
+);
 
 export default router;

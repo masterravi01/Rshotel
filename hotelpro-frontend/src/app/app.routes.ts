@@ -143,6 +143,18 @@ export const routes: Routes = [
         title: 'Reservation Info',
         canActivate: [authGuard],
       },
+
+      //room collection
+
+      {
+        path: 'room-maintenance/:propertyUnitId',
+        loadComponent: () =>
+          import(
+            './pages/room-operation/room-maintenance/room-maintenance.component'
+          ).then((m) => m.RoomMaintenanceComponent),
+        title: 'Room Maintenance',
+        canActivate: [authGuard],
+      },
     ],
   },
 

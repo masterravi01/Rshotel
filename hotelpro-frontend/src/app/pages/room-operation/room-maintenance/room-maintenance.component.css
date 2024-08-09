@@ -1,0 +1,527 @@
+.clean_active,
+.dirty_active {
+  color: #fff;
+  border-radius: 10px;
+}
+
+.inline,
+.inline1,
+.inline2,
+.justify_end {
+  display: flex;
+}
+
+figure img {
+  height: auto;
+  width: 70%;
+  margin-left: 15%;
+  margin-top: 10%;
+}
+
+.balance_table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.balance_table td,
+.balance_table th {
+  text-align: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.balance_table th {
+  background: #082b4a;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0px;
+  color: #fff;
+  position: sticky;
+  top: 0 !important;
+  z-index: 100;
+}
+
+.balance_table td {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: #000;
+}
+
+.balance_table td,
+.balance_table th {
+  min-width: 100px !important;
+  width: 100px !important;
+  max-width: 100px !important;
+}
+
+.balance_table td:first-child,
+.balance_table th:first-child {
+  position: sticky !important;
+  left: 0 !important;
+  min-width: 115px !important;
+  width: 115px !important;
+  max-width: 115px !important;
+}
+
+.balance_table td:first-child,
+.balance_table td:nth-child(2),
+.balance_table td:nth-child(3) {
+  background: #fff !important;
+}
+
+.balance_table td:nth-child(2),
+.balance_table th:nth-child(2) {
+  position: sticky !important;
+  left: 114.5px !important;
+  min-width: 80px !important;
+  width: 80px !important;
+  max-width: 80px !important;
+}
+
+.balance_table td:nth-child(3),
+.balance_table th:nth-child(3) {
+  position: sticky !important;
+  left: 194.5px !important;
+  min-width: 150px !important;
+  width: 150px !important;
+  max-width: 150px !important;
+}
+
+.balance_table tr:nth-child(odd) {
+  background-color: white !important;
+}
+
+.balance_table tr:nth-child(even) {
+  background-color: #f3f3f3 !important;
+}
+
+.balance_table th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.balance_table th:last-child {
+  border-top-right-radius: 10px;
+}
+
+.balance_table tr:last-child td:last-child {
+  border-bottom-right-radius: 10px;
+}
+
+.balance_table tr:last-child td:first-child {
+  border-bottom-left-radius: 10px;
+}
+
+.clean,
+.dirty {
+  column-width: 40px;
+}
+
+.clean_active {
+  background: #6ccfca;
+}
+
+.dirty_active {
+  background: #ffa4a3;
+}
+
+.checkedout,
+.inhouse,
+.reservation {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: capitalize;
+  margin-left: 20px !important;
+  border-radius: 10px !important;
+}
+
+.reservation {
+  background: #bee2f8 !important;
+  color: #000;
+}
+
+.inhouse {
+  background: #6ccfca !important;
+  color: #000;
+}
+
+.checkedout {
+  background: #1d366d !important;
+  color: #fff;
+}
+
+.reservation_icon {
+  width: 13px !important;
+  margin-left: 5px !important;
+  margin-top: -3px !important;
+  pointer-events: none !important;
+}
+
+.add_table td,
+.black_font {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: black;
+}
+
+.input_container {
+  position: relative;
+  width: 20%;
+}
+
+.input_img,
+.input_img1 {
+  bottom: 2px;
+  top: 5px;
+  width: 22px;
+  height: 22px;
+  position: absolute;
+  cursor: pointer;
+}
+
+.input {
+  margin: 0;
+}
+
+.input_img {
+  right: 5px;
+}
+
+.input_img1 {
+  left: 5px;
+}
+
+.arrow_icon,
+.arrow_icon1 {
+  height: 20px;
+  margin-top: 20% !important;
+}
+
+.arrow_icon1 {
+  transform: rotate(180deg);
+}
+
+.box {
+  width: 33.5px;
+  height: 33.5px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  background: #fff;
+}
+
+.justify_end {
+  justify-content: flex-end;
+}
+
+.button {
+  width: 150px;
+}
+
+.form-control {
+  font-weight: 500 !important;
+  color: #000 !important;
+  font-size: 12px;
+}
+
+.housekeeper_table td,
+.housekeeper_table th {
+  text-align: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-top: 0.1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 0.1px solid rgba(0, 0, 0, 0.1);
+  border-left: 2px dashed rgba(0, 0, 0, 0.1);
+}
+
+.housekeeper_table td:first-child,
+.housekeeper_table th:first-child {
+  border-left: 0.1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  margin-right: 10px;
+  margin-left: 0 !important;
+  border-left: none;
+  opacity: 0 !important;
+  cursor: pointer;
+}
+
+input::-webkit-datetime-edit-fields-wrapper {
+  position: relative;
+}
+
+[type="date"]::-webkit-inner-spin-button {
+  display: none;
+}
+
+[type="date"] {
+  background-size: 30px;
+  padding-right: 43px;
+  padding-left: 12px;
+}
+
+input[type="date"]:disabled {
+  background-size: 30px !important;
+  padding-right: 43px !important;
+  padding-left: 12px !important;
+} */
+
+.custom_container3 {
+  background: #f1f8ff;
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+  padding-bottom: 1px !important;
+  border-radius: 10px;
+}
+
+.blue_container,
+.custom_container {
+  border-radius: 5px;
+}
+
+.add_table tr:last-child td:nth-child(2),
+.blue_container1 {
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+.custom_container {
+  background-color: #fff;
+}
+
+.blue_container,
+.blue_container1 {
+  background: #387cf7;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.black_font1,
+.notes {
+  letter-spacing: 1px !important;
+}
+
+.rooms_table2 td:first-child {
+  text-align: end;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #1d366d;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  width: 50%;
+}
+
+.rooms_table2 td:last-child {
+  padding-left: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #000;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+hr {
+  border-top: 2px dashed rgba(0, 0, 0, 0.3);
+}
+
+.table_icon1 {
+  width: 15px;
+}
+
+.housekeeper_table th {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #1d366d;
+}
+
+.housekeeper_table td:last-child,
+.housekeeper_table th:last-child {
+  border-right: 0.1px solid rgba(0, 0, 0, 0.1);
+}
+
+.housekeeper_table td {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: #000;
+}
+
+.housekeeper_table td:first-child {
+  padding-right: 0 !important;
+}
+
+.housekeeper_table td:nth-child(2),
+.housekeeper_table th:nth-child(2) {
+  border-left: none !important;
+  padding-left: 0 !important;
+}
+
+.gray_container {
+  background: #f1f8ff;
+  border-radius: 5px !important;
+}
+
+.notes {
+  font-size: 14px !important;
+  color: #000;
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+.checkbox_label,
+.small_font {
+  text-transform: capitalize !important;
+}
+
+.notes_font {
+  font-size: 13px !important;
+  color: #000;
+  font-weight: 500;
+}
+
+.black_font1 {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.add_table td:nth-child(2) {
+  background: #f1f8ff;
+  padding-right: 4px;
+  padding-left: 8px;
+}
+
+.add_table td:first-child {
+  width: 41.5%;
+}
+
+.add_table tr:first-child td:first-child,
+.add_table tr:first-child td:last-child {
+  padding-top: 8px;
+}
+
+.add_table tr:last-child td:first-child,
+.add_table tr:last-child td:last-child {
+  padding-bottom: 8px;
+}
+
+.add_table tr:first-child td:nth-child(2) {
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+}
+
+.select1__arrow {
+  top: 13px;
+}
+
+.small_font {
+  font-size: 8.5px !important;
+  letter-spacing: 0 !important;
+}
+
+.renovation {
+  background: #ffccd1 !important;
+  color: #000;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: capitalize;
+  margin-left: 20px !important;
+  border-radius: 10px !important;
+}
+
+.edit_icon {
+  width: 17px;
+  cursor: pointer;
+}
+
+.smoking_icon {
+  width: 15px !important;
+}
+
+@media only screen and (max-width: 1100px) {
+  .inline {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media only screen and (max-width: 990px) {
+  .inline2 {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media only screen and (max-width: 590px) {
+  .inline1 {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .input_container {
+    width: 100%;
+  }
+
+  .balance_table td,
+  .balance_table th {
+    font-size: 8px !important;
+    min-width: 50px !important;
+    width: 50px !important;
+    max-width: 50px !important;
+  }
+
+  .balance_table td:first-child,
+  .balance_table th:first-child {
+    min-width: 60px !important;
+    width: 60px !important;
+    max-width: 60px !important;
+    position: sticky !important;
+    left: 0 !important;
+  }
+
+  .balance_table td:nth-child(2),
+  .balance_table th:nth-child(2) {
+    min-width: 60px !important;
+    width: 60px !important;
+    position: sticky !important;
+    left: 59px !important;
+  }
+
+  .balance_table td:nth-child(3),
+  .balance_table th:nth-child(3) {
+    min-width: 120px !important;
+    width: 120px !important;
+    max-width: 120px !important;
+    position: sticky !important;
+    left: 119px !important;
+  }
+
+  .balance_table td:first-child,
+  .balance_table td:nth-child(2) {
+    background: #fff !important;
+  }
+
+  .clean,
+  .dirty {
+    column-width: 15px;
+  }
+
+  .reservation {
+    font-size: 8px !important;
+  }
+
+  .reservation_icon {
+    width: 8px !important;
+  }
+}

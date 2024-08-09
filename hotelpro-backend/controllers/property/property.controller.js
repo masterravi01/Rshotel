@@ -12,6 +12,7 @@ import {
 } from "../../utils/mail.js";
 
 import { Property, User, Address } from "../../database/database.schema.js";
+const ObjectId = mongoose.Types.ObjectId;
 
 // GET all properties
 const getAllProperties = asyncHandler(async (req, res) => {
@@ -190,7 +191,7 @@ const readClientDashboard = asyncHandler(async (req, res) => {
     Property.aggregate([
       {
         $match: {
-          _id: new mongoose.Types.ObjectId(propertyId),
+          _id: new ObjectId(propertyId),
         },
       },
       {
@@ -221,7 +222,7 @@ const readClientDashboard = asyncHandler(async (req, res) => {
     Property.aggregate([
       {
         $match: {
-          _id: new mongoose.Types.ObjectId(propertyId),
+          _id: new ObjectId(propertyId),
         },
       },
       {

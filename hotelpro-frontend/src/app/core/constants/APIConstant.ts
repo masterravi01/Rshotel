@@ -27,6 +27,12 @@ export const APIConstant = {
   UPDATE_ROOM: 'room/update-room/',
   DELETE_ROOM: 'room/delete-room/',
 
+  READ_ROOM_MAINTENANCE: 'room/read-room-maintenance/',
+  CREATE_ROOM_MAINTENANCE: 'room/create-room-maintenance/',
+  UPDATE_ROOM_MAINTENANCE: 'room/update-room-maintenance/',
+  DELETE_ROOM_MAINTENANCE: 'room/delete-room-maintenance/',
+  UPDATE_ROOM_MAINTENANCE_RANGE: 'room/update-room-maintenance-range/',
+
   CREATE_TAX: 'propertyunit/create-tax',
   UPDATE_TAX: 'propertyunit/update-tax/',
   GET_TAX_BY_ID: 'propertyunit/get-tax-by-id/',
