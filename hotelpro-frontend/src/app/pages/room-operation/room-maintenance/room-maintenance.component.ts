@@ -1,38 +1,40 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import {
-  FormArray,
-  FormBuilder,
   FormGroup,
-  FormControl,
-  FormsModule,
-  ReactiveFormsModule,
+  FormBuilder,
   Validators,
+  FormArray,
+  AbstractControl,
+  ValidatorFn,
+  FormsModule,
+  ReactiveFormsModule
 } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
-import { CommonModule, DatePipe } from '@angular/common';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { GeneralModalService } from '../../../core/services/general-modal.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
+import { CommonModule, DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-room-maintenance',
   standalone: true,
-  imports: [FormsModule, NgMultiSelectDropDownModule, CommonModule, ReactiveFormsModule],
+  imports: [FormsModule, NgMultiSelectDropDownModule, CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './room-maintenance.component.html',
   styleUrl: './room-maintenance.component.css',
 })
-export class RoomMaintenanceComponent {
+export class RoomMaintenanceComponent implements OnInit{
   propertyUnitId: string | null = '';
+  AddMaintenance!: FormGroup;
   RoomData: any;
-  StartDate!: Date;
-  EndDate!: Date;
+  startDate!: Date;
+  endDate!: Date;
   ShowAdd = false;
   DateArr: any;
   Date: any;
   Week = 2;
-  PropertyUnitName = '';
-  PropertyUnitCode = '';
 
   ShowMain = false;
   CompletedBy = '';
@@ -58,7 +60,6 @@ export class RoomMaintenanceComponent {
   dropdownList: any = [];
   selectedItems: any = [];
   CurrentMaintainance: any;
-  AddMaintenance: any;
   RoomTypes!: any[];
   ShowEdit = false;
   RoomAfterMaintainance: any;
@@ -71,7 +72,6 @@ export class RoomMaintenanceComponent {
   RangeUpdate!: FormGroup;
   AccesstoBlockroom = false;
   constructor(
-    // private _ModalService: NgbModal,
     private crudService: CrudService,
     private fb: FormBuilder,
     private alertService: AlertService,
@@ -79,25 +79,34 @@ export class RoomMaintenanceComponent {
     private activeRoute: ActivatedRoute
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.dropdownListRoom = [];
     this.propertyUnitId =
       this.activeRoute.snapshot.paramMap.get('propertyUnitId');
 
+    this.AddMaintenance = this.fb.group({
+      PropertyUnitId: [this.propertyUnitId],
+      startDate: ['', Validators.required],
+      endDate: ['', Validators.required],
+      RoomType: ['', Validators.required],
+      Rooms: [[], Validators.required],
+      OnlyMaintenance: [true],
+      Reason: ['', Validators.required],
+      Notes: [''],
+    });
     this.Max = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
     this.ShowAdd = false;
 
-    let date = new Date();
-    this.Date = new DatePipe('en-US').transform(date, 'yyyy-MM-dd');
-    this.Today = new DatePipe('en-US').transform(date, 'yyyy-MM-dd');
-    this.StartDate = new Date();
+    this.Date = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
+    this.Today = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
+    this.startDate = new Date();
 
-    this.RangeUpdate = new FormGroup({
-      StartDate: new FormControl(this.Today, Validators.required),
-      EndDate: new FormControl(this.Today, Validators.required),
-      Room: new FormControl('all', Validators.required),
-      RoomType: new FormControl('all', Validators.required),
-      CompletedBy: new FormControl(''),
+    this.RangeUpdate = this.fb.group({
+      startDate: [this.Today, Validators.required],
+      endDate: [this.Today, Validators.required],
+      Room: ['all', Validators.required],
+      RoomType: ['all', Validators.required],
+      CompletedBy: [''],
     });
     this.dropdownSettings = {
       singleSelection: false,
@@ -117,20 +126,71 @@ export class RoomMaintenanceComponent {
       itemsShowLimit: 1,
       allowSearchFilter: true,
     };
-    this.AddMaintenance = new FormGroup({
-      PropertyUnitId: new FormControl(
-        this.userData.data.user.PropertyUnitId[0]
-      ),
-      StartDate: new FormControl('', Validators.required),
-      EndDate: new FormControl('', Validators.required),
-      RoomType: new FormControl('', Validators.required),
-      Rooms: new FormControl([], Validators.required),
-      OnlyMaintenance: new FormControl(true),
-      Reason: new FormControl('', Validators.required),
-      Notes: new FormControl(''),
-      email: new FormControl(''),
-    });
+    
     this.fetchdata();
+  }
+
+  fetchdata() {
+    this.AddMaintenance.reset({
+      OnlyMaintenance: true,
+      RoomType: '',
+      Reason: '',
+      Rooms: [],
+    });
+
+    this.ShowAdd = false;
+    this.startDate = new Date(this.Date);
+    this.endDate = new Date(this.startDate);
+    this.endDate.setDate(this.startDate.getDate() + this.Week * 7);
+    this.DateArr = [];
+    for (
+      let d = new Date(this.startDate);
+      d < new Date(this.endDate);
+      d.setDate(d.getDate() + 1)
+    ) {
+      this.DateArr.push(new Date(d));
+    }
+
+    this.crudService
+      .post(APIConstant.READ_ROOM_MAINTENANCE, {
+        startDate: this.startDate,
+        endDate: this.endDate,
+        PropertyUnitId: this.propertyUnitId,
+      })
+      .then((response: any) => {
+        this.dropdownList = [];
+        this.RoomData = response.data.Rooms;
+
+        for (let r of this.RoomData) {
+          for (let rr of r.Reservation) {
+            rr.Arrival = new Date(
+              rr.Arrival.split('T')[0].replace(/-/g, '/') + ' 00:00'
+            );
+            rr.Departure = new Date(
+              rr.Departure.split('T')[0].replace(/-/g, '/') + ' 00:00'
+            );
+          }
+          for (let rm of r.RoomMaintainance) {
+            rm.startDate = new Date(
+              rm.startDate.split('T')[0].replace(/-/g, '/') + ' 00:00'
+            );
+            rm.endDate = new Date(
+              rm.endDate.split('T')[0].replace(/-/g, '/') + ' 00:00'
+            );
+          }
+          if (!this.dropdownList.includes(r.RoomType)) {
+            this.dropdownList.push(r.RoomType);
+          }
+          r.Show = true;
+        }
+        this.RoomTypes = [...this.dropdownList];
+        this.dropdownList = this.dropdownList.map((e: any) => {
+          return { item_id: e, item_text: e };
+        });
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(error.statusMessage);
+      });
   }
 
   setBackground(r: any) {
@@ -146,14 +206,14 @@ export class RoomMaintenanceComponent {
 
   getAvailRoomdata() {
     if (
-      this.AddMaintenance.controls.StartDate.value != '' &&
-      this.AddMaintenance.controls.EndDate.value != ''
+      this.AddMaintenance.controls.startDate.value &&
+      this.AddMaintenance.controls.endDate.value
     ) {
       this.crudService
-        .post(APIConstant.READ_PROPERTY_UNIT, {
-          StartDate: this.AddMaintenance.controls.StartDate.value,
-          EndDate: this.AddMaintenance.controls.EndDate.value,
-          PropertyUnitId: this.userData.data.user.PropertyUnitId[0],
+        .post(APIConstant.READ_AVAILABLE_ROOM_FOR_DATERANGE, {
+          startDate: this.AddMaintenance.controls.startDate.value,
+          endDate: this.AddMaintenance.controls.endDate.value,
+          PropertyUnitId: this.propertyUnitId,
         })
         .then((response: any) => {
           this.availableRoom = response.data.RoomTypes;
@@ -172,70 +232,15 @@ export class RoomMaintenanceComponent {
         for (let x of i.rooms) {
           let obj = {
             item_id: x._id,
-            item_text: x.RoomName,
+            item_text: x.roomName,
           };
           this.dropdownListRoom.push(obj);
         }
         break;
       }
     }
-  }
-
-  fetchdata() {
-    this.AddMaintenance.reset();
-    this.AddMaintenance.controls.OnlyMaintenance.setValue(true);
-    this.ShowAdd = false;
-    this.StartDate = new Date(this.Date);
-    this.EndDate = new Date(this.StartDate.getDate() + this.Week * 7);
-    this.DateArr = [];
-    for (
-      let d = new Date(this.StartDate);
-      d < this.EndDate;
-      d.setDate(d.getDate() + 1)
-    ) {
-      this.DateArr.push(new Date(d));
-    }
-
-    this.crudService
-      .post(APIConstant.READ_ROOM_MAINTENANCE, {
-        StartDate: this.StartDate,
-        EndDate: this.EndDate,
-        PropertyUnitId: this.userData.data.user.PropertyUnitId[0],
-      })
-      .then((response: any) => {
-        this.dropdownList = [];
-        this.RoomData = response.data.Rooms;
-
-        for (let r of this.RoomData) {
-          for (let rr of r.Reservation) {
-            rr.Arrival = new Date(
-              rr.Arrival.split('T')[0].replace(/-/g, '/') + ' 00:00'
-            );
-            rr.Departure = new Date(
-              rr.Departure.split('T')[0].replace(/-/g, '/') + ' 00:00'
-            );
-          }
-          for (let rm of r.RoomMaintainance) {
-            rm.StartDate = new Date(
-              rm.StartDate.split('T')[0].replace(/-/g, '/') + ' 00:00'
-            );
-            rm.EndDate = new Date(
-              rm.EndDate.split('T')[0].replace(/-/g, '/') + ' 00:00'
-            );
-          }
-          if (!this.dropdownList.includes(r.RoomType)) {
-            this.dropdownList.push(r.RoomType);
-          }
-          r.Show = true;
-        }
-        this.RoomTypes = [...this.dropdownList];
-        this.dropdownList = this.dropdownList.map((e: any) => {
-          return { item_id: e, item_text: e };
-        });
-      })
-      .catch((error) => {
-        this.alertService.errorAlert(error.statusMessage);
-      });
+    console.log(this.dropdownListRoom);
+    
   }
 
   add() {
@@ -251,7 +256,7 @@ export class RoomMaintenanceComponent {
   test(d: any, r: any) {
     if (
       d.toString() == r.Arrival.toString() ||
-      (r.Arrival <= this.StartDate && d.toString() == this.StartDate.toString())
+      (r.Arrival <= this.startDate && d.toString() == this.startDate.toString())
     ) {
       return true;
     } else {
@@ -272,9 +277,9 @@ export class RoomMaintenanceComponent {
 
   testmaintainance(d: any, m: any) {
     if (
-      d.toString() == m.StartDate.toString() ||
-      (m.StartDate <= this.StartDate &&
-        d.toString() == this.StartDate.toString())
+      d.toString() == m.startDate.toString() ||
+      (m.startDate <= this.startDate &&
+        d.toString() == this.startDate.toString())
     ) {
       return true;
     } else {
@@ -285,8 +290,8 @@ export class RoomMaintenanceComponent {
   nightNumber(a: any, d: any) {
     let date1 = new Date(a);
     let date2 = new Date(d);
-    let en = new Date(this.EndDate);
-    let st = new Date(this.StartDate);
+    let en = new Date(this.endDate);
+    let st = new Date(this.startDate);
     st.setUTCHours(0, 0, 0, 0);
     en.setUTCHours(0, 0, 0, 0);
     date1.setUTCHours(0, 0, 0, 0);
@@ -347,67 +352,44 @@ export class RoomMaintenanceComponent {
     this.ShowMain = true;
     this.ShowEdit = false;
     this.CurrentMaintainance = { ...m };
-    this.CurrentMaintainance.StartDate = new DatePipe('en-US').transform(
-      new Date(this.CurrentMaintainance.StartDate),
+    this.CurrentMaintainance.startDate = new DatePipe('en-US').transform(
+      new Date(this.CurrentMaintainance.startDate),
       'yyyy-MM-dd'
     );
-    this.CurrentMaintainance.EndDate = new DatePipe('en-US').transform(
-      new Date(this.CurrentMaintainance.EndDate),
+    this.CurrentMaintainance.endDate = new DatePipe('en-US').transform(
+      new Date(this.CurrentMaintainance.endDate),
       'yyyy-MM-dd'
     );
   }
 
   addMaintenance() {
     let formdata = this.AddMaintenance.value;
-    formdata.PropertyUnitId = this.userData.data.user.PropertyUnitId[0];
-    let diff = Math.round(
-      (new Date(formdata.EndDate).getTime() -
-        new Date(formdata.StartDate).getTime()) /
-        (1000 * 3600 * 24)
-    );
     let objarr: any[] = [];
-    if (new Date(formdata.EndDate) < new Date(formdata.StartDate)) {
+    if (new Date(formdata.endDate) < new Date(formdata.startDate)) {
       this.alertService.errorAlert('Enter Valid Start and End Date!');
     } else {
       for (let i of formdata.Rooms) {
         let obj = {
-          PropertyUnitId: formdata.PropertyUnitId,
-          StartDate: formdata.StartDate,
-          EndDate: formdata.EndDate,
-          RoomId: i.item_id,
-          budget: 0,
-          DurationDays: diff,
-          Reason: formdata.Reason,
-          Notes: formdata.Notes,
-          email: formdata.email,
-          Completed: false,
-          OnlyMaintenance: formdata.OnlyMaintenance,
-          Today: this.Today,
-          clientMailIdFlag: false,
-          clientId: this.userData.data.user._id,
+          roomId: i.item_id,
+          propertyUnitId: this.propertyUnitId,
+          startDate: formdata.startDate,
+          endDate: formdata.endDate,
+          reason: formdata.Reason,
+          description: formdata.Notes,
+          isCompleted: false,
+          onlyMaintenance: formdata.OnlyMaintenance,
+          today: this.Today,
         };
-        if (formdata.email == null) {
-          obj.email = this.userData.data.user.Email;
-          obj.clientMailIdFlag = true;
-        }
         objarr.push(obj);
       }
 
       this.crudService
         .post(APIConstant.CREATE_ROOM_MAINTENANCE, { RoomMaintainance: objarr })
         .then((response: any) => {
-          for (let r of objarr) {
-            delete r.PropertyUnitId;
-            delete r.RoomId;
-            delete r.Notes;
-            delete r.email;
-            // delete r.budget;
-          }
-
           this.fetchdata();
         })
         .catch((error) => {
-          this.alertService.errorAlert(error.message);
+          this.alertService.errorAlert(error?.error?.message);
         });
     }
   }
@@ -420,13 +402,13 @@ export class RoomMaintenanceComponent {
   updateMaintenance() {
     if (
       new Date(this.Today) >=
-      new Date(this.CurrentMaintainance.StartDate)
+      new Date(this.CurrentMaintainance.startDate)
     ) {
-      this.CurrentMaintainance.Completed = true;
+      this.CurrentMaintainance.isCompleted = true;
       this.CurrentMaintainance.CompletedBy = this.CompletedBy;
       let x = new Date(this.Today);
       x.setUTCHours(0, 0, 0, 0);
-      this.CurrentMaintainance.EndDate = new Date(x);
+      this.CurrentMaintainance.endDate = new Date(x);
       this.CurrentMaintainance.RoomMaintainanceId =
         this.CurrentMaintainance._id;
       this.CurrentMaintainance.Today = this.Today;
@@ -458,13 +440,13 @@ export class RoomMaintenanceComponent {
     this.CurrentMaintainance.RoomMaintainanceId = this.CurrentMaintainance._id;
     let today = new Date(date);
     today.setHours(0, 0, 0, 0);
-    let st = new Date(this.CurrentMaintainance.StartDate);
+    let st = new Date(this.CurrentMaintainance.startDate);
     st.setHours(0, 0, 0, 0);
-    let ed = new Date(this.CurrentMaintainance.EndDate);
+    let ed = new Date(this.CurrentMaintainance.endDate);
     ed.setHours(0, 0, 0, 0);
     if (
-      new Date(this.CurrentMaintainance.StartDate) >
-      new Date(this.CurrentMaintainance.EndDate)
+      new Date(this.CurrentMaintainance.startDate) >
+      new Date(this.CurrentMaintainance.endDate)
     ) {
       this.alertService.errorAlert('Enter Valid Start and End Date!');
     } else if (st < today && ed < today) {
@@ -510,7 +492,7 @@ export class RoomMaintenanceComponent {
 
   rangeUpdate() {
     let obj = this.RangeUpdate.value;
-    obj.Completed = true;
+    obj.isCompleted = true;
     // obj.CompletedBy = this.CompletedBy;
     let x = new Date(this.Today);
     x.setUTCHours(0, 0, 0, 0);

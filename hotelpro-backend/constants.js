@@ -21,15 +21,6 @@ export const ChangeValueEnum = {
 export const AvailableChangeValueEnum = Object.values(ChangeValueEnum);
 
 /**
- * @type {{ PENDING: "pending"; COMPLETED: "completed" } as const}
- */
-export const MaintenanceStatusEnum = {
-  PENDING: "pending",
-  COMPLETED: "completed",
-};
-export const AvailableMaintenanceStatus = Object.values(MaintenanceStatusEnum);
-
-/**
  * @type {{ UNKNOWN:"UNKNOWN"; RAZORPAY: "RAZORPAY"; PAYPAL: "PAYPAL"; } as const}
  */
 export const PaymentProviderEnum = {

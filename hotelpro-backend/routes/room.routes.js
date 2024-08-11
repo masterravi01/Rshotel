@@ -30,5 +30,9 @@ router.post(
   "/update-room-maintenance-range",
   roomIndex.updateRoomMaintenanceRange
 );
+router.post(
+  "/read-available-room-for-daterange",
+  roomIndex.getAvailableRoomForDateRange
+);
 
 export default router;

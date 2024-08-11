@@ -1,3 +1,4 @@
+import mongo from "../../database/database.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
@@ -8,28 +9,30 @@ import {
   RoomMaintenance,
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
+import { RoomConditionEnum, RoomStatusEnum } from "../../constants.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 // GET all room maintenance
 const getRoomMaintenance = asyncHandler(async (req, res) => {
-  let body = req.body;
+  let { startDate, endDate, PropertyUnitId } = req.body;
   let data = {};
-
-  let StartDate = new Date(body.StartDate);
-  let EndDate = new Date(body.EndDate);
+  startDate = new Date(startDate);
+  startDate.setUTCHours(0, 0, 0, 0);
+  endDate = new Date(endDate);
+  endDate.setUTCHours(0, 0, 0, 0);
 
   let [Rooms, reservation, roommaintainance] = await Promise.all([
     RoomType.aggregate([
       {
         $match: {
-          PropertyUnitId: ObjectId(body.PropertyUnitId),
+          propertyUnitId: new ObjectId(PropertyUnitId),
         },
       },
       {
         $lookup: {
           from: "rooms",
           localField: "_id",
-          foreignField: "RoomTypeId",
+          foreignField: "roomTypeId",
           as: "rooms",
         },
       },
@@ -39,14 +42,11 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
       {
         $project: {
           RoomId: "$rooms._id",
-          RoomType: "$RoomTypeName",
-          RoomNumber: "$rooms.RoomNumber",
-          RoomName: "$rooms.RoomName",
-          RoomStatus: "$rooms.RoomStatus",
-          RoomCondition: "$rooms.RoomCondition",
-          Smoking: "$rooms.Smoking",
-          Pets: "$rooms.Pets",
-          Handcapped: "$rooms.Handcapped",
+          RoomType: "$roomTypeName",
+          RoomNumber: "$rooms.roomNumber",
+          RoomName: "$rooms.roomName",
+          RoomStatus: "$rooms.roomStatus",
+          RoomCondition: "$rooms.roomCondition",
           Reservation: [],
           RoomMaintainance: [],
         },
@@ -63,16 +63,16 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
           $and: [
             {
               Departure: {
-                $gt: StartDate,
+                $gt: startDate,
               },
             },
             {
               Arrival: {
-                $lt: EndDate,
+                $lt: endDate,
               },
             },
             {
-              PropertyUnitId: ObjectId(body.PropertyUnitId),
+              propertyUnitId: new ObjectId(PropertyUnitId),
             },
             {
               $or: [
@@ -158,29 +158,23 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
         $match: {
           $and: [
             {
-              EndDate: {
-                $gt: StartDate,
+              endDate: {
+                $gt: startDate,
               },
             },
             {
-              StartDate: {
-                $lt: EndDate,
+              startDate: {
+                $lt: endDate,
               },
             },
             {
-              PropertyUnitId: ObjectId(body.PropertyUnitId),
+              propertyUnitId: new ObjectId(PropertyUnitId),
             },
           ],
         },
       },
     ]),
   ]);
-  for (let r of roommaintainance) {
-    let u = await User.findOne({ _id: r.RoomUserId });
-    if (u != null) {
-      r.email = u.Email;
-    }
-  }
 
   data.Rooms = Rooms;
   for (var i = 0; i < data.Rooms.length; i++) {
@@ -212,7 +206,7 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
       }
     });
     roommaintainance.forEach((s) => {
-      if (s.RoomId.toString() == data.Rooms[i].RoomId.toString()) {
+      if (s.roomId.toString() == data.Rooms[i].RoomId.toString()) {
         s.RoomNumber = data.Rooms[i].RoomNumber;
         s.RoomName = data.Rooms[i].RoomName;
         s.RoomType = data.Rooms[i].RoomType;
@@ -222,23 +216,37 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
   }
   return res
     .status(200)
-    .json(
-      new ApiResponse(200, roomTypes, "All room types retrieved successfully")
-    );
+    .json(new ApiResponse(200, data, "All room types retrieved successfully"));
 });
 
 // POST create a new room maintenance
 const createRoomMaintenance = asyncHandler(async (req, res) => {
-  const { roomTypes } = req.body;
-  const { propertyUnitId } = req.params;
-  for (let r of roomTypes) {
-    r.propertyUnitId = propertyUnitId;
+  let { RoomMaintainance } = req.body;
+  let data = {};
+  let updateRoomEntries = [];
+
+  for (let i = 0; i < RoomMaintainance.length; i++) {
+    if (RoomMaintainance[i].today === RoomMaintainance[i].startDate) {
+      updateRoomEntries.push(
+        mongo.bulkwriteupdateone(
+          { _id: RoomMaintainance[i].roomId },
+          {
+            RoomStatus: RoomStatusEnum.MAINTENANCE,
+            RoomCondition: RoomConditionEnum.DIRTY,
+          }
+        )
+      );
+    }
   }
-  await RoomType.insertMany(roomTypes);
+
+  await Promise.all([
+    RoomMaintenance.insertMany(RoomMaintainance),
+    Room.bulkWrite(updateRoomEntries),
+  ]);
 
   return res
     .status(201)
-    .json(new ApiResponse(201, roomTypes, "Room types created successfully"));
+    .json(new ApiResponse(201, data, "Room Maintenance added successfully!"));
 });
 
 // PUT update a room maintenance
@@ -361,10 +369,225 @@ const updateRoomMaintenanceRange = asyncHandler(async (req, res) => {
     );
 });
 
+// GET all room maintenance
+const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
+  let { startDate, endDate, PropertyUnitId } = req.body;
+  let data = {};
+
+  let [ReservationDetails, TotalRooms, RoomMaintainanceDetails] =
+    await Promise.all([
+      Reservation.aggregate([
+        {
+          $match: {
+            $and: [
+              {
+                Departure: {
+                  $gt: startDate,
+                },
+              },
+              {
+                Arrival: {
+                  $lte: endDate,
+                },
+              },
+              {
+                propertyUnitId: new ObjectId(PropertyUnitId),
+              },
+              {
+                $or: [
+                  {
+                    ReservationStatus: "In house",
+                  },
+                  {
+                    ReservationStatus: "Reserved",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "rooms",
+            localField: "RoomId",
+            foreignField: "_id",
+            as: "Rooms",
+          },
+        },
+        {
+          $unwind: "$Rooms",
+        },
+        {
+          $lookup: {
+            from: "room_types",
+            localField: "Rooms.RoomTypeId",
+            foreignField: "_id",
+            as: "RoomType",
+          },
+        },
+        {
+          $unwind: "$RoomType",
+        },
+        {
+          $project: {
+            RoomId: 1,
+            Tantative: 1,
+            RoomType: 1,
+            Arrival: 1,
+            Departure: 1,
+          },
+        },
+      ]),
+      RoomType.aggregate([
+        {
+          $match: {
+            propertyUnitId: new ObjectId(PropertyUnitId),
+          },
+        },
+        {
+          $lookup: {
+            from: "rooms",
+            localField: "_id",
+            foreignField: "roomTypeId",
+            as: "TotalRoomDetails",
+          },
+        },
+        {
+          $unwind: "$TotalRoomDetails",
+        },
+        {
+          $group: {
+            _id: "$roomTypeName",
+            RoomTypeId: { $first: "$_id" },
+            rooms: {
+              $push: "$TotalRoomDetails",
+            },
+            Roomid: {
+              $push: {
+                $convert: {
+                  input: "$TotalRoomDetails._id",
+                  to: "string",
+                },
+              },
+            },
+          },
+        },
+        {
+          $sort: {
+            _id: 1,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            rooms: 1,
+            Roomid: 1,
+            DateRate: [],
+            roomtype: "$_id",
+            RoomTypeId: 1,
+            TotalRoom: {
+              $size: "$rooms",
+            },
+          },
+        },
+      ]),
+      RoomMaintenance.aggregate([
+        {
+          $match: {
+            $and: [
+              {
+                endDate: {
+                  $gt: startDate,
+                },
+              },
+              {
+                startDate: {
+                  $lt: endDate,
+                },
+              },
+              {
+                propertyUnitId: new ObjectId(PropertyUnitId),
+              },
+              {
+                Completed: { $ne: true },
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "rooms",
+            localField: "RoomId",
+            foreignField: "_id",
+            as: "RoomMaintainanceDetails",
+          },
+        },
+        {
+          $unwind: "$RoomMaintainanceDetails",
+        },
+        {
+          $group: {
+            _id: null,
+            MaintainanceRoomId: {
+              $push: {
+                $convert: {
+                  input: "$RoomMaintainanceDetails._id",
+                  to: "string",
+                },
+              },
+            },
+          },
+        },
+      ]),
+    ]);
+
+  RoomMaintainanceDetails = RoomMaintainanceDetails[0];
+  for (var i = 0; i < TotalRooms.length; i++) {
+    if (ReservationDetails != null && ReservationDetails.length > 0) {
+      ReservationDetails.forEach((r) => {
+        index = TotalRooms[i].Roomid.indexOf(String(r.RoomId[0]));
+        if (
+          index > -1 &&
+          (r.Tantative == false ||
+            r.Tantative == undefined ||
+            r.Tantative == null)
+        ) {
+          TotalRooms[i].rooms.splice(index, 1);
+          TotalRooms[i].Roomid.splice(index, 1);
+        }
+        if (index > -1 && r.Tantative == true) {
+          TotalRooms[i].rooms[index].Tantative = r.Tantative;
+        }
+      });
+    }
+
+    if (
+      RoomMaintainanceDetails != null &&
+      RoomMaintainanceDetails.MaintainanceRoomId.length > 0
+    ) {
+      RoomMaintainanceDetails.MaintainanceRoomId.forEach((id) => {
+        index = TotalRooms[i].Roomid.indexOf(id);
+        if (index > -1) {
+          console.log(index);
+          TotalRooms[i].rooms.splice(index, 1);
+          TotalRooms[i].Roomid.splice(index, 1);
+        }
+      });
+    }
+  }
+
+  data.RoomTypes = TotalRooms;
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, data, "All room types retrieved successfully"));
+});
+
 export default {
   getRoomMaintenance,
   createRoomMaintenance,
   updateRoomMaintenance,
   deleteRoomMaintenance,
   updateRoomMaintenanceRange,
+  getAvailableRoomForDateRange,
 };

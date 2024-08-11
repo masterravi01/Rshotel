@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 import {
   UserTypesEnum,
   UserLoginType,
-  MaintenanceStatusEnum,
   USER_TEMPORARY_TOKEN_EXPIRY,
   RoomStatusEnum,
   RoomConditionEnum,
@@ -14,7 +13,6 @@ import {
   AvailableUserLoginType,
   AvailableUserTypes,
   AvailableChangeValueEnum,
-  AvailableMaintenanceStatus,
   AvailableReservationStatusEnum,
   AvailableVehicleTypeEnum,
   AvailableWeekDayEnum,
@@ -582,10 +580,10 @@ const roomMaintenanceSchema = new Schema(
     endDate: Date,
     reason: String,
     description: String,
-    status: {
-      type: String,
-      enum: AvailableMaintenanceStatus,
-      default: MaintenanceStatusEnum.PENDING,
+    onlyMaintenance: Boolean,
+    isCompleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

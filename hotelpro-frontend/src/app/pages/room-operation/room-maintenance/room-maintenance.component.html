@@ -1,25 +1,37 @@
-
 <div class="p-2" style="background-color: #f1f8ff;">
     <div class="mx-3 inline1 mt-4" style="background-color: white !important">
         <div class="col-lg-12 col-md-12 col-sm-12 inline justify-content-center">
-            <div class="inline1 my-2 ms-lg-5">
+            <div class="inline1 my-2">
                 <div class="black_font mt-2">Start Date :</div>
-                <div class="ms-2" style="position: relative;">
+                <div class="ms-2">
                     <input type="date" class="form-control" [(ngModel)]="Date" [min]="Max" />
                 </div>
 
                 <div class="black_font mt-2 ms-3">Week :</div>
                 <div class="input_container ms-2">
                     <input type="number" class="input form-control field text-center" [(ngModel)]="Week" />
-                    <img src="../../../../assets/images/addition.png" class="input_img" (click)="add()" />
-                    <img src="../../../../assets/images/subtract.png" class="input_img1" (click)="sub()" />
+                    <div class="input_img" (click)="add()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" fill="currentColor"
+                            class="bi bi-plus-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                            <path
+                                d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+                        </svg>
+                    </div>
+                    <div class="input_img1" (click)="sub()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" fill="currentColor"
+                            class="bi bi-dash-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                            <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8" />
+                        </svg>
+                    </div>
                 </div>
                 <div class="ms-3">
-                    <button class="btn btn-primary button w-auto" (click)="fetchdata()">
+                    <button class="btn btn-success button w-auto" (click)="fetchdata()">
                         Find
                     </button>
                 </div>
-                <button class="ms-3 btn btn-primary button w-auto" (click)="openModal_sm(Range)">
+                <button class="ms-3 btn btn-warning button w-auto" (click)="openModal_sm(Range)">
                     Range Update
                 </button>
             </div>
@@ -37,7 +49,6 @@
             </div>
         </div>
     </div>
-
     <div class="mx-3 mt-4 inline2 pb-3">
         <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12 pl-0">
             <div style="
@@ -45,7 +56,7 @@
         border-right: 1px solid rgba(0, 0, 0, 0.1);
         max-height: 600px !important;
       " id="scroll">
-                <table class="table-bordered balance_table" style="overflow-x: hidden !important">
+                <table class="table-bordered custom_table" style="overflow-x: hidden !important">
                     <thead>
                         <th style="z-index: 101;">
                             <div class="d-flex justify-content-center">
@@ -54,7 +65,7 @@
                         </th>
                         <th style="z-index: 101;">
                             <div class="d-flex justify-content-center">
-                                Room#
+                                Room
                             </div>
                         </th>
                         <th style="z-index: 101;">
@@ -75,12 +86,6 @@
                                         <div class="ms-2">
                                             {{ item.RoomName }}
                                         </div>
-                                        <img *ngIf="item.Handcapped && Handicapped"
-                                            src="../../../../assets/images/handicap_icon.png" alt="h" width="15px"
-                                            height="15px" style="padding-left: 2px" />
-                                        <img *ngIf="item.Smoking && Smoking"
-                                            src="../../../../assets/images/smoking_icon.png" alt="h" width="15px"
-                                            height="15px" style="padding-left: 2px" />
                                     </div>
                                 </td>
                                 <td style="z-index: 10">
@@ -121,26 +126,28 @@
                                             </ng-container>
                                         </ng-container>
                                         <ng-container *ngFor="let m of item.RoomMaintainance">
-                                            <ng-container *ngIf="m.StartDate <= d && m.EndDate >= d">
+                                            <ng-container *ngIf="m.startDate <= d && m.endDate >= d">
                                                 <div *ngIf="testmaintainance(d, m)" [style]="
                           'width:' +
-                          nightNumber(m.StartDate, m.EndDate) * 100 +
+                          nightNumber(m.startDate, m.endDate) * 125 +
                           'px;'
                         " class="renovation" (click)="maintainance(m)">
                                                     <div class="d-flex" style="cursor: pointer !important">
-                                                        <div>
-                                                            <img *ngIf="m.Reason !== 'Telephone'"
-                                                                class="reservation_icon"
-                                                                src="../../../../assets/images/renovation.png" />
-                                                            <img *ngIf="m.Reason == 'Telephone'"
-                                                                class="reservation_icon"
-                                                                src="../../../../assets/images/telephone.png" />
+                                                        <div class="ms-2 mb-1">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                                height="16" fill="black" class="bi bi-house-slash"
+                                                                viewBox="0 0 16 16">
+                                                                <path
+                                                                    d="M13.879 10.414a2.5 2.5 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95Z" />
+                                                                <path
+                                                                    d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.708L8 2.207l-5 5V13.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 2 13.5V8.207l-.646.647a.5.5 0 1 1-.708-.708z" />
+                                                            </svg>
                                                         </div>
                                                         <div class="col d-flex justify-content-center"
                                                             style="z-index: 0 !important">
                                                             <div style="margin-left: -10px !important"
                                                                 class="text-truncate">
-                                                                {{ m.Reason }}
+                                                                {{ m.reason }}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -171,51 +178,49 @@
                     <div class="blue_container py-2 d-flex">
                         <div class="col d-flex justify-content-center">
                             <div style="padding-left: 30px !important">
-                                {{ CurrentMaintainance.Reason }}
+                                {{ CurrentMaintainance.reason }}
                             </div>
                         </div>
-                        <div style="column-width: 20px !important" class="mr-2" *ngIf="!CurrentMaintainance.Completed">
-                            <img class="edit_icon" src="../../../../assets/images/edit_white.png"
-                                (click)="showEdit()" />
+                        <div style="column-width: 20px !important; cursor: pointer;" class="mr-2"
+                            *ngIf="!CurrentMaintainance.isCompleted" (click)="showEdit()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                class="bi bi-pencil" viewBox="0 0 16 16">
+                                <path
+                                    d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" />
+                            </svg>
                         </div>
                     </div>
                     <table class="table table-sm table-borderless housekeeper_table">
                         <thead>
                             <th></th>
-                            <th>Room#</th>
+                            <th>Room</th>
                             <th>Start</th>
                             <th>End</th>
                         </thead>
                         <tbody>
                             <td></td>
                             <td>{{ CurrentMaintainance.RoomName }}</td>
-                            <td>{{ CurrentMaintainance.StartDate | date: "MMM d" }}</td>
-                            <td>{{ CurrentMaintainance.EndDate | date: "MMM d" }}</td>
+                            <td>{{ CurrentMaintainance.startDate | date: "MMM d" }}</td>
+                            <td>{{ CurrentMaintainance.endDate | date: "MMM d" }}</td>
                         </tbody>
                     </table>
                     <div class="gray_container mx-3">
                         <div class="d-flex justify-content-center notes pt-2">Notes:</div>
                         <div class="d-flex justify-content-center notes_font pb-2">
-                            {{ CurrentMaintainance.Notes }}
-                        </div>
-                    </div>
-                    <div class="gray_container mx-3">
-                        <div class="d-flex justify-content-center notes pt-2">email:</div>
-                        <div class="d-flex justify-content-center notes_font pb-2">
-                            {{ CurrentMaintainance.email }}
+                            {{ CurrentMaintainance.description }}
                         </div>
                     </div>
                     <div class="mx-3 mt-2 d-flex justify-content-center pr-0 pb-1">
-                        <div class="mt-2 black_font1" *ngIf="CurrentMaintainance.Completed">
+                        <div class="mt-2 black_font1" *ngIf="CurrentMaintainance.isCompleted">
                             Completed By:
                         </div>
-                        <div class="black_font1 mt-2" *ngIf="!CurrentMaintainance.Completed">
+                        <div class="black_font1 mt-2" *ngIf="!CurrentMaintainance.isCompleted">
                             Completed by:
                         </div>
-                        <div *ngIf="!CurrentMaintainance.Completed">
+                        <div *ngIf="!CurrentMaintainance.isCompleted">
                             <input type="text" class="form-control field ms-2" [(ngModel)]="CompletedBy" />
                         </div>
-                        <div class="mt-2 black_font1 ms-1" *ngIf="CurrentMaintainance.Completed">
+                        <div class="mt-2 black_font1 ms-1" *ngIf="CurrentMaintainance.isCompleted">
                             {{ CurrentMaintainance.CompletedBy }}
                         </div>
                     </div>
@@ -224,7 +229,7 @@
                             Cancel
                         </button>
                         <button class="btn btn-primary button ms-2" (click)="updateMaintenance()"
-                            [disabled]="CurrentMaintainance.Completed">
+                            [disabled]="CurrentMaintainance.isCompleted">
                             Complete
                         </button>
                     </div>
@@ -234,14 +239,14 @@
                         <table class="table table-sm table-borderless add_table">
                             <tr>
                                 <td>
-                                    <div class="mt-2">Start Date*:</div>
+                                    <div class="mt-1">Start Date*:</div>
                                 </td>
-                                <td style="position: relative;">
-                                    <input type="date" class="form-control field" formControlName="StartDate"
+                                <td>
+                                    <input type="date" class="form-control field" formControlName="startDate"
                                         [min]="Today" (input)="getAvailRoomdata()" />
-                                    <p class="error" *ngIf="
-                    AddMaintenance.controls['StartDate'].touched &&
-                    AddMaintenance.controls['StartDate'].invalid
+                                    <p class="text-danger" *ngIf="
+                    AddMaintenance.controls['startDate'].touched &&
+                    AddMaintenance.controls['startDate'].invalid
                   ">
                                         Enter valid Date!
                                     </p>
@@ -249,15 +254,15 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="mt-2">End Date*:</div>
+                                    <div class="mt-1">End Date*:</div>
                                 </td>
-                                <td style="position: relative;">
-                                    <input type="date" class="form-control field" formControlName="EndDate"
-                                        [min]="AddMaintenance.controls['StartDate'].value"
+                                <td>
+                                    <input type="date" class="form-control field" formControlName="endDate"
+                                        [min]="AddMaintenance.controls['startDate'].value"
                                         (input)="getAvailRoomdata()" />
-                                    <p class="error" *ngIf="
-                    AddMaintenance.controls['EndDate'].touched &&
-                    AddMaintenance.controls['EndDate'].invalid
+                                    <p class="text-danger" *ngIf="
+                    AddMaintenance.controls['endDate'].touched &&
+                    AddMaintenance.controls['endDate'].invalid
                   ">
                                         Enter valid Date!
                                     </p>
@@ -265,25 +270,21 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="mt-2">Room Type:</div>
+                                    <div class="mt-1">Room Type:</div>
                                 </td>
                                 <td>
-                                    <div class="select1">
-                                        <select class="form-control field" formControlName="RoomType"
-                                            (change)="showRooms($event)">
+                                    <div>
+                                        <select id="options" formControlName="RoomType" class="form-control"
+                                            style="appearance: auto" (change)="showRooms($event)">
                                             <option value="">Select Type</option>
                                             <option *ngFor="let item of availableRoom" [value]="item._id">
                                                 {{ item._id }}
                                             </option>
                                         </select>
-                                        <div class="select1__arrow"></div>
+                                        <p class="text-danger"
+                                            *ngIf="AddMaintenance.controls['RoomType'].touched && AddMaintenance.controls['RoomType'].invalid">
+                                            Enter valid RoomType!</p>
                                     </div>
-                                    <p class="error" *ngIf="
-                    AddMaintenance.controls['RoomType'].touched &&
-                    AddMaintenance.controls['RoomType'].invalid
-                  ">
-                                        Enter valid RoomType!
-                                    </p>
                                 </td>
                             </tr>
                             <tr>
@@ -292,17 +293,11 @@
                                 </td>
                                 <td>
                                     <div>
-                                        <ng-multiselect-dropdown name="Rooms" [placeholder]="'select'"
+                                        <ng-multiselect-dropdown name="Rooms" [placeholder]="'Select Room'"
                                             formControlName="Rooms" [settings]="dropdownSettingsRooms"
-                                            [data]="dropdownListRoom" style="
-                      font-size: 13px !important;
-                      font-weight: 500;
-                      color: black !important;
-                      background: white !important;
-                      border-color: gray;
-                    ">
+                                            [data]="dropdownListRoom" style="background: white !important">
                                         </ng-multiselect-dropdown>
-                                        <p class="error" *ngIf="
+                                        <p class="text-danger" *ngIf="
                       AddMaintenance.controls['Rooms'].touched &&
                       AddMaintenance.controls['Rooms'].invalid
                     ">
@@ -318,17 +313,17 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="form-check">
+                                    <div class="form-check ms-4 mt-1">
                                         <input type="checkbox" class="form-check-input" id="maintenance"
                                             formControlName="OnlyMaintenance" />
-                                        <label for="maintenance" class="form-check-label checkbox_label ms-lg-1"
-                                            style="margin-top: 6.5px">Only Maintenance</label>
+                                        <label for="maintenance" class="form-check-label checkbox_label ms-lg-1">Only
+                                            Maintenance</label>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="mt-2">Reason*:</div>
+                                    <div class="mt-1">Reason*:</div>
                                 </td>
                                 <td>
                                     <div class="select1">
@@ -346,7 +341,7 @@
                                         </select>
                                         <div class="select1__arrow"></div>
                                     </div>
-                                    <p class="error" *ngIf="
+                                    <p class="text-danger" *ngIf="
                     AddMaintenance.controls['Reason'].touched &&
                     AddMaintenance.controls['Reason'].invalid
                   ">
@@ -356,20 +351,11 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="mt-2">Notes:</div>
+                                    <div class="mt-1">Notes:</div>
                                 </td>
                                 <td>
                                     <textarea type="text" class="form-control field" rows="2"
                                         formControlName="Notes"></textarea>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="mt-2">Email:</div>
-                                </td>
-                                <td>
-                                    <textarea type="text" class="form-control field" rows="2"
-                                        formControlName="email"></textarea>
                                 </td>
                             </tr>
                         </table>
@@ -393,7 +379,7 @@
                                 </td>
                                 <td>
                                     <input type="date" class="form-control field"
-                                        [(ngModel)]="CurrentMaintainance.StartDate" />
+                                        [(ngModel)]="CurrentMaintainance.startDate" />
                                 </td>
                             </tr>
                             <tr>
@@ -402,7 +388,7 @@
                                 </td>
                                 <td>
                                     <input type="date" class="form-control field"
-                                        [(ngModel)]="CurrentMaintainance.EndDate" />
+                                        [(ngModel)]="CurrentMaintainance.endDate" />
                                 </td>
                             </tr>
                             <tr>
@@ -423,7 +409,7 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="mt-2">Room#:</div>
+                                    <div class="mt-2">Room:</div>
                                 </td>
                                 <td>
                                     <input type="text" class="form-control field"
@@ -437,8 +423,8 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="maintenance1"
+                                    <div class="form-check ms-3">
+                                        <input type="checkbox" class="form-check-input mt-2" id="maintenance1"
                                             [(ngModel)]="CurrentMaintainance.OnlyMaintenance" />
                                         <label for="maintenance1" class="form-check-label checkbox_label ms-lg-1"
                                             style="margin-top: 6.5px">Only Maintenance</label>
@@ -451,7 +437,7 @@
                                 </td>
                                 <td>
                                     <div class="select1">
-                                        <select class="form-control field" [(ngModel)]="CurrentMaintainance.Reason">
+                                        <select class="form-control field" [(ngModel)]="CurrentMaintainance.reason">
                                             <option value="">Select One</option>
                                             <option value="Plumbing">Plumbing</option>
                                             <option value="Heater/AC">Heater/AC</option>
@@ -473,16 +459,7 @@
                                 </td>
                                 <td>
                                     <textarea type="text" class="form-control field" rows="2"
-                                        [(ngModel)]="CurrentMaintainance.Notes"></textarea>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="mt-2">Email :</div>
-                                </td>
-                                <td>
-                                    <textarea type="text" class="form-control field" rows="2"
-                                        [(ngModel)]="CurrentMaintainance.email" disabled></textarea>
+                                        [(ngModel)]="CurrentMaintainance.description"></textarea>
                                 </td>
                             </tr>
                         </table>
@@ -516,11 +493,11 @@
                     <div>Start Date*:</div>
                 </td>
                 <td>
-                    <input type="date" class="form-control field" formControlName="StartDate" />
+                    <input type="date" class="form-control field" formControlName="startDate" />
                     <p *ngIf="
-              RangeUpdate.get('StartDate')?.touched &&
-              RangeUpdate.get('StartDate')?.invalid
-            " class="error">
+              RangeUpdate.get('startDate')?.touched &&
+              RangeUpdate.get('startDate')?.invalid
+            " class="text-danger">
                         Enter valid startdate!
                     </p>
                 </td>
@@ -530,12 +507,12 @@
                     <div>End Date*:</div>
                 </td>
                 <td>
-                    <input type="date" class="form-control field" formControlName="EndDate"
-                        [min]="RangeUpdate.get('StartDate')?.value" />
+                    <input type="date" class="form-control field" formControlName="endDate"
+                        [min]="RangeUpdate.get('startDate')?.value" />
                     <p *ngIf="
-              RangeUpdate.get('EndDate')?.touched &&
-              RangeUpdate.get('EndDate')?.invalid
-            " class="error">
+              RangeUpdate.get('endDate')?.touched &&
+              RangeUpdate.get('endDate')?.invalid
+            " class="text-danger">
                         Enter valid enddate!
                     </p>
                 </td>
@@ -586,7 +563,7 @@
             Cancel
         </div>
         <Button class="btn btn-primary button ms-2" (click)="rangeUpdate()" [disabled]="RangeUpdate.invalid">
-            Update                    
+            Update
         </Button>
     </div>
 </ng-template>

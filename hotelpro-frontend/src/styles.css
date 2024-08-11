@@ -19,10 +19,76 @@ body {
 .form-label {
   margin-bottom: 0;
 }
+
 .form-control.is-invalid {
   background-image: none;
   padding-right: 0.375rem 0.75rem;
 }
+
 .container_form {
   background: rgba(0, 0, 0, 0.137);
+}
+
+.custom_table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.custom_table td,
+.custom_table th {
+  text-align: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  min-width: 100px !important;
+  width: 100px !important;
+  max-width: 100px !important;
+  font-size: 12px;
+}
+
+.custom_table th {
+  background: #082b4a;
+  font-weight: 600;
+  color: #fff;
+  position: sticky;
+  top: 0 !important;
+}
+
+.custom_table td {
+  font-weight: 500;
+}
+
+.custom_table tr:nth-child(odd) {
+  background-color: white !important;
+}
+
+.custom_table tr:nth-child(even) {
+  background-color: #f3f3f3 !important;
+}
+
+.custom_table th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.custom_table th:last-child {
+  border-top-right-radius: 10px;
+}
+
+.custom_table tr:last-child td:last-child {
+  border-bottom-right-radius: 10px;
+}
+
+.custom_table tr:last-child td:first-child {
+  border-bottom-left-radius: 10px;
+}
+
+@media only screen and (max-width: 590px) {
+  .custom_table td,
+  .custom_table th {
+    font-size: 8px !important;
+    min-width: 50px !important;
+    width: 50px !important;
+    max-width: 50px !important;
+  }
 }
