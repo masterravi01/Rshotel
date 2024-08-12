@@ -9,7 +9,8 @@
 
                 <div class="black_font mt-2 ms-3">Week :</div>
                 <div class="input_container ms-2">
-                    <input type="number" class="input form-control field text-center" [(ngModel)]="Week" />
+                    <input type="number" class="input form-control field text-center hide-spinner" [(ngModel)]="Week" [min]="2" />
+
                     <div class="input_img" (click)="add()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" fill="currentColor"
                             class="bi bi-plus-circle" viewBox="0 0 16 16">
@@ -80,26 +81,26 @@
                     <tbody>
                         <ng-container *ngFor="let item of RoomData; let i = index">
                             <tr *ngIf="item.Show">
-                                <td style="z-index: 10">{{ item.RoomType }}</td>
+                                <td style="z-index: 10">{{ item.roomType }}</td>
                                 <td style="z-index: 10">
                                     <div class="d-flex justify-content-center">
                                         <div class="ms-2">
-                                            {{ item.RoomName }}
+                                            {{ item.roomName }}
                                         </div>
                                     </div>
                                 </td>
                                 <td style="z-index: 10">
                                     <div class="d-flex justify-content-center">
-                                        <div *ngIf="item.RoomCondition == 'clean'" class="clean clean_active px-2">
+                                        <div *ngIf="item.roomCondition == 'clean'" class="clean clean_active px-2">
                                             Clean
                                         </div>
-                                        <div *ngIf="item.RoomCondition != 'clean'" class="clean px-2">
+                                        <div *ngIf="item.roomCondition != 'clean'" class="clean px-2">
                                             Clean
                                         </div>
-                                        <div *ngIf="item.RoomCondition == 'dirty'" class="dirty dirty_active ms-2 px-2">
+                                        <div *ngIf="item.roomCondition == 'dirty'" class="dirty dirty_active ms-2 px-2">
                                             Dirty
                                         </div>
-                                        <div *ngIf="item.RoomCondition != 'dirty'" class="dirty ms-2 px-2">
+                                        <div *ngIf="item.roomCondition != 'dirty'" class="dirty ms-2 px-2">
                                             Dirty
                                         </div>
                                     </div>
@@ -132,8 +133,8 @@
                           nightNumber(m.startDate, m.endDate) * 125 +
                           'px;'
                         " class="renovation" (click)="maintainance(m)">
-                                                    <div class="d-flex" style="cursor: pointer !important">
-                                                        <div class="ms-2 mb-1">
+                                                    <div class="d-flex align-items-center" style="cursor: pointer !important">
+                                                        <div class="ms-2">
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="16"
                                                                 height="16" fill="black" class="bi bi-house-slash"
                                                                 viewBox="0 0 16 16">
@@ -199,36 +200,22 @@
                         </thead>
                         <tbody>
                             <td></td>
-                            <td>{{ CurrentMaintainance.RoomName }}</td>
+                            <td>{{ CurrentMaintainance.roomName }}</td>
                             <td>{{ CurrentMaintainance.startDate | date: "MMM d" }}</td>
                             <td>{{ CurrentMaintainance.endDate | date: "MMM d" }}</td>
                         </tbody>
                     </table>
-                    <div class="gray_container mx-3">
+                    <div class="gray_container mx-3" *ngIf="CurrentMaintainance.description">
                         <div class="d-flex justify-content-center notes pt-2">Notes:</div>
                         <div class="d-flex justify-content-center notes_font pb-2">
                             {{ CurrentMaintainance.description }}
-                        </div>
-                    </div>
-                    <div class="mx-3 mt-2 d-flex justify-content-center pr-0 pb-1">
-                        <div class="mt-2 black_font1" *ngIf="CurrentMaintainance.isCompleted">
-                            Completed By:
-                        </div>
-                        <div class="black_font1 mt-2" *ngIf="!CurrentMaintainance.isCompleted">
-                            Completed by:
-                        </div>
-                        <div *ngIf="!CurrentMaintainance.isCompleted">
-                            <input type="text" class="form-control field ms-2" [(ngModel)]="CompletedBy" />
-                        </div>
-                        <div class="mt-2 black_font1 ms-1" *ngIf="CurrentMaintainance.isCompleted">
-                            {{ CurrentMaintainance.CompletedBy }}
                         </div>
                     </div>
                     <div class="d-flex justify-content-center mt-2 pb-2">
                         <button class="btn light_button button" (click)="Cancelupdate()">
                             Cancel
                         </button>
-                        <button class="btn btn-primary button ms-2" (click)="updateMaintenance()"
+                        <button class="btn btn-primary button ms-2" (click)="updateMaintenance(true)"
                             [disabled]="CurrentMaintainance.isCompleted">
                             Complete
                         </button>
@@ -274,7 +261,7 @@
                                 </td>
                                 <td>
                                     <div>
-                                        <select id="options" formControlName="RoomType" class="form-control"
+                                        <select id="options" formControlName="roomType" class="form-control"
                                             style="appearance: auto" (change)="showRooms($event)">
                                             <option value="">Select Type</option>
                                             <option *ngFor="let item of availableRoom" [value]="item._id">
@@ -282,7 +269,7 @@
                                             </option>
                                         </select>
                                         <p class="text-danger"
-                                            *ngIf="AddMaintenance.controls['RoomType'].touched && AddMaintenance.controls['RoomType'].invalid">
+                                            *ngIf="AddMaintenance.controls['roomType'].touched && AddMaintenance.controls['roomType'].invalid">
                                             Enter valid RoomType!</p>
                                     </div>
                                 </td>
@@ -398,7 +385,7 @@
                                 <td>
                                     <div class="select1">
                                         <select class="form-control field" disabled
-                                            [(ngModel)]="CurrentMaintainance.RoomType">
+                                            [(ngModel)]="CurrentMaintainance.roomType">
                                             <option *ngFor="let item of RoomTypes" [value]="item">
                                                 {{ item }}
                                             </option>
@@ -413,7 +400,7 @@
                                 </td>
                                 <td>
                                     <input type="text" class="form-control field"
-                                        [(ngModel)]="CurrentMaintainance.RoomName" readonly />
+                                        [(ngModel)]="CurrentMaintainance.roomName" readonly />
                                 </td>
                             </tr>
                             <tr>
@@ -467,7 +454,7 @@
                             <button class="btn light_button button" (click)="cancelpop()">
                                 Cancel
                             </button>
-                            <button class="btn btn-primary button ms-2" (click)="updateMaintenance2()">
+                            <button class="btn btn-primary button ms-2" (click)="updateMaintenance(false)">
                                 Update
                             </button>
                         </div>
@@ -538,7 +525,7 @@
                 </td>
                 <td>
                     <div class="select1">
-                        <select class="form-control field" formControlName="RoomType">
+                        <select class="form-control field" formControlName="roomType">
                             <option value="all" selected>All</option>
                             <option *ngFor="let item of RoomTypes" [value]="item">
                                 {{ item }}
@@ -546,14 +533,6 @@
                         </select>
                         <div class="select1__arrow"></div>
                     </div>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <div>Completed By:</div>
-                </td>
-                <td>
-                    <input type="text" class="form-control field" formControlName="CompletedBy" />
                 </td>
             </tr>
         </table>

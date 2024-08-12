@@ -14,7 +14,7 @@ const ObjectId = mongoose.Types.ObjectId;
 
 // GET all room maintenance
 const getRoomMaintenance = asyncHandler(async (req, res) => {
-  let { startDate, endDate, PropertyUnitId } = req.body;
+  let { startDate, endDate, propertyUnitId } = req.body;
   let data = {};
   startDate = new Date(startDate);
   startDate.setUTCHours(0, 0, 0, 0);
@@ -25,7 +25,7 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
     RoomType.aggregate([
       {
         $match: {
-          propertyUnitId: new ObjectId(PropertyUnitId),
+          propertyUnitId: new ObjectId(propertyUnitId),
         },
       },
       {
@@ -41,19 +41,19 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
       },
       {
         $project: {
-          RoomId: "$rooms._id",
-          RoomType: "$roomTypeName",
-          RoomNumber: "$rooms.roomNumber",
-          RoomName: "$rooms.roomName",
-          RoomStatus: "$rooms.roomStatus",
-          RoomCondition: "$rooms.roomCondition",
+          roomId: "$rooms._id",
+          roomType: "$roomTypeName",
+          roomNumber: "$rooms.roomNumber",
+          roomName: "$rooms.roomName",
+          roomStatus: "$rooms.roomStatus",
+          roomCondition: "$rooms.roomCondition",
           Reservation: [],
           RoomMaintainance: [],
         },
       },
       {
         $sort: {
-          RoomNumber: 1,
+          roomNumber: 1,
         },
       },
     ]),
@@ -72,7 +72,7 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
               },
             },
             {
-              propertyUnitId: new ObjectId(PropertyUnitId),
+              propertyUnitId: new ObjectId(propertyUnitId),
             },
             {
               $or: [
@@ -109,8 +109,8 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
       {
         $lookup: {
           from: "room_balances",
-          localField: "guest_room_details.RoomId",
-          foreignField: "RoomId",
+          localField: "guest_room_details.roomId",
+          foreignField: "roomId",
           as: "RoomBalanceDetails",
         },
       },
@@ -137,7 +137,7 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
             $first: "$Departure",
           },
           Nights: { $first: "$Nights" },
-          RoomId: { $first: "$guest_room_details.RoomId" },
+          roomId: { $first: "$guest_room_details.roomId" },
           Tantative: { $first: "$Tantative" },
           Tantative: { $first: "$Tantative" },
           LockRoom: { $first: "$LockRoom" },
@@ -168,7 +168,7 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
               },
             },
             {
-              propertyUnitId: new ObjectId(PropertyUnitId),
+              propertyUnitId: new ObjectId(propertyUnitId),
             },
           ],
         },
@@ -187,7 +187,7 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
             s.Arrival = new Date(v.Date);
             v.Checked = true;
             for (var k = 0; k < data.Rooms.length; k++) {
-              if (v.OldRoomId == data.Rooms[k].RoomId.toString()) {
+              if (v.OldRoomId == data.Rooms[k].roomId.toString()) {
                 delete obj.Version;
                 obj.GuestName += " →";
                 data.Rooms[k].Reservation.push(obj);
@@ -197,19 +197,19 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
         });
       }
 
-      if (s.RoomId.toString() == data.Rooms[i].RoomId.toString()) {
-        s.RoomNumber = data.Rooms[i].RoomNumber;
-        s.RoomName = data.Rooms[i].RoomName;
-        s.RoomType = data.Rooms[i].RoomType;
+      if (s.roomId.toString() == data.Rooms[i].roomId.toString()) {
+        s.roomNumber = data.Rooms[i].roomNumber;
+        s.roomName = data.Rooms[i].roomName;
+        s.roomType = data.Rooms[i].roomType;
         s.Version = [];
         data.Rooms[i].Reservation.push(s);
       }
     });
     roommaintainance.forEach((s) => {
-      if (s.roomId.toString() == data.Rooms[i].RoomId.toString()) {
-        s.RoomNumber = data.Rooms[i].RoomNumber;
-        s.RoomName = data.Rooms[i].RoomName;
-        s.RoomType = data.Rooms[i].RoomType;
+      if (s.roomId.toString() == data.Rooms[i].roomId.toString()) {
+        s.roomNumber = data.Rooms[i].roomNumber;
+        s.roomName = data.Rooms[i].roomName;
+        s.roomType = data.Rooms[i].roomType;
         data.Rooms[i].RoomMaintainance.push(s);
       }
     });
@@ -231,8 +231,8 @@ const createRoomMaintenance = asyncHandler(async (req, res) => {
         mongo.bulkwriteupdateone(
           { _id: RoomMaintainance[i].roomId },
           {
-            RoomStatus: RoomStatusEnum.MAINTENANCE,
-            RoomCondition: RoomConditionEnum.DIRTY,
+            roomStatus: RoomStatusEnum.MAINTENANCE,
+            roomCondition: RoomConditionEnum.DIRTY,
           }
         )
       );
@@ -251,34 +251,64 @@ const createRoomMaintenance = asyncHandler(async (req, res) => {
 
 // PUT update a room maintenance
 const updateRoomMaintenance = asyncHandler(async (req, res) => {
-  const { roomTypeId } = req.params;
-  const {
-    roomTypeName,
-    active,
-    roomTypeCategory,
-    description,
-    images,
-    adultOccupancy,
-    childOccupancy,
+  let {
+    startDate,
+    endDate,
+    roomId,
+    reason,
+    Notes,
+    propertyUnitId,
+    isCompleted,
+    onlyMaintenance,
+    Today,
+    RoomMaintainanceId,
   } = req.body;
+  let data = {};
 
-  const roomType = await RoomType.findByIdAndUpdate(
-    roomTypeId,
-    {
-      roomTypeName,
-      active,
-      roomTypeCategory,
-      description,
-      images,
-      adultOccupancy,
-      childOccupancy,
-    },
-    { new: true }
+  startDate = new Date(body.startDate);
+  endDate = new Date(body.endDate);
+
+  let room_maintainance_details = await RoomMaintenance.findById(
+    body.RoomMaintainanceId
   );
 
-  if (!roomType) {
-    throw new ApiError(404, "Room type not found");
+  room_maintainance_details = room_maintainance_details[0];
+  room_maintainance_details.startDate = startDate;
+  room_maintainance_details.endDate = endDate;
+  room_maintainance_details.roomId = roomId;
+  room_maintainance_details.reason = reason;
+  room_maintainance_details.description = Notes;
+  room_maintainance_details.propertyUnitId = propertyUnitId;
+  room_maintainance_details.isCompleted = isCompleted;
+  room_maintainance_details.onlyMaintenance = onlyMaintenance;
+
+  let room_details = {};
+  if (room_maintainance_details.isCompleted == true) {
+    room_details.roomStatus = RoomStatusEnum.VACANT;
+    room_details.roomCondition = RoomConditionEnum.CLEAN;
+  } else if (new Date(Today).toString() == new Date(startDate).toString()) {
+    room_details.roomStatus = "maintainance";
+    room_details.roomCondition = "dirty";
+  } else if (new Date(Today).toString() < new Date(startDate).toString()) {
+    room_details.roomStatus = "vacant";
+    room_details.roomCondition = "clean";
   }
+
+  data.RoomMaintainance = await mongo.updateCollection(
+    RoomMaintenance,
+    {
+      _id: RoomMaintainanceId,
+    },
+    room_maintainance_details
+  );
+
+  data.Room = await mongo.updateCollection(
+    Room,
+    {
+      _id: roomId,
+    },
+    room_details
+  );
 
   return res
     .status(200)
@@ -371,7 +401,7 @@ const updateRoomMaintenanceRange = asyncHandler(async (req, res) => {
 
 // GET all room maintenance
 const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
-  let { startDate, endDate, PropertyUnitId } = req.body;
+  let { startDate, endDate, propertyUnitId } = req.body;
   let data = {};
 
   let [ReservationDetails, TotalRooms, RoomMaintainanceDetails] =
@@ -391,7 +421,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
                 },
               },
               {
-                propertyUnitId: new ObjectId(PropertyUnitId),
+                propertyUnitId: new ObjectId(propertyUnitId),
               },
               {
                 $or: [
@@ -409,7 +439,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
         {
           $lookup: {
             from: "rooms",
-            localField: "RoomId",
+            localField: "roomId",
             foreignField: "_id",
             as: "Rooms",
           },
@@ -422,17 +452,17 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
             from: "room_types",
             localField: "Rooms.RoomTypeId",
             foreignField: "_id",
-            as: "RoomType",
+            as: "roomType",
           },
         },
         {
-          $unwind: "$RoomType",
+          $unwind: "$roomType",
         },
         {
           $project: {
-            RoomId: 1,
+            roomId: 1,
             Tantative: 1,
-            RoomType: 1,
+            roomType: 1,
             Arrival: 1,
             Departure: 1,
           },
@@ -441,7 +471,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
       RoomType.aggregate([
         {
           $match: {
-            propertyUnitId: new ObjectId(PropertyUnitId),
+            propertyUnitId: new ObjectId(propertyUnitId),
           },
         },
         {
@@ -506,7 +536,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
                 },
               },
               {
-                propertyUnitId: new ObjectId(PropertyUnitId),
+                propertyUnitId: new ObjectId(propertyUnitId),
               },
               {
                 Completed: { $ne: true },
@@ -517,7 +547,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
         {
           $lookup: {
             from: "rooms",
-            localField: "RoomId",
+            localField: "roomId",
             foreignField: "_id",
             as: "RoomMaintainanceDetails",
           },
@@ -545,7 +575,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
   for (var i = 0; i < TotalRooms.length; i++) {
     if (ReservationDetails != null && ReservationDetails.length > 0) {
       ReservationDetails.forEach((r) => {
-        index = TotalRooms[i].Roomid.indexOf(String(r.RoomId[0]));
+        index = TotalRooms[i].Roomid.indexOf(String(r.roomId[0]));
         if (
           index > -1 &&
           (r.Tantative == false ||
