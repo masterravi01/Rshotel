@@ -1,6 +1,5 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import {
-  FormArray,
   FormBuilder,
   FormGroup,
   FormsModule,
@@ -14,6 +13,7 @@ import { CommonModule, DatePipe, JsonPipe } from '@angular/common';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ReservationSharedService } from '../../../core/services/reservation-shared.service';
 
 @Component({
   selector: 'app-create-reservation',
@@ -32,13 +32,15 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 export class CreateReservationComponent implements OnInit {
   groupForm!: FormGroup;
   roomsData: any[] = [];
-  selectedItems: any = [];
+  selectedItems: any[] = [];
   totalGuests: any = { adults: 0, childs: 0, totalCost: 0 };
   propertyUnitId: string | null = '';
-  taxSets: any[] = [];
+  roomTypeRooms: Record<string, any[]> = {};
   extraGuestsData: any = {
     extraAdults: 0,
     extraChilds: 0,
+    childRate: 0,
+    adultRate: 0,
   };
 
   constructor(
@@ -47,39 +49,20 @@ export class CreateReservationComponent implements OnInit {
     private alertService: AlertService,
     private route: ActivatedRoute,
     private router: Router,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private reservationSharedService: ReservationSharedService
   ) {}
 
   ngOnInit(): void {
     this.propertyUnitId = this.route.snapshot.paramMap.get('propertyUnitId');
     this.initForms();
-    this.propertyUnitId = '6695584abc45f8d7ad2ead7b'; // Remove this hardcoding
-    this.taxSets = [
-      {
-        _id: '66a22c9bcf0cd16300f72a39',
-        propertyUnitId: '6695584abc45f8d7ad2ead7b',
-        taxPercentage: 11,
-        taxName: 'SGST',
-        active: false,
-        createdAt: {
-          $date: '2024-07-25T10:44:43.102Z',
-        },
-        updatedAt: {
-          $date: '2024-07-25T10:45:02.431Z',
-        },
-        __v: 0,
-      },
-    ];
   }
 
   private initForms(): void {
-    const arrivalDate = new DatePipe('en-US').transform(
-      new Date(),
-      'yyyy-MM-dd'
-    );
-    const departureDate = new DatePipe('en-US').transform(
-      new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      'yyyy-MM-dd'
+    const today = new Date();
+    const arrivalDate = this.formatDate(today);
+    const departureDate = this.formatDate(
+      new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)
     );
 
     this.groupForm = this.fb.group({
@@ -88,6 +71,10 @@ export class CreateReservationComponent implements OnInit {
       adults: [2, [Validators.min(1), Validators.required]],
       childs: [0, Validators.required],
     });
+  }
+
+  private formatDate(date: Date): string {
+    return new DatePipe('en-US').transform(date, 'yyyy-MM-dd') || '';
   }
 
   readRooms(): void {
@@ -124,13 +111,15 @@ export class CreateReservationComponent implements OnInit {
       room.extraAdults = 0;
       room.extraChilds = 0;
       [room.roomPrice, room.roomCost] = this.calculateRoomCost(room);
-
+      if (!this.roomTypeRooms[room.roomTypeId]) {
+        this.roomTypeRooms[room.roomTypeId] = room.rooms;
+      }
       this.selectedItems.push([]);
       return room;
     });
   }
 
-  private calculateRoomCost(room: any): Array<number> {
+  private calculateRoomCost(room: any): [number, number] {
     const basePrice = room.dateRate.reduce(
       (total: number, rate: any) =>
         total +
@@ -139,12 +128,8 @@ export class CreateReservationComponent implements OnInit {
         Number(rate.childRate * room.extraChilds),
       0
     );
-    const tax = this.taxSets.reduce(
-      (total: number, tax: any) =>
-        total + (basePrice * tax.taxPercentage) / 100,
-      0
-    );
-    return [basePrice, basePrice + tax];
+    const taxAmount = (basePrice * room.taxPercentage) / 100;
+    return [basePrice, basePrice + taxAmount];
   }
 
   addRoomCount(index: number): void {
@@ -157,7 +142,6 @@ export class CreateReservationComponent implements OnInit {
 
   private updateRoomSelection(index: number, increment: number): void {
     const room = this.roomsData[index];
-    // room.dropdownSettings.limitSelection += increment;
     room.dropdownSettings = Object.assign({}, room.dropdownSettings, {
       limitSelection: room.dropdownSettings.limitSelection + increment,
     });
@@ -182,8 +166,9 @@ export class CreateReservationComponent implements OnInit {
   }
 
   trackByFn(index: number, item: any): any {
-    return item.id; // or any unique identifier of the item
+    return item.id;
   }
+
   dropDownData(rooms: any[], index: number): any[] {
     return rooms.filter(
       (room: any) =>
@@ -196,15 +181,14 @@ export class CreateReservationComponent implements OnInit {
 
   onSubmit(): void {
     const reservationDetails = this.prepareReservationDetails();
-    sessionStorage.setItem(
-      'groupDetails',
-      JSON.stringify(this.groupForm.value)
-    );
-    sessionStorage.setItem(
-      'reservationDetails',
-      JSON.stringify(reservationDetails)
-    );
-    this.router.navigate(['/reservation-info']);
+
+    this.reservationSharedService.setFormData({
+      reservationDetails,
+      groupDetails: this.groupForm.value,
+      roomTypeRooms: this.roomTypeRooms,
+    });
+
+    this.router.navigate([`/reservation-info/${this.propertyUnitId}`]);
   }
 
   private prepareReservationDetails(): any[] {
@@ -242,14 +226,16 @@ export class CreateReservationComponent implements OnInit {
 
     return selectedRooms.concat(unassignedRooms);
   }
-  openExtraModal(content: TemplateRef<any>, room: any): void {
-    this.extraGuestsData.extraAdults = room.extraAdults;
-    this.extraGuestsData.extraChilds = room.extraChilds;
-    this.extraGuestsData.childRate = room.dateRate[0].childRate;
-    this.extraGuestsData.adultRate = room.dateRate[0].adultRate;
+
+  openExtraModal(content: any, room: any): void {
+    this.extraGuestsData = {
+      extraAdults: room.extraAdults,
+      extraChilds: room.extraChilds,
+      childRate: room.dateRate[0].childRate,
+      adultRate: room.dateRate[0].adultRate,
+    };
 
     this.modalService.open(content).result.then((result) => {
-      console.log(this.extraGuestsData);
       if (result) {
         this.totalGuests.adults -= room.adultOccupant + room.extraAdults;
         this.totalGuests.childs -= room.childOccupant + room.extraChilds;
@@ -261,9 +247,6 @@ export class CreateReservationComponent implements OnInit {
         this.totalGuests.adults += room.adultOccupant + room.extraAdults;
         this.totalGuests.childs += room.childOccupant + room.extraChilds;
         this.totalGuests.totalCost += room.roomCost;
-        // Handle confirmed modal result
-      } else {
-        // Handle dismissed modal result
       }
     });
   }

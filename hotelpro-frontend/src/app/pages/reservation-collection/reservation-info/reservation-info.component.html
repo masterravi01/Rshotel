@@ -655,33 +655,24 @@
           <div class="card-body">
             <label class="form-label">Room:</label>
             <select
+              formControlName="roomId"
               class="form-control"
               style="appearance: auto"
-              (change)="changeRoom($event, reservation)"
             >
-              <ng-container
+              <option
                 *ngFor="
-                  let item of roomTypeRooms[
-                    reservation.get('roomTypeId')?.value
-                  ]
+                  let room of filterRooms(
+                    roomTypeRooms[reservation.get('roomTypeId')?.value],
+                    i
+                  )
                 "
+                [value]="room.id"
               >
-                <ng-container
-                  *ngIf="
-                    !item.selected ||
-                    item.id == reservation.get('roomId')?.value
-                  "
-                >
-                  <option
-                    [value]="item.id"
-                    [selected]="reservation.get('roomId')?.value == item.id"
-                  >
-                    {{ item.roomName }}
-                  </option>
-                </ng-container>
-              </ng-container>
+                {{ room.roomName }}
+              </option>
               <option value="assign">assign</option>
             </select>
+
             <label class="form-label">
               Room Price :
               <span class="fw-semibold"

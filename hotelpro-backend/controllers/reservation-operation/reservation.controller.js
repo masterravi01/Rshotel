@@ -197,6 +197,14 @@ const readReservationRate = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
+        from: "taxes",
+        localField: "propertyUnitId",
+        foreignField: "propertyUnitId",
+        as: "taxes",
+      },
+    },
+    {
+      $lookup: {
         from: "rateplanroomtypes",
         localField: "_id",
         foreignField: "roomTypeId",
@@ -269,6 +277,7 @@ const readReservationRate = asyncHandler(async (req, res) => {
         totalRoom: { $size: "$rooms" },
         roomPrice: { $literal: 0 },
         roomCost: { $literal: 0 },
+        taxPercentage: { $sum: "$taxes.taxPercentage" },
       },
     },
   ]);
