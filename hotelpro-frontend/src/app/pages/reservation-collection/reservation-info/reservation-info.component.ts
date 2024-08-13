@@ -28,8 +28,8 @@ export class ReservationInfoComponent implements OnInit {
   propertyUnitId: string | null = '';
   roomsData: any[] = [];
   taxSets: any[] = [];
-  updateDateRate: any[] = [];
-
+  updateDateRateObj: any = [];
+  roomTypeRooms: any;
   constructor(
     private fb: FormBuilder,
     private modalService: NgbModal,
@@ -39,29 +39,45 @@ export class ReservationInfoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    let x = sessionStorage.getItem('reservationDetails');
-    let gropFormDetails = sessionStorage.getItem('groupDetails');
-    this.propertyUnitId =
-      this.activeRoute.snapshot.paramMap.get('propertyUnitId');
-    this.propertyUnitId = '6695584abc45f8d7ad2ead7b';
-    if (x) {
-      this.reservationForm = this.fb.group({
-        reservations: this.fb.array([]),
-      });
-      this.populateReservations(JSON.parse(x));
-    }
-    let nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + 2);
+    this.initializeForms();
+    this.loadSessionData();
+    this.roomTypeRooms = {
+      '66b49ae7bf6f49a8b070e65a': [
+        {
+          id: '66b49c1982d1f12766b04d0f',
+          roomStatus: 'vacant',
+          roomCondition: 'clean',
+          roomNumber: '1',
+          roomName: '1',
+        },
+        {
+          id: '66b49c2f82d1f12766b04d13',
+          roomStatus: 'vacant',
+          roomCondition: 'clean',
+          roomNumber: '2',
+          roomName: '2',
+          selected: true,
+        },
+        {
+          id: '66b49c3082d1f12766b04d17',
+          roomStatus: 'vacant',
+          roomCondition: 'clean',
+          roomNumber: '3',
+          roomName: '3',
+          selected: true,
+        },
+      ],
+    };
+  }
+
+  private initializeForms(): void {
+    this.reservationForm = this.fb.group({
+      reservations: this.fb.array([]),
+    });
 
     this.groupForm = this.fb.group({
-      arrival: [
-        new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd'),
-        Validators.required,
-      ],
-      departure: [
-        new DatePipe('en-US').transform(nextDate, 'yyyy-MM-dd'),
-        Validators.required,
-      ],
+      arrival: [this.formatDate(new Date()), Validators.required],
+      departure: [this.formatDate(new Date()), Validators.required],
       adults: [2, [Validators.min(1), Validators.required]],
       childs: [0, Validators.required],
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -75,9 +91,25 @@ export class ReservationInfoComponent implements OnInit {
       state: ['', [Validators.required, Validators.pattern(/^[A-Za-z\s]+$/)]],
       zipCode: ['', [Validators.required]],
     });
-    if (gropFormDetails) {
-      this.groupForm.patchValue(JSON.parse(gropFormDetails));
+  }
+
+  private loadSessionData(): void {
+    const reservationDetails = sessionStorage.getItem('reservationDetails');
+    const groupDetails = sessionStorage.getItem('groupDetails');
+    this.propertyUnitId =
+      this.activeRoute.snapshot.paramMap.get('propertyUnitId') ||
+      '6695584abc45f8d7ad2ead7b';
+
+    if (reservationDetails) {
+      this.populateReservations(JSON.parse(reservationDetails));
     }
+    if (groupDetails) {
+      this.groupForm.patchValue(JSON.parse(groupDetails));
+    }
+  }
+
+  private formatDate(date: Date): string {
+    return new DatePipe('en-US').transform(date, 'yyyy-MM-dd')!;
   }
 
   createReservation(room?: any): FormGroup {
@@ -89,6 +121,8 @@ export class ReservationInfoComponent implements OnInit {
       roomtype: [room?.roomtype || '', Validators.required],
       adultOccupant: [room?.adultOccupant || 0, Validators.required],
       childOccupant: [room?.childOccupant || 0],
+      extraAdults: [room?.extraAdults || 0],
+      extraChilds: [room?.extraChilds || 0],
       roomPrice: [room?.roomPrice || 0, Validators.required],
       roomCost: [room?.roomCost || 0, Validators.required],
       images: [room?.images || [], Validators.required],
@@ -107,7 +141,6 @@ export class ReservationInfoComponent implements OnInit {
   }
 
   createDateRate(dateRate?: any): FormGroup {
-    debugger;
     return this.fb.group({
       date: [dateRate?.date || '', Validators.required],
       baseRate: [dateRate?.baseRate || '', Validators.required],
@@ -149,7 +182,7 @@ export class ReservationInfoComponent implements OnInit {
     return this.reservationForm.get('reservations') as FormArray;
   }
 
-  addReservation() {
+  addReservation(): void {
     this.reservations.push(this.createReservation());
   }
 
@@ -161,31 +194,57 @@ export class ReservationInfoComponent implements OnInit {
     return reservation.get('guests') as FormArray;
   }
 
-  addGuest(reservationIndex: number) {
+  addGuest(reservationIndex: number): void {
     const guests = this.getGuests(this.reservations.at(reservationIndex));
     guests.push(this.createGuest());
   }
 
-  removeGuest(reservationIndex: number, guestIndex: number) {
+  removeGuest(reservationIndex: number, guestIndex: number): void {
     const guests = this.getGuests(this.reservations.at(reservationIndex));
     if (guests.length > 1) {
       guests.removeAt(guestIndex);
     }
   }
 
-  sameAsCustomer(guestForm: AbstractControl, event: any) {
+  sameAsCustomer(guestForm: AbstractControl, event: any): void {
     if (event.target.checked) {
       guestForm.patchValue(this.groupForm.value);
     }
   }
-  openUpdateRate(content: TemplateRef<any>, daterate: any): void {
-    this.updateDateRate = JSON.parse(JSON.stringify(daterate));
+  changeRoom(e: any, reservation: AbstractControl) {
+    for (let r of this.roomTypeRooms[reservation.get('roomTypeId')?.value]) {
+      if (r.id == reservation.get('roomId')?.value) {
+        delete r.selected;
+      }
+      if (e.target.value == r.id) {
+        r.selected = true;
+      }
+    }
+  }
+  openUpdateRate(content: TemplateRef<any>, reservation: any, i: number): void {
+    this.updateDateRateObj = JSON.parse(JSON.stringify(reservation));
+    console.log(this.updateDateRateObj);
     this.modalService.open(content).result.then((result) => {
-      console.log(result, this.updateDateRate);
       if (result) {
+        // Handle confirmed modal result
+        this.reservations['controls'][i].patchValue(this.updateDateRateObj);
       } else {
+        // Handle dismissed modal result
       }
     });
+  }
+  calculateRate() {
+    this.updateDateRateObj.roomPrice =
+      Math.round((this.updateDateRateObj.roomCost / 1.11) * 100) / 100;
+    let onlyRoomCharges =
+      Math.round(
+        (this.updateDateRateObj.roomPrice /
+          this.updateDateRateObj.dateRate.length) *
+          100
+      ) / 100;
+    for (let r of this.updateDateRateObj.dateRate) {
+      r.baseRate = onlyRoomCharges;
+    }
   }
   onSubmit() {
     let sendObj = {

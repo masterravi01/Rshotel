@@ -109,6 +109,7 @@
     </div>
   </form>
 </div>
+
 <div class="container-fluid text-center" *ngIf="roomsData.length > 0">
   <table class="table">
     <thead>
@@ -122,60 +123,64 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let r of roomsData; let i = index; trackBy: trackByFn">
-        <th>
-          {{ r.roomtype + " " + r.rateName }}
-        </th>
+      <tr *ngFor="let room of roomsData; let i = index; trackBy: trackByFn">
+        <td>{{ room.roomtype }} {{ room.rateName }}</td>
         <td>
-          {{ r.adultOccupant + r.childOccupant }}
+          {{ room.adultOccupant }} Adults {{ room.childOccupant }} Childs
+          <span
+            class="link text-primary"
+            (click)="openExtraModal(extraGuests, room)"
+            >{{
+              room.extraAdults == 0 && room.extraChilds == 0
+                ? "add"
+                : "(" + room.extraAdults + "/" + room.extraChilds + ")"
+            }}</span
+          >
         </td>
-        <td>
-          {{ r.roomPrice }}
-        </td>
-        <td>
-          {{ r.roomCost }}
-        </td>
+        <td>{{ room.roomPrice }}</td>
+        <td>{{ room.roomCost }}</td>
         <td>
           <button
             class="btn btn-primary p-0"
             (click)="addRoomCount(i)"
-            [disabled]="r?.dropdownSettings?.limitSelection >= r.availability"
+            [disabled]="
+              room?.dropdownSettings?.limitSelection >= room.totalRoom
+            "
           >
-            <i class="material-symbols-rounded" style="vertical-align: middle">
-              add
-            </i>
+            <i class="material-symbols-rounded" style="vertical-align: middle"
+              >add</i
+            >
           </button>
-
-          <span class="mx-1">
-            {{ r?.dropdownSettings?.limitSelection }}
-          </span>
+          <span class="mx-1">{{ room?.dropdownSettings?.limitSelection }}</span>
           <button
             class="btn btn-primary p-0"
             (click)="removeRoomCount(i)"
-            [disabled]="r?.dropdownSettings?.limitSelection == 0"
+            [disabled]="room?.dropdownSettings?.limitSelection === 0"
           >
-            <i class="material-symbols-rounded" style="vertical-align: middle">
-              remove
-            </i>
+            <i class="material-symbols-rounded" style="vertical-align: middle"
+              >remove</i
+            >
           </button>
         </td>
         <td>
           <ng-multiselect-dropdown
             name="roomtype"
             [placeholder]="'Select Room'"
-            [settings]="r.dropdownSettings"
-            [data]="r.rooms"
+            [settings]="room.dropdownSettings"
+            [data]="dropDownData(room.rooms, i)"
             [(ngModel)]="selectedItems[i]"
             style="background: white !important"
             class="multiselect_dropdown"
-          >
-          </ng-multiselect-dropdown>
+          ></ng-multiselect-dropdown>
         </td>
       </tr>
     </tbody>
   </table>
+</div>
+
+<div class="container text-center" *ngIf="roomsData.length > 0">
   <button
-    class="btn btn-primary"
+    class="btn btn-primary my-3"
     (click)="onSubmit()"
     [disabled]="
       totalGuests?.adults + totalGuests?.childs <
@@ -190,7 +195,78 @@
           this.groupForm.get('childs')?.value
       "
     >
-      (Total Cost {{ totalGuests?.Cost }})
+      (Total Cost {{ totalGuests?.totalCost }})
     </ng-container>
   </button>
+  <div>{{ totalGuests | json }}</div>
+  <div>{{ groupForm.value | json }}</div>
 </div>
+
+<ng-template #extraGuests let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Add Adults/Childs</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Guests</th>
+          <th scope="col">Rate</th>
+          <th>Number of Extras</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Adults</th>
+          <td>{{ extraGuestsData.adultRate }}</td>
+
+          <td>
+            <select
+              class="form-control text_center select_reason"
+              style="text-align: center"
+              [(ngModel)]="extraGuestsData.extraAdults"
+            >
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <th scope="row">Childs</th>
+          <td>{{ extraGuestsData.childRate }}</td>
+
+          <td>
+            <select
+              class="form-control text_center select_reason"
+              style="text-align: center"
+              [(ngModel)]="extraGuestsData.extraChilds"
+            >
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="modal.close(true)"
+    >
+      save
+    </button>
+  </div>
+</ng-template>
