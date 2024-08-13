@@ -640,6 +640,10 @@ const reservationSchema = new Schema(
     },
     notes: String,
     confirmationNumber: String,
+    taxPercentage: {
+      type: String,
+      default: 0,
+    },
     ratePlanSetupId: {
       type: Schema.Types.ObjectId,
       ref: "RatePlanSetup",

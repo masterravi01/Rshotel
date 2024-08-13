@@ -69,11 +69,18 @@ export class ReservationInfoComponent implements OnInit {
   }
 
   private loadData(): void {
-    this.reservationSharedService.currentFormData.subscribe((data) => {
+    // this.reservationSharedService.currentFormData.subscribe((data) => {
+    //   this.groupForm.patchValue(data.groupDetails);
+    //   this.populateReservations(data.reservationDetails);
+    //   this.roomTypeRooms = data.roomTypeRooms;
+    // });
+    let d = sessionStorage.getItem('resdata');
+    if (d) {
+      let data = JSON.parse(d);
       this.groupForm.patchValue(data.groupDetails);
       this.populateReservations(data.reservationDetails);
       this.roomTypeRooms = data.roomTypeRooms;
-    });
+    }
     this.propertyUnitId =
       this.activeRoute.snapshot.paramMap.get('propertyUnitId');
   }

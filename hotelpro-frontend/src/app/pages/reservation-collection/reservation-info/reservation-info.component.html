@@ -726,30 +726,10 @@
       <tbody>
         <tr *ngFor="let rate of updateDateRateObj.dateRate; let i = index">
           <th scope="row">{{ rate.date | date }}</th>
-          <td>
-            <div class="select select_reason">
-              <select
-                class="form-control text_center select_reason"
-                style="text-align: center"
-                [(ngModel)]="rate.Reason"
-              >
-                <option value="" selected>Select One</option>
-                <option value="Complaint">Complaint</option>
-                <option value="Rate Resistance">Rate Resistance</option>
-                <option value="Rate Parity">Rate Parity</option>
-                <option value="Match rate">Match rate</option>
-              </select>
-            </div>
-          </td>
+          <td></td>
 
-          <td>
-            <div class="d-flex justify-content-center">
-              <input
-                type="number"
-                [(ngModel)]="rate.baseRate"
-                class="form-control"
-              />
-            </div>
+          <td class="text-center">
+            {{ rate.baseRate }}
           </td>
         </tr>
         <tr *ngIf="updateDateRateObj.extraAdults > 0">
@@ -794,20 +774,24 @@
           </td>
         </tr>
         <tr>
-          <td colspan="2">Tax Summary</td>
+          <td colspan="2">
+            Tax Summary({{ updateDateRateObj.taxPercentage + " %" }})
+          </td>
 
           <td class="text-center">
-            {{ "0.00" }}
+            {{
+              (updateDateRateObj.taxPercentage * updateDateRateObj.roomPrice) /
+                100
+            }}
           </td>
         </tr>
         <tr>
           <td>Total Summary</td>
-          <td class="text-center">
-            Room Price {{ updateDateRateObj.roomPrice }}
-          </td>
+          <td class="text-center">Price {{ updateDateRateObj.roomPrice }}</td>
           <!-- <td class="text-center">{{ TotalCostRoomCharges }}</td> -->
           <td class="text-center">
             <div class="d-flex justify-content-center">
+              Cost
               <input
                 type="number"
                 [(ngModel)]="updateDateRateObj.roomCost"
@@ -819,7 +803,7 @@
       </tbody>
     </table>
     <div class="d-flex justify-content-end pb-3">
-      <button class="btn btn-primary" (click)="calculateRate()">
+      <button class="btn btn-primary me-2" (click)="calculateRate()">
         Calculate
       </button>
       <button class="btn btn-primary" (click)="modal.close(true)">

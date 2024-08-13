@@ -187,7 +187,14 @@ export class CreateReservationComponent implements OnInit {
       groupDetails: this.groupForm.value,
       roomTypeRooms: this.roomTypeRooms,
     });
-
+    sessionStorage.setItem(
+      'resdata',
+      JSON.stringify({
+        reservationDetails,
+        groupDetails: this.groupForm.value,
+        roomTypeRooms: this.roomTypeRooms,
+      })
+    );
     this.router.navigate([`/reservation-info/${this.propertyUnitId}`]);
   }
 
