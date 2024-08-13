@@ -35,8 +35,9 @@ export class RoomMaintenanceComponent implements OnInit {
   propertyUnitId: string | null = '';
   AddMaintenance!: FormGroup;
   RoomData: any;
-  startDate!: Date;
-  endDate!: Date;
+  startDate!: any;
+  endDate!: any;
+  Tomorrow!: any;
   ShowAdd = false;
   DateArr: any;
   Date: any;
@@ -67,7 +68,6 @@ export class RoomMaintenanceComponent implements OnInit {
   CurrentMaintainance: any;
   RoomTypes!: any[];
   ShowEdit = false;
-  RoomAfterMaintainance: any;
   Max!: any;
   Handicapped = false;
   Smoking = false;
@@ -89,23 +89,27 @@ export class RoomMaintenanceComponent implements OnInit {
     this.propertyUnitId =
       this.activeRoute.snapshot.paramMap.get('propertyUnitId');
 
+    this.ShowAdd = false;
+    
+    this.Max = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
+    this.Date = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
+    this.Today = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
+
+    this.Tomorrow = new Date(this.Today);
+    this.Tomorrow.setDate(this.Tomorrow.getDate() + 1);
+    this.Tomorrow = new DatePipe('en-US').transform(this.Tomorrow, 'yyyy-MM-dd');
+
     this.AddMaintenance = this.fb.group({
       propertyUnitId: [this.propertyUnitId],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
       roomType: ['', Validators.required],
       Rooms: [[], Validators.required],
-      OnlyMaintenance: [true],
+      onlyMaintenance: [true],
       Reason: ['', Validators.required],
       Notes: [''],
     });
-    this.Max = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
-    this.ShowAdd = false;
-
-    this.Date = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
-    this.Today = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
-    this.startDate = new Date();
-
+    
     this.RangeUpdate = this.fb.group({
       startDate: [this.Today, Validators.required],
       endDate: [this.Today, Validators.required],
@@ -137,16 +141,16 @@ export class RoomMaintenanceComponent implements OnInit {
   fetchdata() {
     if (this.Week < 2) this.Week = 2;
     this.AddMaintenance.reset({
-      OnlyMaintenance: true,
+      onlyMaintenance: true,
       roomType: '',
       Reason: '',
       Rooms: [],
     });
 
     this.ShowAdd = false;
-    this.startDate = new Date(this.Date);
+    this.startDate = new Date(this.Date.replace(/-/g, "/"));
     this.endDate = new Date(this.startDate);
-    this.endDate.setDate(this.startDate.getDate() + this.Week * 7);
+    this.endDate.setDate(this.endDate.getDate() + this.Week * 7);
     this.DateArr = [];
     for (
       let d = new Date(this.startDate);
@@ -211,6 +215,15 @@ export class RoomMaintenanceComponent implements OnInit {
 
   getAvailRoomdata() {
     if (
+      this.AddMaintenance.controls.startDate.value?.toString() >=
+      this.AddMaintenance.controls.endDate.value?.toString()
+    ) { 
+      this.AddMaintenance.patchValue({
+        endDate: this.getTomorrow()
+      });
+    }
+
+    if (
       this.AddMaintenance.controls.startDate.value &&
       this.AddMaintenance.controls.endDate.value
     ) {
@@ -267,6 +280,18 @@ export class RoomMaintenanceComponent implements OnInit {
     }
   }
 
+  testmaintainance(d: any, m: any) {
+    if (
+      d.toString() == m.startDate.toString() ||
+      (m.startDate <= this.startDate &&
+        d.toString() == this.startDate.toString())
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   showAddpop() {
     this.ShowMain = false;
     this.ShowAdd = true;
@@ -278,16 +303,11 @@ export class RoomMaintenanceComponent implements OnInit {
     this.ShowEdit = false;
   }
 
-  testmaintainance(d: any, m: any) {
-    if (
-      d.toString() == m.startDate.toString() ||
-      (m.startDate <= this.startDate &&
-        d.toString() == this.startDate.toString())
-    ) {
-      return true;
-    } else {
-      return false;
-    }
+  getTomorrow() { 
+    this.Tomorrow = new Date(this.AddMaintenance.controls.startDate.value);
+    this.Tomorrow.setDate(this.Tomorrow.getDate() + 1);
+    this.Tomorrow = new DatePipe('en-US').transform(this.Tomorrow, 'yyyy-MM-dd');
+    return this.Tomorrow;
   }
 
   nightNumber(a: any, d: any) {
@@ -313,7 +333,6 @@ export class RoomMaintenanceComponent implements OnInit {
 
       let di = (st.getTime() - date1.getTime()) / (24 * 60 * 60 * 1000);
       let diff = (date2.getTime() - date1.getTime()) / (24 * 60 * 60 * 1000);
-      // this.nightnumber = diff;
       return diff - di - z >= 1 ? diff - di - z : 0.7;
     }
 
@@ -328,8 +347,6 @@ export class RoomMaintenanceComponent implements OnInit {
     let diff = Math.round(
       (date2.getTime() - date1.getTime()) / (1000 * 3600 * 24)
     );
-    // this.nightnumber = diff;
-
     return diff - z >= 1 ? diff - z : 0.7;
   }
 
@@ -380,7 +397,7 @@ export class RoomMaintenanceComponent implements OnInit {
           reason: formdata.Reason,
           description: formdata.Notes,
           isCompleted: false,
-          onlyMaintenance: formdata.OnlyMaintenance,
+          onlyMaintenance: formdata.onlyMaintenance,
           today: this.Today,
         };
         objarr.push(obj);
@@ -415,10 +432,12 @@ export class RoomMaintenanceComponent implements OnInit {
       st.setHours(0, 0, 0, 0);
       let ed = new Date(this.CurrentMaintainance.endDate);
       ed.setHours(0, 0, 0, 0);
-      if (st > ed) {
+      if (st >= ed) {
         this.alertService.errorAlert('Enter Valid Start and End Date!');
+        return;
       } else if (st < today && ed < today) {
         this.alertService.errorAlert('Enter Valid Start and End Date!');
+        return;
       }
     }
 
@@ -428,8 +447,8 @@ export class RoomMaintenanceComponent implements OnInit {
     this.crudService
       .post(APIConstant.UPDATE_ROOM_MAINTENANCE, this.CurrentMaintainance)
       .then((response: any) => {
-        this.alertService.errorAlert(
-          'Mark as Complete and Room Condition is ' + this.RoomAfterMaintainance
+        this.alertService.successAlert(
+          'Room maintenance updated successfully'
         );
         this.fetchdata();
       })
@@ -442,20 +461,6 @@ export class RoomMaintenanceComponent implements OnInit {
     this.ShowMain = false;
     this.ShowAdd = false;
     this.ShowEdit = true;
-  }
-
-  next() {
-    let scroll = document.getElementById('scroll');
-    scroll?.scrollBy(665, 0);
-  }
-
-  prev() {
-    let scroll = document.getElementById('scroll');
-    scroll?.scrollBy(-665, 0);
-  }
-
-  back() {
-    window.history.back();
   }
 
   openModal_sm(content: any) {

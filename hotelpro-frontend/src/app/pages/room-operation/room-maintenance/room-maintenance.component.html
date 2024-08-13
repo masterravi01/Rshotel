@@ -117,7 +117,7 @@
                                                     <div class="d-flex">
                                                         <div class="col d-flex justify-content-center"
                                                             style="z-index: 0 !important">
-                                                            <div style="margin-left: -10px !important"
+                                                            <div style="margin-left: -10px !important;"
                                                                 class="text-truncate">
                                                                 {{ r.GuestName }}
                                                             </div>
@@ -128,15 +128,11 @@
                                         </ng-container>
                                         <ng-container *ngFor="let m of item.RoomMaintainance">
                                             <ng-container *ngIf="m.startDate <= d && m.endDate >= d">
-                                                <div *ngIf="testmaintainance(d, m)" [style]="
-                          'width:' +
-                          nightNumber(m.startDate, m.endDate) * 125 +
-                          'px;'
-                        " class="renovation" (click)="maintainance(m)">
-                                                    <div class="d-flex align-items-center" style="cursor: pointer !important">
+                                                <div *ngIf="testmaintainance(d, m)" [style.width]="nightNumber(m.startDate, m.endDate) * 90 + 'px'" class="renovation"
+                                                    (click)="maintainance(m)">
+                                                    <div class="d-flex align-items-center" style="cursor: pointer;">
                                                         <div class="ms-2">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16"
-                                                                height="16" fill="black" class="bi bi-house-slash"
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" class="bi bi-house-slash"
                                                                 viewBox="0 0 16 16">
                                                                 <path
                                                                     d="M13.879 10.414a2.5 2.5 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95Z" />
@@ -145,9 +141,8 @@
                                                             </svg>
                                                         </div>
                                                         <div class="col d-flex justify-content-center"
-                                                            style="z-index: 0 !important">
-                                                            <div style="margin-left: -10px !important"
-                                                                class="text-truncate">
+                                                            style="z-index: 0; overflow: hidden; white-space: nowrap; flex-grow: 1; padding-left: 4px;">
+                                                            <div style="text-overflow: ellipsis;" class="text-truncate">
                                                                 {{ m.reason }}
                                                             </div>
                                                         </div>
@@ -182,7 +177,7 @@
                                 {{ CurrentMaintainance.reason }}
                             </div>
                         </div>
-                        <div style="column-width: 20px !important; cursor: pointer;" class="mr-2"
+                        <div style="column-width: 20px !important; cursor: pointer;" class="me-2"
                             *ngIf="!CurrentMaintainance.isCompleted" (click)="showEdit()">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                 class="bi bi-pencil" viewBox="0 0 16 16">
@@ -245,7 +240,7 @@
                                 </td>
                                 <td>
                                     <input type="date" class="form-control field" formControlName="endDate"
-                                        [min]="AddMaintenance.controls['startDate'].value"
+                                        [min]="getTomorrow()"
                                         (input)="getAvailRoomdata()" />
                                     <p class="text-danger" *ngIf="
                     AddMaintenance.controls['endDate'].touched &&
@@ -302,7 +297,7 @@
                                 <td>
                                     <div class="form-check ms-4 mt-1">
                                         <input type="checkbox" class="form-check-input" id="maintenance"
-                                            formControlName="OnlyMaintenance" />
+                                            formControlName="onlyMaintenance" />
                                         <label for="maintenance" class="form-check-label checkbox_label ms-lg-1">Only
                                             Maintenance</label>
                                     </div>
@@ -412,7 +407,7 @@
                                 <td>
                                     <div class="form-check ms-3">
                                         <input type="checkbox" class="form-check-input mt-2" id="maintenance1"
-                                            [(ngModel)]="CurrentMaintainance.OnlyMaintenance" />
+                                            [(ngModel)]="CurrentMaintainance.onlyMaintenance" />
                                         <label for="maintenance1" class="form-check-label checkbox_label ms-lg-1"
                                             style="margin-top: 6.5px">Only Maintenance</label>
                                     </div>

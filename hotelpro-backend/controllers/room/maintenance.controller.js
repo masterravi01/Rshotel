@@ -256,8 +256,7 @@ const updateRoomMaintenance = asyncHandler(async (req, res) => {
     endDate,
     roomId,
     reason,
-    Notes,
-    propertyUnitId,
+    description,
     isCompleted,
     onlyMaintenance,
     Today,
@@ -265,20 +264,17 @@ const updateRoomMaintenance = asyncHandler(async (req, res) => {
   } = req.body;
   let data = {};
 
-  startDate = new Date(body.startDate);
-  endDate = new Date(body.endDate);
+  startDate = new Date(startDate);
+  endDate = new Date(endDate);
 
   let room_maintainance_details = await RoomMaintenance.findById(
-    body.RoomMaintainanceId
+    RoomMaintainanceId
   );
 
-  room_maintainance_details = room_maintainance_details[0];
   room_maintainance_details.startDate = startDate;
   room_maintainance_details.endDate = endDate;
-  room_maintainance_details.roomId = roomId;
   room_maintainance_details.reason = reason;
-  room_maintainance_details.description = Notes;
-  room_maintainance_details.propertyUnitId = propertyUnitId;
+  room_maintainance_details.description = description;
   room_maintainance_details.isCompleted = isCompleted;
   room_maintainance_details.onlyMaintenance = onlyMaintenance;
 
@@ -287,11 +283,11 @@ const updateRoomMaintenance = asyncHandler(async (req, res) => {
     room_details.roomStatus = RoomStatusEnum.VACANT;
     room_details.roomCondition = RoomConditionEnum.CLEAN;
   } else if (new Date(Today).toString() == new Date(startDate).toString()) {
-    room_details.roomStatus = "maintainance";
-    room_details.roomCondition = "dirty";
+    room_details.roomStatus = RoomStatusEnum.MAINTENANCE;
+    room_details.roomCondition = RoomConditionEnum.DIRTY;
   } else if (new Date(Today).toString() < new Date(startDate).toString()) {
-    room_details.roomStatus = "vacant";
-    room_details.roomCondition = "clean";
+    room_details.roomStatus = RoomStatusEnum.VACANT;
+    room_details.roomCondition = RoomConditionEnum.CLEAN;
   }
 
   data.RoomMaintainance = await mongo.updateCollection(
@@ -312,7 +308,7 @@ const updateRoomMaintenance = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, roomType, "Room type updated successfully"));
+    .json(new ApiResponse(200, data, "Room maintenance updated successfully"));
 });
 
 // DELETE a room maintenance
@@ -404,6 +400,9 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
   let { startDate, endDate, propertyUnitId } = req.body;
   let data = {};
 
+  startDate = new Date(startDate);
+  endDate = new Date(endDate);
+
   let [ReservationDetails, TotalRooms, RoomMaintainanceDetails] =
     await Promise.all([
       Reservation.aggregate([
@@ -492,7 +491,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
             rooms: {
               $push: "$TotalRoomDetails",
             },
-            Roomid: {
+            roomId: {
               $push: {
                 $convert: {
                   input: "$TotalRoomDetails._id",
@@ -511,7 +510,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
           $project: {
             _id: 1,
             rooms: 1,
-            Roomid: 1,
+            roomId: 1,
             DateRate: [],
             roomtype: "$_id",
             RoomTypeId: 1,
@@ -539,7 +538,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
                 propertyUnitId: new ObjectId(propertyUnitId),
               },
               {
-                Completed: { $ne: true },
+                isCompleted: { $ne: true },
               },
             ],
           },
@@ -575,7 +574,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
   for (var i = 0; i < TotalRooms.length; i++) {
     if (ReservationDetails != null && ReservationDetails.length > 0) {
       ReservationDetails.forEach((r) => {
-        index = TotalRooms[i].Roomid.indexOf(String(r.roomId[0]));
+        index = TotalRooms[i].roomId.indexOf(String(r.roomId[0]));
         if (
           index > -1 &&
           (r.Tantative == false ||
@@ -583,7 +582,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
             r.Tantative == null)
         ) {
           TotalRooms[i].rooms.splice(index, 1);
-          TotalRooms[i].Roomid.splice(index, 1);
+          TotalRooms[i].roomId.splice(index, 1);
         }
         if (index > -1 && r.Tantative == true) {
           TotalRooms[i].rooms[index].Tantative = r.Tantative;
@@ -596,11 +595,11 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
       RoomMaintainanceDetails.MaintainanceRoomId.length > 0
     ) {
       RoomMaintainanceDetails.MaintainanceRoomId.forEach((id) => {
-        index = TotalRooms[i].Roomid.indexOf(id);
+        let index = TotalRooms[i].roomId.indexOf(id);
         if (index > -1) {
           console.log(index);
           TotalRooms[i].rooms.splice(index, 1);
-          TotalRooms[i].Roomid.splice(index, 1);
+          TotalRooms[i].roomId.splice(index, 1);
         }
       });
     }
