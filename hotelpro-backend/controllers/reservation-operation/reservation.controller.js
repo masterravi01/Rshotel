@@ -47,82 +47,137 @@ const getReservationById = asyncHandler(async (req, res) => {
 
 // POST create a new reservation
 const createReservation = asyncHandler(async (req, res) => {
-  const { groupDetails, reservationsArray } = req.body;
-  let ReservationEntries = [];
-  let ReservationDetailEntries = [];
-  let UserEntries = [];
-  let AddressEntries = [];
-  let RoomBalanceEntries = [];
+  let session = null;
+  try {
+    session = await mongoose.startSession();
+    console.log("Session started:", session.id);
 
-  const groupData = new GroupReservation(groupDetails);
-  let customerDetails = new User(groupDetails);
-  customerDetails.userType = UserTypesEnum.GUEST;
-  let customerAddress = new Address(groupDetails);
-  customerDetails.addressId = customerAddress._id;
+    await session.withTransaction(async () => {
+      console.log("Transaction started");
+      const { groupDetails, reservationsArray } = req.body;
+      let ReservationEntries = [];
+      let ReservationDetailEntries = [];
+      let UserEntries = [];
+      let AddressEntries = [];
+      let RoomBalanceEntries = [];
 
-  UserEntries.push(customerDetails);
-  AddressEntries.push(customerAddress);
+      const groupData = new GroupReservation(groupDetails);
+      let customerDetails = new User(groupDetails);
+      customerDetails.userType = UserTypesEnum.GUEST;
+      let customerAddress = new Address(groupDetails);
+      customerDetails.addressId = customerAddress._id;
 
-  for (let reservation of reservationsArray) {
-    let reservationObj = new Reservation(reservation);
-    reservationObj.propertyUnitId = groupData.propertyUnitId;
-    reservationObj.arrival = groupData.arrival;
-    reservationObj.departure = groupData.departure;
-    reservationObj.groupId = groupData._id;
+      UserEntries.push(customerDetails);
+      AddressEntries.push(customerAddress);
 
-    let reservationDetailObj = new ReservationDetail(reservation);
-    reservationDetailObj.reservationId = reservationObj._id;
-    reservationDetailObj.adults = reservationObj.adultOccupant;
-    reservationDetailObj.childs = reservationObj.childOccupant;
-    ReservationDetailEntries.push(reservationDetailObj);
-    reservation.guests.forEach((guest, index) => {
-      if (index === 0) {
-        if (guest.isSameAsCustomer) {
-          reservationObj.userId = customerDetails._id;
-        } else {
-          let guestObj = new User(guest);
-          guestObj.userType = UserTypesEnum.GUEST;
-          let guestAddress = new Address(guest);
-          guestObj.addressId = guestAddress._id;
-          reservationObj.userId = guestObj._id;
-          UserEntries.push(guestObj);
-          AddressEntries.push(guestAddress);
-        }
-      } else {
-        if (guest.isSameAsCustomer) {
-          reservationObj.secondaryUserIds.push(customerDetails._id);
-        } else {
-          let guestObj = new User(guest);
-          guestObj.userType = UserTypesEnum.GUEST;
-          let guestAddress = new Address(guest);
-          guestObj.addressId = guestAddress._id;
-          reservationObj.secondaryUserIds.push(customerDetails._id);
-          UserEntries.push(guestObj);
-          AddressEntries.push(guestAddress);
-        }
+      for (let reservation of reservationsArray) {
+        let reservationObj = new Reservation(reservation);
+        reservationObj.propertyUnitId = groupData.propertyUnitId;
+        reservationObj.arrival = groupData.arrival;
+        reservationObj.departure = groupData.departure;
+        reservationObj.groupId = groupData._id;
+
+        let reservationDetailObj = new ReservationDetail(reservation);
+        reservationDetailObj.reservationId = reservationObj._id;
+        reservationDetailObj.adults =
+          reservation.adultOccupant + reservation.extraAdults;
+        reservationDetailObj.childs =
+          reservation.childOccupant + reservation.extraChilds;
+        ReservationDetailEntries.push(reservationDetailObj);
+
+        reservation.guests.forEach((guest, index) => {
+          let guestObj;
+          let guestAddress;
+
+          if (index === 0) {
+            if (guest.isSameAsCustomer) {
+              reservationObj.userId = customerDetails._id;
+            } else {
+              guestObj = new User(guest);
+              guestObj.userType = UserTypesEnum.GUEST;
+              guestAddress = new Address(guest);
+              guestObj.addressId = guestAddress._id;
+              reservationObj.userId = guestObj._id;
+              UserEntries.push(guestObj);
+              AddressEntries.push(guestAddress);
+            }
+          } else {
+            if (guest.isSameAsCustomer) {
+              reservationObj.secondaryUserIds.push(customerDetails._id);
+            } else {
+              guestObj = new User(guest);
+              guestObj.userType = UserTypesEnum.GUEST;
+              guestAddress = new Address(guest);
+              guestObj.addressId = guestAddress._id;
+              reservationObj.secondaryUserIds.push(guestObj._id);
+              UserEntries.push(guestObj);
+              AddressEntries.push(guestAddress);
+            }
+          }
+        });
+
+        reservation.dateRate.forEach((rate) => {
+          let rb = new RoomBalance(rate);
+          rb.balanceDate = rate.date;
+          rb.reservationId = reservationObj._id;
+          rb.balance = -(
+            rate.baseRate +
+            reservation.extraAdults * rate.adultRate +
+            reservation.extraChilds * rate.childRate
+          );
+          rb.roomId = reservationObj.roomId;
+          RoomBalanceEntries.push(rb);
+
+          let rbtax = new RoomBalance();
+          rbtax.balanceDate = rate.date;
+          rbtax.reservationId = reservationObj._id;
+          rbtax.balanceName = "Tax";
+          rbtax.balance =
+            -(
+              (rate.baseRate +
+                reservation.extraAdults * rate.adultRate +
+                reservation.extraChilds * rate.childRate) *
+              reservation.taxPercentage
+            ) / 100;
+          rbtax.roomId = reservationObj.roomId;
+          RoomBalanceEntries.push(rbtax);
+        });
+
+        ReservationEntries.push(reservationObj);
       }
+
+      await Promise.all([
+        groupData.save({ session }),
+        User.insertMany(UserEntries, { session }),
+        Address.insertMany(AddressEntries, { session }),
+        Reservation.insertMany(ReservationEntries, { session }),
+        RoomBalance.insertMany(RoomBalanceEntries, { session }),
+        ReservationDetail.insertMany(ReservationDetailEntries, { session }),
+      ]);
+
+      console.log("Transaction committed successfully");
+      return res
+        .status(201)
+        .json(new ApiResponse(201, {}, "Reservation created successfully"));
     });
-    reservation.dateRate.forEach((rate, index) => {
-      let rb = new RoomBalance(rate);
-      rb.balanceDate = rate.date;
-      rb.reservationId = reservationObj._id;
-      rb.balance = -rate.baseRate;
-      rb.roomId = reservationObj.roomId;
-      RoomBalanceEntries.push(rb);
-    });
-    ReservationEntries.push(reservationObj);
-    await Promise.all([
-      groupData.save(),
-      User.insertMany(UserEntries),
-      Address.insertMany(AddressEntries),
-      Reservation.insertMany(ReservationEntries),
-      RoomBalance.insertMany(RoomBalanceEntries),
-      ReservationDetail.insertMany(ReservationDetailEntries),
-    ]);
+  } catch (error) {
+    console.error("Error during transaction:", error.message);
+    console.error("Stack trace:", error.stack);
+    return res
+      .status(500)
+      .json(
+        new ApiResponse(
+          500,
+          {},
+          "An error occurred while creating the reservation"
+        )
+      );
+  } finally {
+    if (session) {
+      console.log("Ending session");
+      session.endSession();
+    }
   }
-  return res
-    .status(201)
-    .json(new ApiResponse(201, {}, "Reservation created successfully"));
 });
 
 // PUT update a reservation by ID
@@ -193,6 +248,14 @@ const readReservationRate = asyncHandler(async (req, res) => {
         localField: "_id",
         foreignField: "roomTypeId",
         as: "rooms",
+      },
+    },
+    {
+      $lookup: {
+        from: "taxes",
+        localField: "propertyUnitId",
+        foreignField: "propertyUnitId",
+        as: "taxes",
       },
     },
     {
@@ -269,6 +332,7 @@ const readReservationRate = asyncHandler(async (req, res) => {
         totalRoom: { $size: "$rooms" },
         roomPrice: { $literal: 0 },
         roomCost: { $literal: 0 },
+        taxPercentage: { $sum: "$taxes.taxPercentage" },
       },
     },
   ]);

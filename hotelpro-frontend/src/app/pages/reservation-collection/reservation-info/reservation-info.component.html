@@ -316,6 +316,23 @@
             Reservation Details of (
             {{ reservation?.get("roomtype")?.value }}-
             {{ reservation?.get("rateName")?.value }})
+            {{
+              "Adults/Childs" +
+                ":" +
+                reservation.get("adultOccupant")?.value +
+                "/" +
+                reservation.get("adultOccupant")?.value
+            }}
+            {{
+              reservation.get("extraAdults")?.value > 0 ||
+              reservation.get("extraChilds")?.value > 0
+                ? "Extra Adults/Childs" +
+                  ":" +
+                  reservation.get("extraAdults")?.value +
+                  "/" +
+                  reservation.get("extraChilds")?.value
+                : ""
+            }}
           </h5>
           <div>
             <i
@@ -630,169 +647,51 @@
               </div>
             </div>
           </div>
-
-          <div class="col mt-3">
-            <label class="form-label">roomId</label>
-            <input
-              type="text"
-              class="form-control"
+        </div>
+      </div>
+      <div class="col-3" *ngIf="reservation.get('isDetailsVisiable')?.value">
+        <div class="card container_form p-3 m-2 rounded">
+          <label class="form-label fw-semibold">Room Details</label>
+          <div class="card-body">
+            <label class="form-label">Room:</label>
+            <select
               formControlName="roomId"
-              placeholder="Enter roomId"
-              [ngClass]="{
-                'is-invalid':
-                  (reservation.get('roomId')?.dirty ||
-                    reservation.get('roomId')?.touched) &&
-                  reservation.get('roomId')?.invalid
-              }"
-            />
-            <small
-              class="text-danger"
-              *ngIf="
-                (reservation.get('roomId')?.dirty ||
-                  reservation.get('roomId')?.touched) &&
-                reservation.get('roomId')?.invalid
-              "
-              >roomId is required</small
-            >
-          </div>
-          <div class="col mt-3">
-            <label class="form-label">roomtype</label>
-            <input
-              type="text"
               class="form-control"
-              formControlName="roomtype"
-              placeholder="Enter roomtype"
-              [ngClass]="{
-                'is-invalid':
-                  (reservation.get('roomtype')?.dirty ||
-                    reservation.get('roomtype')?.touched) &&
-                  reservation.get('roomtype')?.invalid
-              }"
-            />
-            <small
-              class="text-danger"
-              *ngIf="
-                (reservation.get('roomtype')?.dirty ||
-                  reservation.get('roomtype')?.touched) &&
-                reservation.get('roomtype')?.invalid
-              "
-              >roomtype is required</small
+              style="appearance: auto"
             >
-          </div>
-          <div class="col mt-3">
-            <label class="form-label">adultOccupant</label>
-            <input
-              type="text"
-              class="form-control"
-              formControlName="adultOccupant"
-              placeholder="Enter adultOccupant"
-              [ngClass]="{
-                'is-invalid':
-                  (reservation.get('adultOccupant')?.dirty ||
-                    reservation.get('adultOccupant')?.touched) &&
-                  reservation.get('adultOccupant')?.invalid
-              }"
-            />
-            <small
-              class="text-danger"
-              *ngIf="
-                (reservation.get('adultOccupant')?.dirty ||
-                  reservation.get('adultOccupant')?.touched) &&
-                reservation.get('adultOccupant')?.invalid
-              "
-              >adultOccupant is required</small
-            >
-          </div>
-          <div class="col mt-3">
-            <label class="form-label">childOccupant</label>
-            <input
-              type="text"
-              class="form-control"
-              formControlName="childOccupant"
-              placeholder="Enter childOccupant"
-              [ngClass]="{
-                'is-invalid':
-                  (reservation.get('childOccupant')?.dirty ||
-                    reservation.get('childOccupant')?.touched) &&
-                  reservation.get('childOccupant')?.invalid
-              }"
-            />
-            <small
-              class="text-danger"
-              *ngIf="
-                (reservation.get('childOccupant')?.dirty ||
-                  reservation.get('childOccupant')?.touched) &&
-                reservation.get('childOccupant')?.invalid
-              "
-              >childOccupant is required</small
-            >
-          </div>
-          <div class="col mt-3">
-            <label class="form-label fw-semibold">
+              <option
+                *ngFor="
+                  let room of filterRooms(
+                    roomTypeRooms[reservation.get('roomTypeId')?.value],
+                    i
+                  )
+                "
+                [value]="room.id"
+              >
+                {{ room.roomName }}
+              </option>
+              <option value="assign">assign</option>
+            </select>
+
+            <label class="form-label">
               Room Price :
-              {{ reservation?.get("roomPrice")?.value }}</label
-            >
-          </div>
-          <div class="col mt-3">
-            <label class="form-label fw-semibold">
+              <span class="fw-semibold"
+                >{{ reservation?.get("roomPrice")?.value }}
+              </span>
+            </label>
+            <label class="form-label">
               Room Cost :
               <a
                 class="link"
-                (click)="
-                  openUpdateRate(RateUpdate, reservation.get('dateRate')?.value)
-                "
+                (click)="openUpdateRate(RateUpdate, reservation?.value, i)"
               >
                 {{ reservation?.get("roomCost")?.value }}
               </a></label
             >
           </div>
 
-          <!-- <div formArrayName="dateRate">
-            <div
-              *ngFor="
-                let dateRate of getDateRates(reservation).controls;
-                let j = index
-              "
-              [formGroupName]="j"
-            >
-              <h4>Date Rate {{ j + 1 }}</h4>
-              <div>
-                <label>Date:</label>
-                <input formControlName="date" />
-              </div>
-              <div>
-                <label>Base Rate:</label>
-                <input formControlName="baseRate" />
-              </div>
-              <div>
-                <label>Adult Rate:</label>
-                <input formControlName="adultRate" />
-              </div>
-              <div>
-                <label>Child Rate:</label>
-                <input formControlName="childRate" />
-              </div>
-            </div>
-          </div> -->
-        </div>
-      </div>
-      <div class="col-3" *ngIf="reservation.get('isDetailsVisiable')?.value">
-        <div class="card container_form p-3 m-2 rounded">
           <div class="card-body">
-            <h5 class="card-title">Card title</h5>
-            <p class="card-text">
-              Some quick example text to build on the card title and make up the
-              bulk of the card's content.
-            </p>
-          </div>
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item">An item</li>
-            <li class="list-group-item">A second item</li>
-            <li class="list-group-item">A third item</li>
-          </ul>
-          <div class="card-body">
-            <a href="#" class="card-link">Card link</a>
-            <a href="#" class="card-link">Another link</a>
+            <a href="#" class="card-link">Add Document</a>
           </div>
         </div>
       </div>
@@ -805,78 +704,97 @@
 </div>
 
 <ng-template #RateUpdate let-modal>
-  <div class="modal_title d-flex mx-2" style="margin-top: -1px">
-    <div class="pt-2" style="margin-left: 43%">RATE UPDATE</div>
-    <div class="mt-2 rate">
-      <i
-        class="material-symbols-rounded"
-        style="vertical-align: middle"
-        (click)="modal.close(false)"
-      >
-        remove
-      </i>
-    </div>
+  <div class="modal-header">
+    <h4 class="modal-title">Rate Update</h4>
+    <button
+      #closeButton
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.close(false)"
+    ></button>
   </div>
-  <div class="mx-2">
-    <table class="table table-borderless custom_table custom_table1">
+  <div class="modal-body">
+    <table class="table">
       <thead>
-        <th>DATE</th>
-
-        <th>Reason</th>
-        <th>ESTIMATED COST</th>
+        <tr>
+          <th scope="col">DATE</th>
+          <th scope="col">Reason</th>
+          <th>ESTIMATED COST</th>
+        </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let rate of updateDateRate; let i = index">
-          <td>
-            <div class="d-flex justify-content-center mt-1">
-              {{ rate.Date }}
-            </div>
-          </td>
-
-          <td>
-            <div class="select select_reason">
-              <select
-                class="form-control text_center select_reason"
-                style="text-align: center"
-                [(ngModel)]="rate.Reason"
-              >
-                <option value="" selected>Select One</option>
-                <option value="Complaint">Complaint</option>
-                <option value="Rate Resistance">Rate Resistance</option>
-                <option value="Rate Parity">Rate Parity</option>
-                <option value="Match rate">Match rate</option>
-              </select>
-            </div>
-          </td>
-
-          <td>
-            <div class="d-flex justify-content-center">
-              <input
-                type="number"
-                [(ngModel)]="rate.baserate"
-                class="form-control custom_input text_center rate_input"
-              />
-            </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td colspan="3">Tax Summary</td>
-          <td class="text-center"></td>
+        <tr *ngFor="let rate of updateDateRateObj.dateRate; let i = index">
+          <th scope="row">{{ rate.date | date }}</th>
+          <td></td>
 
           <td class="text-center">
-            {{ "0.00" }}
+            {{ rate.baseRate }}
           </td>
         </tr>
+        <tr *ngIf="updateDateRateObj.extraAdults > 0">
+          <td>Extra Adults</td>
 
+          <td class="text-center">
+            {{
+              updateDateRateObj.extraAdults +
+                "*" +
+                updateDateRateObj.dateRate[0].adultRate +
+                "*" +
+                updateDateRateObj.dateRate.length +
+                " Night"
+            }}
+          </td>
+          <td class="text-center">
+            {{
+              updateDateRateObj.extraAdults *
+                updateDateRateObj.dateRate[0].adultRate *
+                updateDateRateObj.dateRate.length
+            }}
+          </td>
+        </tr>
+        <tr *ngIf="updateDateRateObj.extraChilds">
+          <td>Extra Childs</td>
+          <td class="text-center">
+            {{
+              updateDateRateObj.extraChilds +
+                "*" +
+                updateDateRateObj.dateRate[0].childRate +
+                "*" +
+                updateDateRateObj.dateRate.length +
+                " Night"
+            }}
+          </td>
+          <td class="text-center">
+            {{
+              updateDateRateObj.extraChilds *
+                updateDateRateObj.dateRate[0].childRate *
+                updateDateRateObj.dateRate.length
+            }}
+          </td>
+        </tr>
         <tr>
-          <td colspan="3">Total Summary</td>
-          <td class="text-center">Cost- {{ "200" }}</td>
+          <td colspan="2">
+            Tax Summary({{ updateDateRateObj.taxPercentage + " %" }})
+          </td>
+
+          <td class="text-center">
+            {{
+              (updateDateRateObj.taxPercentage * updateDateRateObj.roomPrice) /
+                100
+            }}
+          </td>
+        </tr>
+        <tr>
+          <td>Total Summary</td>
+          <td class="text-center">Price {{ updateDateRateObj.roomPrice }}</td>
           <!-- <td class="text-center">{{ TotalCostRoomCharges }}</td> -->
           <td class="text-center">
             <div class="d-flex justify-content-center">
+              Cost
               <input
                 type="number"
+                [(ngModel)]="updateDateRateObj.roomCost"
                 class="form-control custom_input text_center rate_input"
               />
             </div>
@@ -884,9 +802,11 @@
         </tr>
       </tbody>
     </table>
-
     <div class="d-flex justify-content-end pb-3">
-      <button class="btn light_button button ml-2" (click)="modal.close(true)">
+      <button class="btn btn-primary me-2" (click)="calculateRate()">
+        Calculate
+      </button>
+      <button class="btn btn-primary" (click)="modal.close(true)">
         SAVE & CLOSE
       </button>
       <button class="btn light_button button ml-2" (click)="modal.close(false)">

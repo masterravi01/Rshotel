@@ -60,9 +60,9 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./pages/dashboard/client-dashboard/client-dashboard.component').then(
-            (m) => m.ClientDashboardComponent
-          ),
+          import(
+            './pages/dashboard/client-dashboard/client-dashboard.component'
+          ).then((m) => m.ClientDashboardComponent),
         title: 'Dashboard',
         canActivate: [authGuard],
       },
@@ -126,7 +126,7 @@ export const routes: Routes = [
       //reservation collection
 
       {
-        path: 'create-reservation',
+        path: 'create-reservation/:propertyUnitId',
         loadComponent: () =>
           import(
             './pages/reservation-collection/create-reservation/create-reservation.component'
@@ -135,7 +135,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'reservation-info',
+        path: 'reservation-info/:propertyUnitId',
         loadComponent: () =>
           import(
             './pages/reservation-collection/reservation-info/reservation-info.component'
