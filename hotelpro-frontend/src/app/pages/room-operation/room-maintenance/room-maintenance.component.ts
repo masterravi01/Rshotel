@@ -7,7 +7,7 @@ import {
   AbstractControl,
   ValidatorFn,
   FormsModule,
-  ReactiveFormsModule
+  ReactiveFormsModule,
 } from '@angular/forms';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
@@ -21,11 +21,17 @@ import { CommonModule, DatePipe } from '@angular/common';
 @Component({
   selector: 'app-room-maintenance',
   standalone: true,
-  imports: [FormsModule, NgMultiSelectDropDownModule, CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    FormsModule,
+    NgMultiSelectDropDownModule,
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+  ],
   templateUrl: './room-maintenance.component.html',
   styleUrl: './room-maintenance.component.css',
 })
-export class RoomMaintenanceComponent implements OnInit{
+export class RoomMaintenanceComponent implements OnInit {
   propertyUnitId: string | null = '';
   AddMaintenance!: FormGroup;
   RoomData: any;
@@ -37,7 +43,6 @@ export class RoomMaintenanceComponent implements OnInit{
   Week = 2;
 
   ShowMain = false;
-  CompletedBy = '';
   dropdownSettings!: {
     singleSelection: boolean;
     idField: string;
@@ -85,10 +90,10 @@ export class RoomMaintenanceComponent implements OnInit{
       this.activeRoute.snapshot.paramMap.get('propertyUnitId');
 
     this.AddMaintenance = this.fb.group({
-      PropertyUnitId: [this.propertyUnitId],
+      propertyUnitId: [this.propertyUnitId],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
-      RoomType: ['', Validators.required],
+      roomType: ['', Validators.required],
       Rooms: [[], Validators.required],
       OnlyMaintenance: [true],
       Reason: ['', Validators.required],
@@ -105,8 +110,7 @@ export class RoomMaintenanceComponent implements OnInit{
       startDate: [this.Today, Validators.required],
       endDate: [this.Today, Validators.required],
       Room: ['all', Validators.required],
-      RoomType: ['all', Validators.required],
-      CompletedBy: [''],
+      roomType: ['all', Validators.required],
     });
     this.dropdownSettings = {
       singleSelection: false,
@@ -126,14 +130,15 @@ export class RoomMaintenanceComponent implements OnInit{
       itemsShowLimit: 1,
       allowSearchFilter: true,
     };
-    
+
     this.fetchdata();
   }
 
   fetchdata() {
+    if (this.Week < 2) this.Week = 2;
     this.AddMaintenance.reset({
       OnlyMaintenance: true,
-      RoomType: '',
+      roomType: '',
       Reason: '',
       Rooms: [],
     });
@@ -155,7 +160,7 @@ export class RoomMaintenanceComponent implements OnInit{
       .post(APIConstant.READ_ROOM_MAINTENANCE, {
         startDate: this.startDate,
         endDate: this.endDate,
-        PropertyUnitId: this.propertyUnitId,
+        propertyUnitId: this.propertyUnitId,
       })
       .then((response: any) => {
         this.dropdownList = [];
@@ -178,8 +183,8 @@ export class RoomMaintenanceComponent implements OnInit{
               rm.endDate.split('T')[0].replace(/-/g, '/') + ' 00:00'
             );
           }
-          if (!this.dropdownList.includes(r.RoomType)) {
-            this.dropdownList.push(r.RoomType);
+          if (!this.dropdownList.includes(r.roomType)) {
+            this.dropdownList.push(r.roomType);
           }
           r.Show = true;
         }
@@ -213,7 +218,7 @@ export class RoomMaintenanceComponent implements OnInit{
         .post(APIConstant.READ_AVAILABLE_ROOM_FOR_DATERANGE, {
           startDate: this.AddMaintenance.controls.startDate.value,
           endDate: this.AddMaintenance.controls.endDate.value,
-          PropertyUnitId: this.propertyUnitId,
+          propertyUnitId: this.propertyUnitId,
         })
         .then((response: any) => {
           this.availableRoom = response.data.RoomTypes;
@@ -239,8 +244,6 @@ export class RoomMaintenanceComponent implements OnInit{
         break;
       }
     }
-    console.log(this.dropdownListRoom);
-    
   }
 
   add() {
@@ -329,12 +332,12 @@ export class RoomMaintenanceComponent implements OnInit{
 
     return diff - z >= 1 ? diff - z : 0.7;
   }
-  
+
   filterRoom() {
     let r = this.selectedItems.map((e: any) => e.item_id);
     if (r.length > 0) {
       for (let t of this.RoomData) {
-        if (r.includes(t.RoomType)) {
+        if (r.includes(t.roomType)) {
           t.Show = true;
         } else {
           t.Show = false;
@@ -396,74 +399,43 @@ export class RoomMaintenanceComponent implements OnInit{
 
   Cancelupdate() {
     this.ShowMain = false;
-    this.CompletedBy = '';
   }
-  
-  updateMaintenance() {
-    if (
-      new Date(this.Today) >=
-      new Date(this.CurrentMaintainance.startDate)
-    ) {
+
+  updateMaintenance(isCompleted: Boolean) {
+    if (isCompleted) {
       this.CurrentMaintainance.isCompleted = true;
-      this.CurrentMaintainance.CompletedBy = this.CompletedBy;
-      let x = new Date(this.Today);
-      x.setUTCHours(0, 0, 0, 0);
-      this.CurrentMaintainance.endDate = new Date(x);
-      this.CurrentMaintainance.RoomMaintainanceId =
-        this.CurrentMaintainance._id;
-      this.CurrentMaintainance.Today = this.Today;
-
-      this.crudService
-        .post(APIConstant.UPDATE_ROOM_MAINTENANCE, this.CurrentMaintainance)
-        .then((response: any) => {
-          this.alertService.errorAlert(
-            'Mark as Complete and Room Condition is ' +
-              this.RoomAfterMaintainance
-          );
-          this.CompletedBy = '';
-          this.fetchdata();
-        })
-        .catch((error) => {
-          this.alertService.errorAlert(error.message);
-        });
+      this.CurrentMaintainance.endDate = new Date(this.Today);
+      this.CurrentMaintainance.endDate.setUTCHours(0, 0, 0, 0);
     } else {
-      this.alertService.errorAlert(
-        'You can not complete maintainance becouse it is not started yet!'
-      );
+      let today = new Date();
+      today.setDate(today.getDate() + 1);
+      today.setHours(0, 0, 0, 0);
+      
+      let st = new Date(this.CurrentMaintainance.startDate);
+      st.setHours(0, 0, 0, 0);
+      let ed = new Date(this.CurrentMaintainance.endDate);
+      ed.setHours(0, 0, 0, 0);
+      if (st > ed) {
+        this.alertService.errorAlert('Enter Valid Start and End Date!');
+      } else if (st < today && ed < today) {
+        this.alertService.errorAlert('Enter Valid Start and End Date!');
+      }
     }
-  }
-
-  async updateMaintenance2() {
-    let date = new Date();
-    date.setDate(date.getDate() + 1);
 
     this.CurrentMaintainance.RoomMaintainanceId = this.CurrentMaintainance._id;
-    let today = new Date(date);
-    today.setHours(0, 0, 0, 0);
-    let st = new Date(this.CurrentMaintainance.startDate);
-    st.setHours(0, 0, 0, 0);
-    let ed = new Date(this.CurrentMaintainance.endDate);
-    ed.setHours(0, 0, 0, 0);
-    if (
-      new Date(this.CurrentMaintainance.startDate) >
-      new Date(this.CurrentMaintainance.endDate)
-    ) {
-      this.alertService.errorAlert('Enter Valid Start and End Date!');
-    } else if (st < today && ed < today) {
-      this.alertService.errorAlert('Enter Valid Start and End Date!');
-    } else {
-      this.CurrentMaintainance.Today = this.Today;
-      this.crudService
-        .post(APIConstant.UPDATE_ROOM_MAINTENANCE, this.CurrentMaintainance)
-        .then((response: any) => {
-          this.alertService.errorAlert('room Maintainance updated Successfully!');
-          this.CompletedBy = '';
-          this.fetchdata();
-        })
-        .catch((error) => {
-          this.alertService.errorAlert(error.message);
-        });
-    }
+    this.CurrentMaintainance.Today = this.Today;
+
+    this.crudService
+      .post(APIConstant.UPDATE_ROOM_MAINTENANCE, this.CurrentMaintainance)
+      .then((response: any) => {
+        this.alertService.errorAlert(
+          'Mark as Complete and Room Condition is ' + this.RoomAfterMaintainance
+        );
+        this.fetchdata();
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(error.message);
+      });
   }
 
   showEdit() {
@@ -493,20 +465,19 @@ export class RoomMaintenanceComponent implements OnInit{
   rangeUpdate() {
     let obj = this.RangeUpdate.value;
     obj.isCompleted = true;
-    // obj.CompletedBy = this.CompletedBy;
     let x = new Date(this.Today);
     x.setUTCHours(0, 0, 0, 0);
     obj.EndDateToUpdate = new Date(x);
-    obj.PropertyUnitId = this.userData.data.user.PropertyUnitId[0];
+    obj.propertyUnitId = this.propertyUnitId;
 
     this.crudService
-        .post(APIConstant.UPDATE_ROOM_MAINTENANCE_RANGE, obj)
-        .then((response: any) => {
-          this.alertService.errorAlert('Room maintainance updated Successfully!');
-          this.ngOnInit();
-        })
-        .catch((error) => {
-          this.alertService.errorAlert(error.message);
-        });
+      .post(APIConstant.UPDATE_ROOM_MAINTENANCE_RANGE, obj)
+      .then((response: any) => {
+        this.alertService.errorAlert('Room maintainance updated Successfully!');
+        this.ngOnInit();
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(error.message);
+      });
   }
 }
