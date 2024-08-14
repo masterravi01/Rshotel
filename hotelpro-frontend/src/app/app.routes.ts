@@ -143,6 +143,24 @@ export const routes: Routes = [
         title: 'Reservation Info',
         canActivate: [authGuard],
       },
+      {
+        path: 'reservation-payment/:propertyUnitId',
+        loadComponent: () =>
+          import(
+            './pages/reservation-collection/create-reservation-payment/create-reservation-payment.component'
+          ).then((m) => m.CreateReservationPaymentComponent),
+        title: 'Reservation Payment',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'guest-folio/:reservationId',
+        loadComponent: () =>
+          import(
+            './pages/reservation-collection/guest-folio/guest-folio.component'
+          ).then((m) => m.GuestFolioComponent),
+        title: 'Guest Folio',
+        canActivate: [authGuard],
+      },
 
       //room collection
 
