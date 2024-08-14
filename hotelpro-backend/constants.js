@@ -125,3 +125,6 @@ export const DB_NAME = "hotelpro";
 export const paypalBaseUrl = {
   sandbox: "https://api-m.sandbox.paypal.com",
 };
+
+export const CLOUD_AVATAR_FOLDER_NAME = "hotelproAvatar";
+export const CLOUD_COVERPIC_FOLDER_NAME = "hotelproImage";

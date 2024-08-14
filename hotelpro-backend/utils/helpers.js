@@ -147,3 +147,17 @@ export const getMongoosePaginationOptions = ({
 export const getRandomNumber = (max) => {
   return Math.floor(Math.random() * max);
 };
+
+export const deleteLocalImage = (...localPaths) => {
+  localPaths.forEach((localPath) => {
+    if (
+      !(
+        localPath?.trim() === "" ||
+        localPath === undefined ||
+        localPath === null
+      )
+    ) {
+      fs.unlinkSync(localPath);
+    }
+  });
+};

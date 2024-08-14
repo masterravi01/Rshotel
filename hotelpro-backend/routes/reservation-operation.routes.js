@@ -1,6 +1,6 @@
 import express from "express";
 import reservationOperationIndex from "../controllers/reservation-operation/reservation-operation.index.js";
-
+import { upload } from "../middleware/multer.middleware.js";
 const router = express.Router();
 
 router.post(
@@ -8,4 +8,9 @@ router.post(
   reservationOperationIndex.readReservationRate
 );
 router.post("/create-reservation", reservationOperationIndex.createReservation);
+router.post(
+  "/upload-reservation-images",
+  upload.array("uploadedImages", 10),
+  reservationOperationIndex.uploadReservationImages
+);
 export default router;

@@ -60,6 +60,7 @@ export const APIConstant = {
 
   READ_RESERVATION_RATE: 'reservation/read-reservation-rate/',
   CREATE_RESERVATION: 'reservation/create-reservation',
+  UPLOAD_RESERVATION_IMAGES: 'reservation/upload-reservation-images',
 
   CREATE_PAYMENT_ORDER: 'razor/create-payment-order',
   VALIDATE_PAYMENT: 'razor/validate-payment',

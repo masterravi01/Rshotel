@@ -815,3 +815,39 @@
     </div>
   </div>
 </ng-template>
+<div class="center">
+  <ngx-file-drop
+    dropZoneClassName="my-style"
+    contentClassName="my-style"
+    (onFileDrop)="dropped($event)"
+  >
+    <ng-template
+      ngx-file-drop-content-tmp
+      let-openFileSelector="openFileSelector"
+    >
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="openFileSelector()"
+      >
+        Choose Files
+      </button>
+    </ng-template>
+  </ngx-file-drop>
+  <div class="upload-table">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody class="upload-name-style">
+        <tr *ngFor="let item of files; let i = index">
+          <td>
+            <strong>{{ item.relativePath }}</strong>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

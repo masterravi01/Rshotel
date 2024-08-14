@@ -16,6 +16,15 @@ import {
 import mongoose from "mongoose";
 const ObjectId = mongoose.Types.ObjectId;
 import { UserTypesEnum } from "../../constants.js";
+import {
+  deleteFromCloudinary,
+  uploadOnCloudinary,
+} from "../../utils/cloudinary.js";
+import { deleteLocalImage } from "../../utils/helpers.js";
+import {
+  CLOUD_AVATAR_FOLDER_NAME,
+  CLOUD_COVERPIC_FOLDER_NAME,
+} from "../../constants.js";
 
 // GET all reservations
 const getAllReservations = asyncHandler(async (req, res) => {
@@ -359,6 +368,26 @@ const readReservationRate = asyncHandler(async (req, res) => {
     );
 });
 
+const uploadReservationImages = asyncHandler(async (req, res) => {
+  const { propertyUnitId } = req.params;
+  const avatarLocalPath = req.files[0]?.path;
+
+  // Check if avatar is provided
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar is required!");
+  }
+  const avatar = await uploadOnCloudinary(
+    avatarLocalPath,
+    CLOUD_AVATAR_FOLDER_NAME
+  );
+  if (!avatar) {
+    throw new ApiError(400, "Avatar upload failed!");
+  }
+  console.log(avatar.url);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Reservation Rate get successfully!"));
+});
 export default {
   getAllReservations,
   getReservationById,
@@ -366,4 +395,5 @@ export default {
   updateReservationById,
   deleteReservationById,
   readReservationRate,
+  uploadReservationImages,
 };

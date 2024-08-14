@@ -15,11 +15,23 @@ import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
 import { ActivatedRoute } from '@angular/router';
 import { ReservationSharedService } from '../../../core/services/reservation-shared.service';
+import { NgxFileDropModule } from 'ngx-file-drop';
+import {
+  NgxFileDropEntry,
+  FileSystemFileEntry,
+  FileSystemDirectoryEntry,
+} from 'ngx-file-drop';
 
 @Component({
   selector: 'app-reservation-info',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, CommonModule, DatePipe],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    CommonModule,
+    DatePipe,
+    NgxFileDropModule,
+  ],
   templateUrl: './reservation-info.component.html',
   styleUrls: ['./reservation-info.component.css'],
 })
@@ -247,5 +259,59 @@ export class ReservationInfoComponent implements OnInit {
         );
         console.error(error);
       });
+  }
+
+  public files: NgxFileDropEntry[] = [];
+
+  dropped(files: NgxFileDropEntry[]) {
+    this.files = files;
+    for (const droppedFile of files) {
+      // Is it a file?
+      if (droppedFile.fileEntry.isFile) {
+        const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
+        fileEntry.file((file: File) => {
+          // Here you can access the real file
+          console.log(droppedFile.relativePath, file);
+          const formData = new FormData();
+          formData.append('uploadedImages', file, droppedFile.relativePath);
+
+          this.crudService
+            .post(APIConstant.UPLOAD_RESERVATION_IMAGES, formData)
+            .then((response) => console.log(response))
+            .catch((error) => {
+              this.alertService.errorAlert(
+                error?.error?.message || 'An error occurred'
+              );
+              console.error(error);
+            });
+          /**
+          // You could upload it like this:
+          const formData = new FormData()
+          formData.append('logo', file, relativePath)
+
+          // Headers
+          const headers = new HttpHeaders({
+            'security-token': 'mytoken'
+          })
+
+          this.http.post('https://mybackend.com/api/upload/sanitize-and-save-logo', formData, { headers: headers, responseType: 'blob' })
+          .subscribe(data => {
+            // Sanitized logo returned from backend
+          })
+          **/
+        });
+      } else {
+        // It was a directory (empty directories are added, otherwise only files)
+        const fileEntry = droppedFile.fileEntry as FileSystemDirectoryEntry;
+        console.log(droppedFile.relativePath, fileEntry);
+      }
+    }
+  }
+  fileOver(event: any) {
+    console.log(event);
+  }
+
+  fileLeave(event: any) {
+    console.log(event);
   }
 }
