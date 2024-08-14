@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
-import { DB_NAME } from '../constants.js';
-import { logger } from '../logger/winston.logger.js';
+import mongoose from "mongoose";
+import { DB_NAME } from "../constants.js";
+import { logger } from "../logger/winston.logger.js";
 import { configDotenv } from "dotenv";
 configDotenv();
 
-mongoose.set('returnOriginal', false);
+mongoose.set("returnOriginal", false);
 
 class HotelProDatabase {
   constructor() {
@@ -76,53 +76,71 @@ class HotelProDatabase {
     });
   };
 
-  updateCollection = (model_name, update_condition_obj, new_values, session) => {
-    return new Promise((resolve, reject) => {
-      if (typeof update_condition_obj !== 'string' && typeof new_values !== 'string') {
+  updateCollection = async (
+    model_name,
+    update_condition_obj,
+    new_values,
+    session
+  ) => {
+    try {
+      if (
+        typeof update_condition_obj !== "string" &&
+        typeof new_values !== "string"
+      ) {
         const updateOptions = {
           runValidators: true,
           ...(session ? { session: session } : {}),
         };
 
-        model_name.findOneAndUpdate(update_condition_obj, new_values, updateOptions, (e, result) => {
-          if (!e) {
-            resolve(result);
-          } else {
-            reject(e);
-          }
-        });
+        const result = await model_name.findOneAndUpdate(
+          update_condition_obj,
+          new_values,
+          updateOptions
+        );
+        return result;
       } else {
-        reject({
+        throw {
           status: 104,
-          message: 'Invalid parameters for update',
-        });
+          message: "Invalid parameters for update",
+        };
       }
-    });
+    } catch (e) {
+      throw e;
+    }
   };
 
   updateMultiple = (model_name, update_condition_obj, new_values, session) => {
     return new Promise((resolve, reject) => {
-      if (typeof update_condition_obj !== 'string' && typeof new_values !== 'string') {
+      if (
+        typeof update_condition_obj !== "string" &&
+        typeof new_values !== "string"
+      ) {
         const updateOptions = {
           runValidators: true,
           ...(session ? { session: session } : {}),
         };
 
-        model_name.updateMany(update_condition_obj, new_values, updateOptions, (e, result) => {
-          if (!e) {
-            resolve(result);
-          } else {
-            const err_obj = {};
-            for (const i in e.errors) {
-              err_obj[i] = e.errors[i].properties?.message || e.errors[i].stringValue;
+        model_name.updateMany(
+          update_condition_obj,
+          new_values,
+          updateOptions,
+          (e, result) => {
+            if (!e) {
+              resolve(result);
+            } else {
+              const err_obj = {};
+              for (const i in e.errors) {
+                err_obj[i] =
+                  e.errors[i].properties?.message || e.errors[i].stringValue;
+              }
+              reject(err_obj);
             }
-            reject(err_obj);
           }
-        });
+        );
       } else {
         reject({
           status: 104,
-          message: 'Invalid parameters for update',
+          message: "Invalid parameters for update",
         });
       }
     });
@@ -130,7 +148,7 @@ class HotelProDatabase {
 
   findFromCollection = (model_name, query_obj = {}) => {
     return new Promise((resolve, reject) => {
-      if (model_name !== undefined && model_name !== '') {
+      if (model_name !== undefined && model_name !== "") {
         model_name.find(query_obj, (e, result) => {
           if (!e) {
             resolve(result);
@@ -141,7 +159,7 @@ class HotelProDatabase {
       } else {
         reject({
           status: 104,
-          message: 'Invalid search',
+          message: "Invalid search",
         });
       }
     });
@@ -149,7 +167,7 @@ class HotelProDatabase {
 
   deleteFromCollection = (model_name, query_obj, session) => {
     return new Promise((resolve, reject) => {
-      if (model_name !== undefined && model_name !== '') {
+      if (model_name !== undefined && model_name !== "") {
         const deleteOptions = session ? { session: session } : {};
 
         model_name.deleteOne(query_obj, deleteOptions, (e, result) => {
@@ -162,7 +180,7 @@ class HotelProDatabase {
       } else {
         reject({
           status: 104,
-          message: 'Invalid search',
+          message: "Invalid search",
         });
       }
     });
