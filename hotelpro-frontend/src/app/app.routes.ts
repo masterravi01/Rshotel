@@ -7,6 +7,7 @@ import { LoginComponent } from './pages/login-operation/login/login.component';
 import { LayoutComponent } from './pages/layout/layout.component';
 import { PageNotFoundComponent } from './pages/page-not-found/page-not-found.component';
 import { loginGuard } from './core/guards/login.guard';
+import { RazorpayFlowComponent } from './core/reused/razorpay-flow/razorpay-flow.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -49,6 +50,12 @@ export const routes: Routes = [
     path: 'signup',
     component: SignupComponent,
     title: 'Sign Up',
+  },
+
+  {
+    path: 'razorpay-demo',
+    component: RazorpayFlowComponent,
+    title: 'Razorpay Demo',
   },
 
   //main components
