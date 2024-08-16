@@ -170,6 +170,9 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
             {
               propertyUnitId: new ObjectId(propertyUnitId),
             },
+            {
+              isCompleted: false,
+            },
           ],
         },
       },
@@ -324,75 +327,30 @@ const deleteRoomMaintenance = asyncHandler(async (req, res) => {
 });
 
 const updateRoomMaintenanceRange = asyncHandler(async (req, res) => {
-  const {
-    roomTypeName,
-    active,
-    roomTypeCategory,
-    description,
-    adultOccupancy,
-    childOccupancy,
-    totalrooms,
-    rooms,
-  } = req.body;
-  const { propertyUnitId } = req.params;
+  const { RangeMaintenance } = req.body;
 
-  // Create the room type
-  const newRoomType = new RoomType({
-    roomTypeName,
-    active,
-    roomTypeCategory,
-    description,
-    adultOccupancy,
-    childOccupancy,
-    totalrooms,
-    propertyUnitId,
-  });
+  let MaintenanceIds = RangeMaintenance.map((m) => m._id);
+  let RoomIds = RangeMaintenance.map((m) => m.roomId);
 
-  await newRoomType.save();
-
-  // Create the rooms
-  const roomDocuments = [];
-  let totalCount = 0;
-
-  rooms.forEach((room) => {
-    const { prefix, start, end } = room;
-    for (let i = start; i <= end; i++) {
-      roomDocuments.push({
-        roomName: `${prefix}${i}`,
-        roomNumber: i.toString(),
-        roomTypeId: newRoomType._id,
-        roomStatus: "vacant",
-        roomCondition: "clean",
-        dnd: false,
-      });
-      totalCount++;
-    }
-  });
-
-  // Validate room count
-  if (totalCount !== totalrooms) {
-    return res
-      .status(400)
-      .json(
-        new ApiResponse(
-          400,
-          null,
-          "Total rooms do not match the sum of the ranges"
-        )
-      );
-  }
-
-  await Room.insertMany(roomDocuments);
+  await Promise.all([
+    RoomMaintenance.updateMany(
+      { _id: { $in: MaintenanceIds } },
+      { $set: { isCompleted: true } }
+    ),
+    Room.updateMany(
+      { _id: { $in: RoomIds } },
+      {
+        $set: {
+          roomStatus: RoomStatusEnum.VACANT,
+          roomCondition: RoomConditionEnum.CLEAN,
+        },
+      }
+    ),
+  ]);
 
   return res
     .status(201)
-    .json(
-      new ApiResponse(
-        201,
-        { newRoomType, roomDocuments },
-        "Room type and rooms created successfully"
-      )
-    );
+    .json(new ApiResponse(201, {}, "Room maintenance completed successfully"));
 });
 
 // GET all room maintenance

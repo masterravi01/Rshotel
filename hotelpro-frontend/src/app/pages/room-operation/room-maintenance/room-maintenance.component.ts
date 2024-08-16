@@ -3,9 +3,6 @@ import {
   FormGroup,
   FormBuilder,
   Validators,
-  FormArray,
-  AbstractControl,
-  ValidatorFn,
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
@@ -13,7 +10,6 @@ import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { GeneralModalService } from '../../../core/services/general-modal.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -42,8 +38,8 @@ export class RoomMaintenanceComponent implements OnInit {
   DateArr: any;
   Date: any;
   Week = 2;
-
   ShowMain = false;
+
   dropdownSettings!: {
     singleSelection: boolean;
     idField: string;
@@ -69,35 +65,34 @@ export class RoomMaintenanceComponent implements OnInit {
   RoomTypes!: any[];
   ShowEdit = false;
   Max!: any;
-  Handicapped = false;
-  Smoking = false;
   availableRoom: any;
   Today!: any;
-  userData: any;
-  RangeUpdate!: FormGroup;
-  AccesstoBlockroom = false;
+  RangeMaintenance: any[] = [];
+
   constructor(
     private crudService: CrudService,
     private fb: FormBuilder,
     private alertService: AlertService,
     private router: Router,
-    private activeRoute: ActivatedRoute
+    private activeRoute: ActivatedRoute,
+    private modalService: NgbModal,
   ) {}
 
   ngOnInit() {
-    this.dropdownListRoom = [];
     this.propertyUnitId =
-      this.activeRoute.snapshot.paramMap.get('propertyUnitId');
-
+    this.activeRoute.snapshot.paramMap.get('propertyUnitId');
+    
     this.ShowAdd = false;
     
     this.Max = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
     this.Date = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
     this.Today = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
-
+    
     this.Tomorrow = new Date(this.Today);
     this.Tomorrow.setDate(this.Tomorrow.getDate() + 1);
     this.Tomorrow = new DatePipe('en-US').transform(this.Tomorrow, 'yyyy-MM-dd');
+    
+    this.dropdownListRoom = [];
 
     this.AddMaintenance = this.fb.group({
       propertyUnitId: [this.propertyUnitId],
@@ -108,13 +103,6 @@ export class RoomMaintenanceComponent implements OnInit {
       onlyMaintenance: [true],
       Reason: ['', Validators.required],
       Notes: [''],
-    });
-    
-    this.RangeUpdate = this.fb.group({
-      startDate: [this.Today, Validators.required],
-      endDate: [this.Today, Validators.required],
-      Room: ['all', Validators.required],
-      roomType: ['all', Validators.required],
     });
     this.dropdownSettings = {
       singleSelection: false,
@@ -168,7 +156,7 @@ export class RoomMaintenanceComponent implements OnInit {
       })
       .then((response: any) => {
         this.dropdownList = [];
-        this.RoomData = response.data.Rooms;
+        this.RoomData = this.roomSort(response.data.Rooms);
 
         for (let r of this.RoomData) {
           for (let rr of r.Reservation) {
@@ -202,6 +190,26 @@ export class RoomMaintenanceComponent implements OnInit {
       });
   }
 
+  roomSort(data: any) {
+    data.sort((a: any, b: any) => {
+      if (a.roomType < b.roomType) {
+        return -1;
+      }
+      if (a.roomType > b.roomType) {
+        return 1;
+      }
+      if (a.roomName < b.roomName) {
+        return -1;
+      }
+      if (a.roomName > b.roomName) {
+        return 1;
+      }
+      return 0;
+    });
+    
+    return data;
+  }
+
   setBackground(r: any) {
     if (r.ReservationStatus == 'Reserved') {
       return 'reservation';
@@ -214,6 +222,14 @@ export class RoomMaintenanceComponent implements OnInit {
   }
 
   getAvailRoomdata() {
+
+    this.AddMaintenance.patchValue({
+      onlyMaintenance: true,
+      roomType: '',
+      Reason: '',
+      Rooms: [],
+    });
+
     if (
       this.AddMaintenance.controls.startDate.value?.toString() >=
       this.AddMaintenance.controls.endDate.value?.toString()
@@ -463,26 +479,59 @@ export class RoomMaintenanceComponent implements OnInit {
     this.ShowEdit = true;
   }
 
-  openModal_sm(content: any) {
-    // this._ModalService.open(content, { centered: true });
+  openRangeUpdateModal(content: any) {
+    this.modalService.open(content).result.then((result) => {
+      if (result) {
+      }
+    });
   }
 
   rangeUpdate() {
-    let obj = this.RangeUpdate.value;
-    obj.isCompleted = true;
-    let x = new Date(this.Today);
-    x.setUTCHours(0, 0, 0, 0);
-    obj.EndDateToUpdate = new Date(x);
-    obj.propertyUnitId = this.propertyUnitId;
+    let obj = {
+      RangeMaintenance: this.RangeMaintenance
+    };
 
     this.crudService
       .post(APIConstant.UPDATE_ROOM_MAINTENANCE_RANGE, obj)
       .then((response: any) => {
-        this.alertService.errorAlert('Room maintainance updated Successfully!');
+        this.alertService.successAlert('Room maintainance completed Successfully!');
+        this.modalService.dismissAll();
         this.ngOnInit();
       })
       .catch((error) => {
         this.alertService.errorAlert(error.message);
       });
   }
+
+  onSelectChange(m: any, event: any) {
+    if (event.target.checked) {
+      this.RangeMaintenance.push(m);
+    } else {
+      const index = this.RangeMaintenance.indexOf(m);
+      if (index !== -1) {
+        this.RangeMaintenance.splice(index, 1);
+      }
+    }
+  }
+
+  isSelected(m: any): boolean {
+    return this.RangeMaintenance.includes(m);
+  }
+
+  toggleSelectAll(event: any) {
+    let allSelected = event.target.checked;
+    this.RangeMaintenance = [];
+
+    if (allSelected) {
+      for (const item of this.RoomData) {
+        for (const m of item.RoomMaintainance) {
+            this.RangeMaintenance.push(m);
+        }
+      }
+    } else {
+      this.RangeMaintenance = [];
+    }
+  }
+
+
 }
