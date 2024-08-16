@@ -9,7 +9,11 @@ import {
   RoomMaintenance,
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
-import { RoomConditionEnum, RoomStatusEnum } from "../../constants.js";
+import {
+  ReservationStatusEnum,
+  RoomConditionEnum,
+  RoomStatusEnum,
+} from "../../constants.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 // GET all room maintenance
@@ -62,12 +66,12 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
         $match: {
           $and: [
             {
-              Departure: {
+              departure: {
                 $gt: startDate,
               },
             },
             {
-              Arrival: {
+              arrival: {
                 $lt: endDate,
               },
             },
@@ -76,9 +80,9 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
             },
             {
               $or: [
-                { ReservationStatus: "In house" },
-                { ReservationStatus: "Reserved" },
-                { ReservationStatus: "Checked out" },
+                { reservationStatus: ReservationStatusEnum.INHOUSE },
+                { reservationStatus: ReservationStatusEnum.RESERVED },
+                { reservationStatus: ReservationStatusEnum.CHECKEDOUT },
               ],
             },
           ],
@@ -86,70 +90,27 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
       },
       {
         $lookup: {
-          from: "guest_room_details",
-          localField: "_id",
-          foreignField: "ReservationId",
-          as: "guest_room_details",
-        },
-      },
-      {
-        $unwind: "$guest_room_details",
-      },
-      {
-        $lookup: {
           from: "users",
-          localField: "guest_room_details.UserId",
+          localField: "userId",
           foreignField: "_id",
-          as: "users",
+          as: "user",
         },
       },
       {
-        $unwind: "$users",
-      },
-      {
-        $lookup: {
-          from: "room_balances",
-          localField: "guest_room_details.roomId",
-          foreignField: "roomId",
-          as: "RoomBalanceDetails",
+        $unwind: {
+          path: "$user",
         },
       },
       {
-        $unwind: "$RoomBalanceDetails",
-      },
-      {
-        $match: {
-          $expr: {
-            $eq: [
-              "$guest_room_details.ReservationId",
-              "$RoomBalanceDetails.ReservationId",
-            ],
+        $project: {
+          arrival: 1,
+          departure: 1,
+          roomId: 1,
+          tantative: 1,
+          reservationStatus: 1,
+          guestName: {
+            $concat: ["$user.firstName", " ", "$user.lastName"],
           },
-        },
-      },
-      {
-        $group: {
-          _id: "$_id",
-          Arrival: {
-            $first: "$Arrival",
-          },
-          Departure: {
-            $first: "$Departure",
-          },
-          Nights: { $first: "$Nights" },
-          roomId: { $first: "$guest_room_details.roomId" },
-          Tantative: { $first: "$Tantative" },
-          Tantative: { $first: "$Tantative" },
-          LockRoom: { $first: "$LockRoom" },
-          ReservationStatus: { $first: "$ReservationStatus" },
-          GuestName: {
-            $first: {
-              $concat: ["$users.Name.First", " ", "$users.Name.Last"],
-            },
-          },
-          Balance: { $sum: "$RoomBalanceDetails.Balance" },
-          EstimatedCost: { $first: "$guest_room_details.SharedRoomCharges" },
-          Version: { $first: "$Version" },
         },
       },
     ]),
@@ -182,29 +143,28 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
   data.Rooms = Rooms;
   for (var i = 0; i < data.Rooms.length; i++) {
     reservation.forEach((s) => {
-      if (s.Version.length > 1 && s.ReservationStatus != "Reserved") {
-        s.Version.forEach((v) => {
-          if (v.RoomChanged == true && v.Checked != true) {
-            let obj = { ...s };
-            obj.Departure = new Date(v.Date);
-            s.Arrival = new Date(v.Date);
-            v.Checked = true;
-            for (var k = 0; k < data.Rooms.length; k++) {
-              if (v.OldRoomId == data.Rooms[k].roomId.toString()) {
-                delete obj.Version;
-                obj.GuestName += " →";
-                data.Rooms[k].Reservation.push(obj);
-              }
-            }
-          }
-        });
-      }
+      // if (s.Version.length > 1 && s.ReservationStatus != "Reserved") {
+      //   s.Version.forEach((v) => {
+      //     if (v.RoomChanged == true && v.Checked != true) {
+      //       let obj = { ...s };
+      //       obj.Departure = new Date(v.Date);
+      //       s.Arrival = new Date(v.Date);
+      //       v.Checked = true;
+      //       for (var k = 0; k < data.Rooms.length; k++) {
+      //         if (v.OldRoomId == data.Rooms[k].roomId.toString()) {
+      //           delete obj.Version;
+      //           obj.GuestName += " →";
+      //           data.Rooms[k].Reservation.push(obj);
+      //         }
+      //       }
+      //     }
+      //   });
+      // }
 
       if (s.roomId.toString() == data.Rooms[i].roomId.toString()) {
         s.roomNumber = data.Rooms[i].roomNumber;
         s.roomName = data.Rooms[i].roomName;
         s.roomType = data.Rooms[i].roomType;
-        s.Version = [];
         data.Rooms[i].Reservation.push(s);
       }
     });
@@ -219,7 +179,7 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
   }
   return res
     .status(200)
-    .json(new ApiResponse(200, data, "All room types retrieved successfully"));
+    .json(new ApiResponse(200, data, "Room maintenance fetch successfully"));
 });
 
 // POST create a new room maintenance
@@ -368,12 +328,12 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
           $match: {
             $and: [
               {
-                Departure: {
+                departure: {
                   $gt: startDate,
                 },
               },
               {
-                Arrival: {
+                arrival: {
                   $lte: endDate,
                 },
               },
@@ -383,10 +343,10 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
               {
                 $or: [
                   {
-                    ReservationStatus: "In house",
+                    reservationStatus: ReservationStatusEnum.INHOUSE,
                   },
                   {
-                    ReservationStatus: "Reserved",
+                    reservationStatus: ReservationStatusEnum.RESERVED,
                   },
                 ],
               },
@@ -406,8 +366,8 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
         },
         {
           $lookup: {
-            from: "room_types",
-            localField: "Rooms.RoomTypeId",
+            from: "roomtypes",
+            localField: "Rooms.roomTypeId",
             foreignField: "_id",
             as: "roomType",
           },
@@ -418,7 +378,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
         {
           $project: {
             roomId: 1,
-            Tantative: 1,
+            tantative: 1,
             roomType: 1,
             Arrival: 1,
             Departure: 1,
@@ -532,18 +492,18 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
   for (var i = 0; i < TotalRooms.length; i++) {
     if (ReservationDetails != null && ReservationDetails.length > 0) {
       ReservationDetails.forEach((r) => {
-        index = TotalRooms[i].roomId.indexOf(String(r.roomId[0]));
+        let index = TotalRooms[i].roomId.indexOf(r.roomId.toString());
         if (
           index > -1 &&
-          (r.Tantative == false ||
-            r.Tantative == undefined ||
-            r.Tantative == null)
+          (r.tantative == false ||
+            r.tantative == undefined ||
+            r.tantative == null)
         ) {
           TotalRooms[i].rooms.splice(index, 1);
           TotalRooms[i].roomId.splice(index, 1);
         }
-        if (index > -1 && r.Tantative == true) {
-          TotalRooms[i].rooms[index].Tantative = r.Tantative;
+        if (index > -1 && r.tantative == true) {
+          TotalRooms[i].rooms[index].tantative = r.tantative;
         }
       });
     }

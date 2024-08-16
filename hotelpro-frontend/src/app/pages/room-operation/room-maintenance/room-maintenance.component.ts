@@ -160,11 +160,11 @@ export class RoomMaintenanceComponent implements OnInit {
 
         for (let r of this.RoomData) {
           for (let rr of r.Reservation) {
-            rr.Arrival = new Date(
-              rr.Arrival.split('T')[0].replace(/-/g, '/') + ' 00:00'
+            rr.arrival = new Date(
+              rr.arrival.split('T')[0].replace(/-/g, '/') + ' 00:00'
             );
-            rr.Departure = new Date(
-              rr.Departure.split('T')[0].replace(/-/g, '/') + ' 00:00'
+            rr.departure = new Date(
+              rr.departure.split('T')[0].replace(/-/g, '/') + ' 00:00'
             );
           }
           for (let rm of r.RoomMaintainance) {
@@ -211,11 +211,11 @@ export class RoomMaintenanceComponent implements OnInit {
   }
 
   setBackground(r: any) {
-    if (r.ReservationStatus == 'Reserved') {
+    if (r.reservationStatus == 'reserved') {
       return 'reservation';
-    } else if (r.ReservationStatus == 'In house') {
+    } else if (r.ReservationStatus == 'inhouse') {
       return 'inhouse';
-    } else if (r.ReservationStatus == 'Checked out') {
+    } else if (r.ReservationStatus == 'checkedout') {
       return 'checkedout';
     }
     return '';
@@ -287,8 +287,8 @@ export class RoomMaintenanceComponent implements OnInit {
 
   test(d: any, r: any) {
     if (
-      d.toString() == r.Arrival.toString() ||
-      (r.Arrival <= this.startDate && d.toString() == this.startDate.toString())
+      d.toString() == r.arrival.toString() ||
+      (r.arrival <= this.startDate && d.toString() == this.startDate.toString())
     ) {
       return true;
     } else {
