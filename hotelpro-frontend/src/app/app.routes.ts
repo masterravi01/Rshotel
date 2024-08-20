@@ -180,6 +180,15 @@ export const routes: Routes = [
         title: 'Room Maintenance',
         canActivate: [authGuard],
       },
+      {
+        path: 'house-keeping/:propertyUnitId',
+        loadComponent: () =>
+          import(
+            './pages/room-operation/house-keeping/house-keeping.component'
+          ).then((m) => m.HouseKeepingComponent),
+        title: 'House Keeping',
+        canActivate: [authGuard],
+      },
     ],
   },
 

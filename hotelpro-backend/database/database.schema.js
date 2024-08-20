@@ -517,6 +517,14 @@ const housekeepingTaskSchema = new Schema(
     },
     taskName: String,
     taskDescription: String,
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    HousekeeperId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   { timestamps: true }
 );

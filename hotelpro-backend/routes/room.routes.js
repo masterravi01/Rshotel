@@ -35,4 +35,14 @@ router.post(
   roomIndex.getAvailableRoomForDateRange
 );
 
+router.post("/create-house-keeper", roomIndex.createHouseKeeper);
+router.post(
+  "/read-rooms-with-house-keeping",
+  roomIndex.getRoomsWithHouseKeeping
+);
+router.post(
+  "/update-rooms-with-house-keeping",
+  roomIndex.updateRoomsWithHouseKeeping
+);
+
 export default router;
