@@ -29,7 +29,7 @@ export class AlertService {
     this.autoClearAlert();
   }
 
-  errorAlert(message: string = 'Something went wrong"'): void {
+  errorAlert(message: string = 'Something went wrong'): void {
     this.alertSubject.next({ type: 'danger', message });
     this.alertVisible = true;
     this.autoClearAlert();
