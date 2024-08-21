@@ -13,7 +13,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ReservationSharedService } from '../../../core/services/reservation-shared.service';
 import { NgxFileDropModule } from 'ngx-file-drop';
 import {
@@ -49,10 +49,13 @@ export class ReservationInfoComponent implements OnInit {
     private crudService: CrudService,
     private alertService: AlertService,
     private activeRoute: ActivatedRoute,
-    private reservationSharedService: ReservationSharedService
+    private reservationSharedService: ReservationSharedService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    this.propertyUnitId = this.route.snapshot.paramMap.get('propertyUnitId');
     this.initializeForms();
     this.loadData();
   }
@@ -67,6 +70,8 @@ export class ReservationInfoComponent implements OnInit {
       departure: [this.formatDate(new Date()), Validators.required],
       adults: [2, [Validators.min(1), Validators.required]],
       childs: [0, Validators.required],
+      totalCost: [0],
+      totalPrice: [0],
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
@@ -222,7 +227,19 @@ export class ReservationInfoComponent implements OnInit {
     this.updateDateRateObj = { ...reservation };
     this.modalService.open(content).result.then((result) => {
       if (result) {
+        const oldObj = this.reservations.at(index).value;
+
         this.reservations.at(index).patchValue(this.updateDateRateObj);
+        this.groupForm.controls.totalCost.patchValue(
+          this.groupForm.controls.totalCost.value -
+            oldObj.roomCost +
+            this.updateDateRateObj.roomCost
+        );
+        this.groupForm.controls.totalPrice.patchValue(
+          this.groupForm.controls.totalPrice.value -
+            oldObj.roomPrice +
+            this.updateDateRateObj.roomPrice
+        );
       }
     });
   }
@@ -240,14 +257,22 @@ export class ReservationInfoComponent implements OnInit {
       r.baseRate = onlyRoomCharges;
     });
   }
-
+  goToPayment() {
+    sessionStorage.setItem(
+      'reservationsArray',
+      JSON.stringify(this.reservationForm.get('reservations')?.value)
+    );
+    sessionStorage.setItem(
+      'groupDetails',
+      JSON.stringify(this.groupForm.value)
+    );
+    this.router.navigate([`/reservation-payment/${this.propertyUnitId}`]);
+  }
   onSubmit(): void {
     const sendObj = {
+      propertyUnitId: this.propertyUnitId,
       reservationsArray: this.reservationForm.get('reservations')?.value,
-      groupDetails: {
-        propertyUnitId: this.propertyUnitId,
-        ...this.groupForm.value,
-      },
+      groupDetails: this.groupForm.value,
     };
 
     this.crudService

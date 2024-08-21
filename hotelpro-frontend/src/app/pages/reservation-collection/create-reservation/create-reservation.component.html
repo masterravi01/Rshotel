@@ -129,7 +129,7 @@
       <tr *ngFor="let room of roomsData; let i = index; trackBy: trackByFn">
         <td>{{ room.roomtype }} {{ room.rateName }}</td>
         <td>
-          {{ room.adultOccupant }} Adults {{ room.childOccupant }} Children
+          {{ room.adultOccupant }} Adults {{ room.childOccupant }} Childs
           <span
             class="link text-primary"
             (click)="openExtraModal(extraGuests, room)"
@@ -197,7 +197,7 @@
         groupForm.get('adults')?.value + groupForm.get('childs')?.value
       "
     >
-      (Total Cost {{ totalGuests?.totalCost }})
+      (Total Cost {{ groupForm.get("totalCost")?.value }})
     </ng-container>
   </button>
   <div>{{ totalGuests | json }}</div>

@@ -604,6 +604,12 @@ const groupReservationSchema = new Schema(
     adults: Number,
     childs: Number,
     notes: String,
+    totalCost: Number,
+    totalPrice: Number,
+    totalTax: Number,
+    totalPayment: Number,
+    totalDeposit: Number,
+    totalBalance: Number,
   },
   { timestamps: true }
 );
@@ -839,6 +845,10 @@ const billingAccountSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    groupId: {
+      type: Schema.Types.ObjectId,
+      ref: "GroupReservation",
+    },
   },
   { timestamps: true }
 );
@@ -852,19 +862,17 @@ const transactionCodeSchema = new Schema(
   {
     transactionCode: String,
     transactionRate: Number,
-    transactionName: String,
     transactionDetail: String,
     receipt: Number,
     date: Date,
-    paymentTypeId: {
-      type: Schema.Types.ObjectId,
-      ref: "PaymentTypes",
-    },
     transactionType: {
       type: String,
       enum: ["Amenity", "Card", "Tax", "Reservation", "Other"],
     },
-    refundFlag: Boolean,
+    isRefund: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
@@ -882,17 +890,13 @@ const guestTransactionSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "TransactionCode",
     },
-    reservationId: {
+    groupId: {
       type: Schema.Types.ObjectId,
-      ref: "Reservation",
+      ref: "GroupReservation",
     },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
-    },
-    roomId: {
-      type: Schema.Types.ObjectId,
-      ref: "Room",
     },
     billingAccountId: {
       type: Schema.Types.ObjectId,
@@ -902,7 +906,14 @@ const guestTransactionSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "BillingCard",
     },
-    deposit: Boolean,
+    isDeposit: {
+      type: Boolean,
+      default: false,
+    },
+    isAuthorize: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
@@ -933,10 +944,7 @@ const roomBalanceSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Reservation",
     },
-    transactionId: {
-      type: Schema.Types.ObjectId,
-      ref: "GuestTransaction",
-    },
+
     balance: Number,
     roomId: {
       type: Schema.Types.ObjectId,

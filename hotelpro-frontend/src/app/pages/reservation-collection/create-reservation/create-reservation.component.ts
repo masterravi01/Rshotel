@@ -33,7 +33,7 @@ export class CreateReservationComponent implements OnInit {
   groupForm!: FormGroup;
   roomsData: any[] = [];
   selectedItems: any[] = [];
-  totalGuests: any = { adults: 0, childs: 0, totalCost: 0 };
+  totalGuests: any = { adults: 0, childs: 0 };
   propertyUnitId: string | null = '';
   roomTypeRooms: Record<string, any[]> = {};
   extraGuestsData: any = {
@@ -70,6 +70,8 @@ export class CreateReservationComponent implements OnInit {
       departure: [departureDate, Validators.required],
       adults: [2, [Validators.min(1), Validators.required]],
       childs: [0, Validators.required],
+      totalCost: [0],
+      totalPrice: [0],
     });
   }
 
@@ -93,7 +95,11 @@ export class CreateReservationComponent implements OnInit {
   }
 
   private resetGuestTotals(): void {
-    this.totalGuests = { adults: 0, childs: 0, totalCost: 0 };
+    this.totalGuests = { adults: 0, childs: 0 };
+    this.groupForm.patchValue({
+      totalCost: 0,
+      totalPrice: 0,
+    });
   }
 
   private processRoomsData(data: any[]): void {
@@ -153,8 +159,13 @@ export class CreateReservationComponent implements OnInit {
 
     this.totalGuests.adults += increment * room.adultOccupant;
     this.totalGuests.childs += increment * room.childOccupant;
-    this.totalGuests.totalCost += increment * room.roomCost;
 
+    this.groupForm.controls.totalCost.patchValue(
+      this.groupForm.get('totalCost')?.value + increment * room.roomCost
+    );
+    this.groupForm.controls.totalPrice.patchValue(
+      this.groupForm.get('totalPrice')?.value + increment * room.roomPrice
+    );
     if (
       increment < 0 &&
       this.selectedItems[index].length > room.dropdownSettings.limitSelection
@@ -249,11 +260,21 @@ export class CreateReservationComponent implements OnInit {
         room.extraAdults = Number(this.extraGuestsData.extraAdults);
         room.extraChilds = Number(this.extraGuestsData.extraChilds);
 
-        this.totalGuests.totalCost -= room.roomCost;
+        this.groupForm.controls.totalCost.patchValue(
+          this.groupForm.get('totalCost')?.value - room.roomCost
+        );
+        this.groupForm.controls.totalPrice.patchValue(
+          this.groupForm.get('totalPrice')?.value - room.roomPrice
+        );
         [room.roomPrice, room.roomCost] = this.calculateRoomCost(room);
         this.totalGuests.adults += room.adultOccupant + room.extraAdults;
         this.totalGuests.childs += room.childOccupant + room.extraChilds;
-        this.totalGuests.totalCost += room.roomCost;
+        this.groupForm.controls.totalCost.patchValue(
+          this.groupForm.get('totalCost')?.value + room.roomCost
+        );
+        this.groupForm.controls.totalPrice.patchValue(
+          this.groupForm.get('totalPrice')?.value + room.roomPrice
+        );
       }
     });
   }

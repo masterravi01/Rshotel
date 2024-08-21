@@ -12,6 +12,9 @@ import {
   GroupReservation,
   User,
   Address,
+  BillingAccount,
+  TransactionCode,
+  GuestTransaction,
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
 const ObjectId = mongoose.Types.ObjectId;
@@ -55,6 +58,7 @@ const getReservationById = asyncHandler(async (req, res) => {
 });
 
 // POST create a new reservation
+
 const createReservation = asyncHandler(async (req, res) => {
   let session = null;
   try {
@@ -63,13 +67,18 @@ const createReservation = asyncHandler(async (req, res) => {
 
     await session.withTransaction(async () => {
       console.log("Transaction started");
-      const { groupDetails, reservationsArray } = req.body;
+      let { groupDetails, reservationsArray, paymentEntries, propertyUnitId } =
+        req.body;
+      propertyUnitId = new ObjectId(propertyUnitId);
       let ReservationEntries = [];
       let ReservationDetailEntries = [];
       let UserEntries = [];
       let AddressEntries = [];
       let RoomBalanceEntries = [];
+      let TransactionCodeEntries = [];
+      let GuestTransactionEntries = [];
 
+      // Group reservation data
       const groupData = new GroupReservation(groupDetails);
       let customerDetails = new User(groupDetails);
       customerDetails.userType = UserTypesEnum.GUEST;
@@ -79,9 +88,10 @@ const createReservation = asyncHandler(async (req, res) => {
       UserEntries.push(customerDetails);
       AddressEntries.push(customerAddress);
 
+      // Handling reservations array
       for (let reservation of reservationsArray) {
         let reservationObj = new Reservation(reservation);
-        reservationObj.propertyUnitId = groupData.propertyUnitId;
+        reservationObj.propertyUnitId = propertyUnitId;
         reservationObj.arrival = groupData.arrival;
         reservationObj.departure = groupData.departure;
         reservationObj.groupId = groupData._id;
@@ -94,6 +104,7 @@ const createReservation = asyncHandler(async (req, res) => {
           reservation.childOccupant + reservation.extraChilds;
         ReservationDetailEntries.push(reservationDetailObj);
 
+        // Handling guests
         reservation.guests.forEach((guest, index) => {
           let guestObj;
           let guestAddress;
@@ -125,6 +136,7 @@ const createReservation = asyncHandler(async (req, res) => {
           }
         });
 
+        // Handling date rates
         reservation.dateRate.forEach((rate) => {
           let rb = new RoomBalance(rate);
           rb.balanceDate = rate.date;
@@ -155,13 +167,61 @@ const createReservation = asyncHandler(async (req, res) => {
         ReservationEntries.push(reservationObj);
       }
 
+      // Create Billing Account
+      let billing_account = new BillingAccount();
+      billing_account.billingAccountName =
+        groupDetails.firstName + " " + groupDetails.lastName;
+      billing_account.billingAccountDescription = "";
+      billing_account.propertyUnitId = propertyUnitId;
+      billing_account.userId = customerDetails._id;
+
+      // Handling payments
+      if (paymentEntries && paymentEntries.length > 0) {
+        for (let i = 0; i < paymentEntries.length; i++) {
+          if (paymentEntries[i].paymentType === "cash") {
+            let transaction_code = {};
+            transaction_code.transactionCode = String(new ObjectId());
+            transaction_code.transactionRate = paymentEntries[i].amount;
+            transaction_code.transactionDetail = paymentEntries[i].remark;
+            transaction_code.receipt = Math.floor(
+              100000 + Math.random() * 900000
+            );
+            transaction_code.transactionType = "Reservation";
+            transaction_code.date = Date.now();
+            transaction_code = new TransactionCode(transaction_code);
+            TransactionCodeEntries.push(transaction_code);
+
+            let guest_transaction = {};
+            guest_transaction.transactionCodeId = transaction_code._id;
+            guest_transaction.groupId = groupData._id;
+            guest_transaction.userId = customerDetails._id;
+            guest_transaction.isDeposit = paymentEntries[i].deposit;
+            guest_transaction.transactionDate = Date.now();
+            guest_transaction.billingAccountId = billing_account._id;
+            guest_transaction = new GuestTransaction(guest_transaction);
+            GuestTransactionEntries.push(guest_transaction);
+
+            if (paymentEntries[i].deposit) {
+              groupData.totalDeposit += paymentEntries[i].amount;
+            } else {
+              groupData.totalBalance += paymentEntries[i].amount;
+              groupData.totalPayment += paymentEntries[i].amount;
+            }
+          }
+        }
+      }
+
+      // Saving all entries to the database
       await Promise.all([
         groupData.save({ session }),
+        billing_account.save({ session }),
         User.insertMany(UserEntries, { session }),
         Address.insertMany(AddressEntries, { session }),
         Reservation.insertMany(ReservationEntries, { session }),
         RoomBalance.insertMany(RoomBalanceEntries, { session }),
         ReservationDetail.insertMany(ReservationDetailEntries, { session }),
+        TransactionCode.insertMany(TransactionCodeEntries, { session }),
+        GuestTransaction.insertMany(GuestTransactionEntries, { session }),
       ]);
 
       console.log("Transaction committed successfully");
@@ -388,6 +448,7 @@ const uploadReservationImages = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, {}, "Reservation Rate get successfully!"));
 });
+
 export default {
   getAllReservations,
   getReservationById,

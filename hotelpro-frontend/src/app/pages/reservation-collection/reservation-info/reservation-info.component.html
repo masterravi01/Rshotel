@@ -286,6 +286,27 @@
           </li>
         </ul>
       </form>
+      <div class="card-body">
+        <label class="form-label w-100">
+          Total Price :
+          <span class="fw-semibold">{{
+            groupForm.get("totalPrice")?.value
+          }}</span></label
+        >
+        <label class="form-label w-100">
+          Total Tax :
+          <span class="fw-semibold">{{
+            groupForm.get("totalCost")?.value -
+              groupForm.get("totalPrice")?.value
+          }}</span></label
+        >
+        <label class="form-label">
+          Total Cost :
+          <span class="fw-semibold">{{
+            groupForm.get("totalCost")?.value
+          }}</span></label
+        >
+      </div>
 
       <div class="card-body">
         <a href="#" class="card-link">Card link</a>
@@ -700,7 +721,10 @@
 </form>
 
 <div class="d-flex justify-content-center">
-  <button class="btn btn-primary mt-2" (click)="onSubmit()">submit</button>
+  <button class="btn btn-primary mt-2 me-2" (click)="onSubmit()">submit</button>
+  <button class="btn btn-primary mt-2 ms-2" (click)="goToPayment()">
+    Payment
+  </button>
 </div>
 
 <ng-template #RateUpdate let-modal>
