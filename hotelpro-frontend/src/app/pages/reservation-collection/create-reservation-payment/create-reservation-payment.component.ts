@@ -1,15 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
-  FormsModule,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ReservationSharedService } from '../../../core/services/reservation-shared.service';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
@@ -33,7 +31,6 @@ export class CreateReservationPaymentComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private modalService: NgbModal,
     private alertService: AlertService,
     private crudService: CrudService
   ) {}
@@ -76,30 +73,7 @@ export class CreateReservationPaymentComponent implements OnInit {
       }); // Optionally reset the form after adding payment
     }
   }
-  onReserve(content: TemplateRef<any>): void {
-    this.modalService.open(content).result.then((result) => {
-      if (result) {
-        const sendObj = {
-          reservationsArray: this.reservationsArray,
-          groupDetails: this.groupDetails,
-          propertyUnitId: this.propertyUnitId,
-        };
-        this.crudService
-          .post(APIConstant.CREATE_RESERVATION, sendObj)
-          .then((response) => {
-            console.log(response);
-            this.alertService.successAlert('Reservation created successfully');
-            this.router.navigate(['/success-page']);
-          })
-          .catch((error) => {
-            this.alertService.errorAlert(
-              error?.error?.message || 'An error occurred'
-            );
-            console.error(error);
-          });
-      }
-    });
-  }
+
   onPayment() {
     const sendObj = {
       propertyUnitId: this.propertyUnitId,

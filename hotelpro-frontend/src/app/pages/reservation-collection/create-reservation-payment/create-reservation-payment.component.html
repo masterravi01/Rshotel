@@ -121,29 +121,4 @@
   <button class="btn btn-primary mt-2 me-2" (click)="onPayment()">
     Payment
   </button>
-  <button
-    class="btn btn-primary mt-2 ms-2"
-    (click)="onReserve(confirmReservation)"
-  >
-    Reserve
-  </button>
 </div>
-<ng-template #confirmReservation let-modal>
-  <div class="modal-body">
-    <h6 class="modal-title">
-      Are you sure want to countinue without payment ?
-    </h6>
-  </div>
-  <div class="modal-footer">
-    <button
-      type="button"
-      class="btn btn-secondary"
-      (click)="modal.close(false)"
-    >
-      No
-    </button>
-    <button type="button" class="btn btn-primary" (click)="modal.close(true)">
-      Yes
-    </button>
-  </div>
-</ng-template>

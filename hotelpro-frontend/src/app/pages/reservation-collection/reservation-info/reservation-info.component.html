@@ -721,8 +721,18 @@
 </form>
 
 <div class="d-flex justify-content-center">
-  <button class="btn btn-primary mt-2 me-2" (click)="onSubmit()">submit</button>
-  <button class="btn btn-primary mt-2 ms-2" (click)="goToPayment()">
+  <button
+    class="btn btn-primary mt-2 me-2"
+    [disabled]="groupForm.invalid || reservationForm.invalid"
+    (click)="onReserve(confirmReservation)"
+  >
+    Reserve
+  </button>
+  <button
+    class="btn btn-primary mt-2 ms-2"
+    [disabled]="groupForm.invalid || reservationForm.invalid"
+    (click)="goToPayment()"
+  >
     Payment
   </button>
 </div>
@@ -875,3 +885,25 @@
     </table>
   </div>
 </div>
+<ng-template #confirmReservation let-modal>
+  <div class="modal-body">
+    <h6 class="modal-title">
+      Are you sure want to countinue without payment ?
+    </h6>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="goToPayment()">
+      Go to Payment
+    </button>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="modal.close(false)"
+    >
+      No
+    </button>
+    <button type="button" class="btn btn-primary" (click)="modal.close(true)">
+      Yes
+    </button>
+  </div>
+</ng-template>

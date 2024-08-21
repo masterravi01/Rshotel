@@ -14,7 +14,6 @@ import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ReservationSharedService } from '../../../core/services/reservation-shared.service';
 import { NgxFileDropModule } from 'ngx-file-drop';
 import {
   NgxFileDropEntry,
@@ -49,7 +48,6 @@ export class ReservationInfoComponent implements OnInit {
     private crudService: CrudService,
     private alertService: AlertService,
     private activeRoute: ActivatedRoute,
-    private reservationSharedService: ReservationSharedService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -86,11 +84,6 @@ export class ReservationInfoComponent implements OnInit {
   }
 
   private loadData(): void {
-    // this.reservationSharedService.currentFormData.subscribe((data) => {
-    //   this.groupForm.patchValue(data.groupDetails);
-    //   this.populateReservations(data.reservationDetails);
-    //   this.roomTypeRooms = data.roomTypeRooms;
-    // });
     let d = sessionStorage.getItem('resdata');
     if (d) {
       let data = JSON.parse(d);
@@ -120,7 +113,7 @@ export class ReservationInfoComponent implements OnInit {
       taxPercentage: [room?.taxPercentage || 0],
       roomPrice: [room?.roomPrice || 0, Validators.required],
       roomCost: [room?.roomCost || 0, Validators.required],
-      images: [room?.images || [], Validators.required],
+      images: [room?.images || []],
       dateRate: this.fb.array(
         room ? this.createDateRates(room.dateRate) : [this.createDateRate()]
       ),
@@ -268,22 +261,30 @@ export class ReservationInfoComponent implements OnInit {
     );
     this.router.navigate([`/reservation-payment/${this.propertyUnitId}`]);
   }
-  onSubmit(): void {
-    const sendObj = {
-      propertyUnitId: this.propertyUnitId,
-      reservationsArray: this.reservationForm.get('reservations')?.value,
-      groupDetails: this.groupForm.value,
-    };
+  onReserve(content: TemplateRef<any>): void {
+    this.modalService.open(content).result.then((result) => {
+      if (result) {
+        const sendObj = {
+          propertyUnitId: this.propertyUnitId,
+          reservationsArray: this.reservationForm.get('reservations')?.value,
+          groupDetails: this.groupForm.value,
+        };
 
-    this.crudService
-      .post(APIConstant.CREATE_RESERVATION, sendObj)
-      .then((response) => console.log(response))
-      .catch((error) => {
-        this.alertService.errorAlert(
-          error?.error?.message || 'An error occurred'
-        );
-        console.error(error);
-      });
+        this.crudService
+          .post(APIConstant.CREATE_RESERVATION, sendObj)
+          .then((response) => {
+            console.log(response);
+            this.alertService.successAlert('Reservation created successfully');
+            this.router.navigate(['/success-page']);
+          })
+          .catch((error) => {
+            this.alertService.errorAlert(
+              error?.error?.message || 'An error occurred'
+            );
+            console.error(error);
+          });
+      }
+    });
   }
 
   public files: NgxFileDropEntry[] = [];

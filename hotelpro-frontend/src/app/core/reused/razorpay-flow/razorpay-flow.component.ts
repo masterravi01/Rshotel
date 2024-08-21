@@ -59,7 +59,7 @@ export class RazorpayFlowComponent implements OnInit {
       key: this.razorPayKey,
       amount: this.product?.price * 100, // amount should be in paise format to display Rs 1255 without decimal point
       currency: 'INR',
-      name: 'Ravi Limited', // company name or product name
+      name: 'Fun World', // company name or product name
       description: '', // product description
       image:
         'https://i.pinimg.com/originals/51/f6/fb/51f6fb256629fc755b8870c801092942.png', // company logo or product image
@@ -74,6 +74,18 @@ export class RazorpayFlowComponent implements OnInit {
       theme: {
         color: '#ddcbff',
       },
+      // config: {
+      //   display: {
+      //     hide: [
+      //       {
+      //         method: 'paylater',
+      //       },
+      //       {
+      //         method: 'netbanking',
+      //       },
+      //     ],
+      //   },
+      // },
     };
 
     options.handler = (response: any, error: any) => {

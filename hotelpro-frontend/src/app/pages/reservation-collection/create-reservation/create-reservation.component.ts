@@ -13,7 +13,6 @@ import { CommonModule, DatePipe, JsonPipe } from '@angular/common';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ReservationSharedService } from '../../../core/services/reservation-shared.service';
 
 @Component({
   selector: 'app-create-reservation',
@@ -49,8 +48,7 @@ export class CreateReservationComponent implements OnInit {
     private alertService: AlertService,
     private route: ActivatedRoute,
     private router: Router,
-    private modalService: NgbModal,
-    private reservationSharedService: ReservationSharedService
+    private modalService: NgbModal
   ) {}
 
   ngOnInit(): void {
@@ -193,11 +191,6 @@ export class CreateReservationComponent implements OnInit {
   onSubmit(): void {
     const reservationDetails = this.prepareReservationDetails();
 
-    this.reservationSharedService.setFormData({
-      reservationDetails,
-      groupDetails: this.groupForm.value,
-      roomTypeRooms: this.roomTypeRooms,
-    });
     sessionStorage.setItem(
       'resdata',
       JSON.stringify({
