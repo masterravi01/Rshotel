@@ -2,7 +2,7 @@ import fs from "fs";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-import { UserTypesEnum } from "../../constants.js";
+import { UserTypesEnum, SALT_WORK_FACTOR } from "../../constants.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
@@ -55,7 +55,7 @@ const createProperty = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User with email id is already exists", []);
   }
-  const EncryptedPassword = await bcrypt.hash(password, 10);
+  const EncryptedPassword = await bcrypt.hash(password, SALT_WORK_FACTOR);
 
   const address = new Address(propertyAddress);
   const user = new User({

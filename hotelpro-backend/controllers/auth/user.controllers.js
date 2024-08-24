@@ -1,7 +1,11 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { UserLoginType, UserTypesEnum } from "../../constants.js";
+import {
+  UserLoginType,
+  UserTypesEnum,
+  SALT_WORK_FACTOR,
+} from "../../constants.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
@@ -60,7 +64,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User with email is already exists", []);
   }
-  password = await bcrypt.hash(password, 10);
+  password = await bcrypt.hash(password, SALT_WORK_FACTOR);
 
   const user = await User.create({
     email,
@@ -447,7 +451,7 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
   user.forgotPasswordExpiry = undefined;
 
   // Set the provided password as the new password
-  user.password = await bcrypt.hash(newPassword, 10);
+  user.password = await bcrypt.hash(newPassword, SALT_WORK_FACTOR);
   await user.save();
   return res
     .status(200)
@@ -466,7 +470,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   }
 
   // assign new password in hash formate
-  user.password = await bcrypt.hash(newPassword, 10);
+  user.password = await bcrypt.hash(newPassword, SALT_WORK_FACTOR);
   await user.save();
 
   return res
