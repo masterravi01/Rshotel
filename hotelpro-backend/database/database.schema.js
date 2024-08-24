@@ -521,7 +521,7 @@ const housekeepingTaskSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    HousekeeperId: {
+    housekeeperId: {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
@@ -552,6 +552,25 @@ const housekeepingAssignSchema = new Schema(
 export const HousekeepingAssign = mongoose.model(
   "HousekeepingAssign",
   housekeepingAssignSchema
+);
+
+const housekeeperWorkerShiftSchema = new Schema(
+  {
+    housekeeperId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    day: String,
+    shiftStartTime: String,
+    shiftEndTime: String,
+    working: Boolean,
+  },
+  { timestamps: true }
+);
+
+export const housekeeperWorkerShift = mongoose.model(
+  "housekeeperWorkerShift",
+  housekeeperWorkerShiftSchema
 );
 
 const bookingControlSchema = new Schema(

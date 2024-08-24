@@ -1,48 +1,60 @@
 import mongoose from "mongoose";
 import mongo from "../../database/database.service.js";
+import bcrypt from "bcrypt";
+
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
+import { UserTypesEnum, SALT_WORK_FACTOR } from "../../constants.js";
+
 import {
   HousekeepingTask,
   HousekeepingAssign,
   RoomType,
   Room,
   User,
+  housekeeperWorkerShift,
 } from "../../database/database.schema.js";
-import { UserTypesEnum } from "../../constants.js";
 
 const ObjectId = mongoose.Types.ObjectId;
 
 const createHouseKeeper = asyncHandler(async (req, res) => {
-  let { propertyUnitId, firstName, lastName, email, phone, Schedule } =
+  let { propertyUnitId, firstName, lastName, email, phone, schedule } =
     req.body;
   let data = {};
+
+  const existedUser = await User.findOne({
+    email,
+  });
+
+  if (existedUser) {
+    throw new ApiError(409, "User with email is already exists", []);
+  }
+
   let password = Math.random().toString(36).slice(-6);
   password = bcrypt.hashSync(password, SALT_WORK_FACTOR);
-  let user = {
+  let housekeeper = {
     propertyUnitId,
     firstName,
     lastName,
     password,
     email,
     phone,
-    IsLoginAble: true,
+    isLoginable: true,
     userType: UserTypesEnum.HOUSEKEEPER,
   };
 
-  let user_details = new User(user);
-
-  // housekeeper_details.Active = true;
-  Schedule = Schedule.map((s) => {
-    s.HouseKeeperId = user_details._id;
+  let user_details = new User(housekeeper);
+  schedule = schedule.map((s) => {
+    s.housekeeperId = user_details._id;
     return s;
   });
+
   await Promise.all([
-    WorkerShift.insertMany(Schedule),
+    housekeeperWorkerShift.insertMany(schedule),
     mongo.insertIntoCollection(user_details),
   ]);
-  data.HouseKeeper = housekeeper_details;
+  data.HouseKeeper = housekeeper;
 
   return res
     .status(200)
@@ -111,7 +123,7 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
             "",
           ],
         },
-        HouseKeeperId: {
+        housekeeperId: {
           $cond: [
             {
               $and: [
@@ -123,7 +135,7 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
                 },
               ],
             },
-            "$HouseKeepingRoomDetails.HousekeeperId",
+            "$HouseKeepingRoomDetails.housekeeperId",
             "",
           ],
         },
@@ -159,7 +171,7 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
         isCompleted: {
           $last: "$HouseKeepingRoomDetails.isCompleted",
         },
-        HouseKeeperId: {
+        housekeeperId: {
           $last: "$HouseKeeperDetails._id",
         },
         HouseKeeperRoomDetailsId: {
@@ -214,9 +226,9 @@ const updateRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
       )
     );
 
-    if (RoomDetails[j].HouseKeeperId) {
+    if (RoomDetails[j].housekeeperId) {
       let housekeeping_detail = {};
-      housekeeping_detail.HousekeeperId = RoomDetails[j].HouseKeeperId;
+      housekeeping_detail.housekeeperId = RoomDetails[j].housekeeperId;
       housekeeping_detail.roomId = RoomDetails[j]._id;
       housekeeping_detail.taskDescription = RoomDetails[j].Remarks;
       housekeeping_detail.taskName = RoomDetails[j].taskName;
