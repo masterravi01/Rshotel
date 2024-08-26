@@ -1,5 +1,148 @@
 <div class="mt-4" style="flex-direction: column;">
-    <div class="mx-4 p-2 d-flex justify-content-between" style="background-color: #fff;border-radius: 10px;">
+    <hr>
+    <div class="mx-4 mt-4 inline2">
+        <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12 pl-0">
+            <div class="d-flex justify-content-end">
+                <div class="btn btn-primary button" (click)="openModalAddHouseKeeper(AddHouseKeeper)">Add Housekeeper
+                </div>
+            </div>
+            <div class="mt-2">
+                <table class="table table-sm table-borderless global_table mb-0">
+                    <thead>
+                        <th>
+                            House Keeper
+                        </th>
+                        <th>
+                            Assigned Room
+                        </th>
+                        <th>Profile</th>
+                        <th>
+                            Active
+                        </th>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let d of HouseKeeperData; let i = index">
+                            <td>
+                                <div>{{ d.housekeeperName }}</div>
+                            </td>
+
+                            <td>
+                                <div>{{ d.assignedRoom }}</div>
+                            </td>
+                            <td>
+                                <a class="link" [routerLink]="
+                    '/frontdesk/housekeepingoperation/viewhousekeeper/' + d._id
+                  ">
+                                    View
+                                </a>
+                            </td>
+                            <td>
+                                <label class="switch" style="margin-bottom: -10px !important">
+                                    <input type="checkbox" (click)="changeAction(i)" [checked]="d.active == true" />
+                                    <span class="slider round"></span>
+                                </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mt-md-3 mt-sm-2 mt-lg-0 col-lg-3 col-md-12 col-sm-12 col-xs-12 pr-0">
+            <div class="ms-4">
+                <div class="blue_container1 d-flex justify-content-center" style="cursor: pointer"
+                    (click)="showAddpop()">
+                    <div class="d-flex">
+                        <div class="my-2">+ Assign task</div>
+                    </div>
+                </div>
+                <ng-container *ngIf="ShowAdd">
+                    <form [formGroup]="AssignHousekeepingForm" class="custom_container my-3 pt-2 pb-1 px-2">
+                        <table class="table table-sm table-borderless add_table">
+                            <tr>
+                                <td>
+                                    <div class="mt-1">House Keeper*:</div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <select id="options" formControlName="housekeeper" class="form-control"
+                                            style="appearance: auto">
+                                            <option value="">Select One</option>
+                                            <option *ngFor="let item of HouseKeeperData" [value]="item._id">
+                                                {{ item.housekeeperName }}
+                                            </option>
+                                        </select>
+                                        <!-- <p class="text-danger"
+                                            *ngIf="AssignHousekeepingForm.controls['roomType'].touched && AssignHousekeepingForm.controls['roomType'].invalid">
+                                            Enter valid RoomType!</p> -->
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="mt-1">Room Type*:</div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <select id="options" formControlName="roomType" class="form-control"
+                                            style="appearance: auto" (change)="showRooms($event)">
+                                            <option value="">Select Type</option>
+                                            <option *ngFor="let item of RoomTypes" [value]="item">
+                                                {{ item }}
+                                            </option>
+                                        </select>
+                                        <!-- <p class="text-danger"
+                                            *ngIf="AssignHousekeepingForm.controls['roomType'].touched && AssignHousekeepingForm.controls['roomType'].invalid">
+                                            Enter valid RoomType!</p> -->
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div>Room*:</div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <ng-multiselect-dropdown name="rooms" [placeholder]="'Select Room'"
+                                            formControlName="rooms" [settings]="dropdownSettingsRooms"
+                                            [data]="dropdownListRoom" style="background: white !important">
+                                        </ng-multiselect-dropdown>
+                                        <!-- <p class="text-danger" *ngIf="
+                      AssignHousekeepingForm.controls['rooms'].touched &&
+                      AssignHousekeepingForm.controls['rooms'].invalid
+                    ">
+                                            Enter valid RoomType!
+                                        </p> -->
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="mt-1">Notes:</div>
+                                </td>
+                                <td>
+                                    <textarea type="text" class="form-control field" rows="2"
+                                        formControlName="notes"></textarea>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="d-flex justify-content-center mt-2 pb-2">
+                            <button class="btn light_button button" (click)="cancelpop()">
+                                Cancel
+                            </button>
+                            <button class="btn btn-primary button ms-2" (click)="assignHousekeepingTask()"
+                                [disabled]="AssignHousekeepingForm.invalid">
+                                Add
+                            </button>
+                        </div>
+                    </form>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+<hr>
+<div class="mt-4" style="flex-direction: column;">
+    <div class="mx-4 d-flex justify-content-between" style="background-color: #fff;border-radius: 10px;">
         <div class="d-flex">
             <div class="input_container ms-2">
                 <input type="text" class="form-control field search" [(ngModel)]="SearchText" (input)="search($event)"
@@ -21,12 +164,11 @@
             <div class="btn btn-primary button ms-2" (click)="updateRooms()">Save</div>
         </div>
         <div *ngIf="!isEditable">
-            <div class="btn btn-primary button" (click)="openModalAddHouseKeeper(AddHouseKeeper)">Add Housekeeper</div>
             <div class="btn btn-primary button ms-3" (click)="editbtn()">Edit</div>
         </div>
     </div>
 
-    <div class="mx-4 mt-3 pb-3 x_scroll">
+    <div class="mx-4 mt-2 pb-3 x_scroll">
         <div class="table-box mb-2" style="border-radius: 10px;">
             <table class="table table-sm table-borderless global_table">
                 <thead>
@@ -91,7 +233,7 @@
                                 <div>{{ item.Service }}</div>
                             </td>
                             <td>
-                                <div>{{ item.HouseKeeperName }}</div>
+                                <div>{{ item.housekeeperName }}</div>
                             </td>
                             <td>
                                 <div>{{ item.Status }}</div>

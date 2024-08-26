@@ -61,6 +61,54 @@ const createHouseKeeper = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, data, "House Keeper Added Successfully"));
 });
 
+const getHouseKeeper = asyncHandler(async (req, res) => {
+  let { propertyUnitId } = req.body;
+  let data = {};
+
+  data.housekeeper_details = await User.aggregate([
+    {
+      $match: {
+        propertyUnitId: new ObjectId(propertyUnitId),
+        userType: "housekeeper",
+      },
+    },
+    {
+      $project: {
+        housekeeperName: {
+          $concat: ["$firstName", " ", "$lastName"],
+        },
+        active: "$isLoginable",
+      },
+    },
+    {
+      $addFields: {
+        assignedRoom: 0,
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, data, "House Keeper Added Successfully"));
+});
+
+const deleteHouseKeeper = asyncHandler(async (req, res) => {
+  let { housekeeperId, active } = req.body;
+
+  await User.updateOne(
+    {
+      _id: housekeeperId,
+    },
+    {
+      isLoginable: active,
+    }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "House Keeper Updated Successfully"));
+});
+
 const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
   let { propertyUnitId } = req.body;
   let data = {};
@@ -94,12 +142,12 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
         from: "housekeepingtasks",
         localField: "RoomDetails._id",
         foreignField: "roomId",
-        as: "HouseKeepingRoomDetails",
+        as: "houseKeepingTaskDetails",
       },
     },
     {
       $unwind: {
-        path: "$HouseKeepingRoomDetails",
+        path: "$houseKeepingTaskDetails",
         preserveNullAndEmptyArrays: true,
       },
     },
@@ -107,19 +155,19 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
       $project: {
         RoomDetails: 1,
         roomTypeName: 1,
-        HouseKeepingRoomDetails: {
+        houseKeepingTaskDetails: {
           $cond: [
             {
               $and: [
                 {
-                  $lte: ["$HouseKeepingRoomDetails.CreatedAt", d],
+                  $lte: ["$houseKeepingTaskDetails.CreatedAt", d],
                 },
                 {
-                  $eq: ["$HouseKeepingRoomDetails.isCompleted", false],
+                  $eq: ["$houseKeepingTaskDetails.isCompleted", false],
                 },
               ],
             },
-            "$HouseKeepingRoomDetails",
+            "$houseKeepingTaskDetails",
             "",
           ],
         },
@@ -128,14 +176,14 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
             {
               $and: [
                 {
-                  $lte: ["$HouseKeepingRoomDetails.CreatedAt", d],
+                  $lte: ["$houseKeepingTaskDetails.CreatedAt", d],
                 },
                 {
-                  $eq: ["$HouseKeepingRoomDetails.isCompleted", false],
+                  $eq: ["$houseKeepingTaskDetails.isCompleted", false],
                 },
               ],
             },
-            "$HouseKeepingRoomDetails.housekeeperId",
+            "$houseKeepingTaskDetails.housekeeperId",
             "",
           ],
         },
@@ -166,25 +214,25 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
           $first: "$RoomDetails.roomStatus",
         },
         Service: {
-          $last: "$HouseKeepingRoomDetails.ServiceType",
+          $last: "$houseKeepingTaskDetails.ServiceType",
         },
         isCompleted: {
-          $last: "$HouseKeepingRoomDetails.isCompleted",
+          $last: "$houseKeepingTaskDetails.isCompleted",
         },
         housekeeperId: {
           $last: "$HouseKeeperDetails._id",
         },
         HouseKeeperRoomDetailsId: {
-          $last: "$HouseKeepingRoomDetails._id",
+          $last: "$houseKeepingTaskDetails._id",
         },
         houseKeeperName: {
           $last: "$HouseKeeperDetails.HousekeeperName",
         },
         DND: {
-          $last: "$HouseKeepingRoomDetails.DND",
+          $last: "$houseKeepingTaskDetails.DND",
         },
         Remarks: {
-          $last: "$HouseKeepingRoomDetails.Remarks",
+          $last: "$houseKeepingTaskDetails.Remarks",
         },
       },
     },
@@ -236,9 +284,7 @@ const updateRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
         await mongo.updateCollection(
           HousekeepingTask,
           {
-            _id: mongoose.Types.ObjectId(
-              RoomDetails[j].HouseKeeperRoomDetailsId
-            ),
+            _id: new ObjectId(RoomDetails[j].HouseKeeperRoomDetailsId),
           },
           housekeeping_detail
         );
@@ -257,179 +303,38 @@ const updateRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
 });
 
 // POST create a new housekeeping task
-const createHousekeepingTask = asyncHandler(async (req, res) => {
-  const { roomId, propertyUnitId, taskName, taskDescription } = req.body;
-  const task = new HousekeepingTask({
-    roomId,
+const createHouseKeepingTask = asyncHandler(async (req, res) => {
+  const {
+    housekeeper: housekeeperId,
     propertyUnitId,
+    rooms: roomIds,
     taskName,
-    taskDescription,
-  });
-  await task.save();
-  return res
-    .status(201)
-    .json(new ApiResponse(201, task, "Housekeeping task created successfully"));
-});
+    notes: taskDescription,
+  } = req.body;
 
-// PUT update a housekeeping task by ID
-const updateHousekeepingTaskById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { roomId, propertyUnitId, taskName, taskDescription } = req.body;
-  const task = await HousekeepingTask.findByIdAndUpdate(
-    id,
-    {
-      roomId,
+  let taskAssignEntries = [];
+  for (let a of roomIds) {
+    taskAssignEntries.push({
+      roomId: a.item_id,
       propertyUnitId,
+      housekeeperId,
       taskName,
       taskDescription,
-    },
-    { new: true }
-  );
-  if (!task) {
-    throw new ApiError(404, "Housekeeping task not found");
+    });
   }
-  return res
-    .status(200)
-    .json(new ApiResponse(200, task, "Housekeeping task updated successfully"));
-});
 
-// DELETE a housekeeping task by ID
-const deleteHousekeepingTaskById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const task = await HousekeepingTask.findByIdAndDelete(id);
-  if (!task) {
-    throw new ApiError(404, "Housekeeping task not found");
-  }
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, { id }, "Housekeeping task deleted successfully")
-    );
-});
+  await HousekeepingTask.insertMany(taskAssignEntries);
 
-// GET all housekeeping assignments
-const getAllHousekeepingAssignments = asyncHandler(async (req, res) => {
-  const assignments = await HousekeepingAssign.find();
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        assignments,
-        "All housekeeping assignments retrieved successfully"
-      )
-    );
-});
-
-// GET a single housekeeping assignment by ID
-const getHousekeepingAssignmentById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const assignment = await HousekeepingAssign.findById(id);
-  if (!assignment) {
-    throw new ApiError(404, "Housekeeping assignment not found");
-  }
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        assignment,
-        "Housekeeping assignment retrieved successfully"
-      )
-    );
-});
-
-// POST create a new housekeeping assignment
-const createHousekeepingAssignment = asyncHandler(async (req, res) => {
-  const {
-    housekeepingTaskId,
-    propertyUnitId,
-    scheduleDate,
-    scheduleTime,
-    status,
-  } = req.body;
-  const assignment = new HousekeepingAssign({
-    housekeepingTaskId,
-    propertyUnitId,
-    scheduleDate,
-    scheduleTime,
-    status,
-  });
-  await assignment.save();
   return res
     .status(201)
-    .json(
-      new ApiResponse(
-        201,
-        assignment,
-        "Housekeeping assignment created successfully"
-      )
-    );
-});
-
-// PUT update a housekeeping assignment by ID
-const updateHousekeepingAssignmentById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const {
-    housekeepingTaskId,
-    propertyUnitId,
-    scheduleDate,
-    scheduleTime,
-    status,
-  } = req.body;
-  const assignment = await HousekeepingAssign.findByIdAndUpdate(
-    id,
-    {
-      housekeepingTaskId,
-      propertyUnitId,
-      scheduleDate,
-      scheduleTime,
-      status,
-    },
-    { new: true }
-  );
-  if (!assignment) {
-    throw new ApiError(404, "Housekeeping assignment not found");
-  }
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        assignment,
-        "Housekeeping assignment updated successfully"
-      )
-    );
-});
-
-// DELETE a housekeeping assignment by ID
-const deleteHousekeepingAssignmentById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const assignment = await HousekeepingAssign.findByIdAndDelete(id);
-  if (!assignment) {
-    throw new ApiError(404, "Housekeeping assignment not found");
-  }
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { id },
-        "Housekeeping assignment deleted successfully"
-      )
-    );
+    .json(new ApiResponse(201, {}, "Housekeeping task assigned successfully"));
 });
 
 export default {
   createHouseKeeper,
+  getHouseKeeper,
+  deleteHouseKeeper,
   getRoomsWithHouseKeeping,
   updateRoomsWithHouseKeeping,
-  createHousekeepingTask,
-  updateHousekeepingTaskById,
-  deleteHousekeepingTaskById,
-  getAllHousekeepingAssignments,
-  getHousekeepingAssignmentById,
-  createHousekeepingAssignment,
-  updateHousekeepingAssignmentById,
-  deleteHousekeepingAssignmentById,
+  createHouseKeepingTask,
 };
