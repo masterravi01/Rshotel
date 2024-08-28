@@ -99,6 +99,15 @@ export class CreateReservationPaymentComponent implements OnInit {
     return index;
   }
   removePaymnetObj(index: number) {
+    if (!this.paymentEntries[index].deposit) {
+      this.currentBalance += this.paymentEntries[index].amount;
+      this.paymentForm.patchValue({
+        paymentType: 'cash',
+        amount: this.currentBalance,
+        deposit: false,
+        remark: '',
+      });
+    }
     this.paymentEntries.splice(index, 1);
   }
 }

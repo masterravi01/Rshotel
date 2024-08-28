@@ -123,7 +123,29 @@
           >Child Occupancy is required</small
         >
       </div>
-
+      <div class="col mt-3" *ngIf="roomTypeId == 'ADD'">
+        <label class="form-label">Default Rate</label>
+        <input
+          type="number"
+          class="form-control"
+          formControlName="baseRate"
+          [ngClass]="{
+            'is-invalid':
+              (roomTypeForm.get('baseRate')?.dirty ||
+                roomTypeForm.get('baseRate')?.touched) &&
+              roomTypeForm.get('baseRate')?.invalid
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            (roomTypeForm.get('baseRate')?.dirty ||
+              roomTypeForm.get('baseRate')?.touched) &&
+            roomTypeForm.get('baseRate')?.invalid
+          "
+          >Rate is required</small
+        >
+      </div>
       <div class="col mt-3" *ngIf="roomTypeId == 'ADD'">
         <label class="form-label">Total Rooms</label>
         <input
