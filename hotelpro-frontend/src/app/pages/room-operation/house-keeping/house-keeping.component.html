@@ -1,5 +1,148 @@
 <div class="mt-4" style="flex-direction: column;">
-    <div class="mx-4 p-2 d-flex justify-content-between" style="background-color: #fff;border-radius: 10px;">
+    <hr>
+    <div class="mx-4 mt-4 inline2">
+        <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12 pl-0">
+            <div class="d-flex justify-content-end">
+                <div class="btn btn-primary button" (click)="openModalAddHouseKeeper(AddHouseKeeper)">Add Housekeeper
+                </div>
+            </div>
+            <div class="mt-2">
+                <table class="table table-sm table-borderless global_table mb-0">
+                    <thead>
+                        <th>
+                            House Keeper
+                        </th>
+                        <th>
+                            Assigned Room
+                        </th>
+                        <th>Profile</th>
+                        <th>
+                            Active
+                        </th>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let d of HouseKeeperData; let i = index">
+                            <td>
+                                <div>{{ d.housekeeperName }}</div>
+                            </td>
+
+                            <td>
+                                <div>{{ d.assignedRoom }}</div>
+                            </td>
+                            <td>
+                                <a class="link" [routerLink]="
+                    '/frontdesk/housekeepingoperation/viewhousekeeper/' + d._id
+                  ">
+                                    View
+                                </a>
+                            </td>
+                            <td>
+                                <label class="switch" style="margin-bottom: -10px !important">
+                                    <input type="checkbox" (click)="changeAction(i)" [checked]="d.active == true" />
+                                    <span class="slider round"></span>
+                                </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mt-md-3 mt-sm-2 mt-lg-0 col-lg-3 col-md-12 col-sm-12 col-xs-12 pr-0">
+            <div class="ms-4">
+                <div class="blue_container1 d-flex justify-content-center" style="cursor: pointer"
+                    (click)="showAddpop()">
+                    <div class="d-flex">
+                        <div class="my-2">+ Assign task</div>
+                    </div>
+                </div>
+                <ng-container *ngIf="ShowAdd">
+                    <form [formGroup]="AssignHousekeepingForm" class="custom_container my-3 pt-2 pb-1 px-2">
+                        <table class="table table-sm table-borderless add_table">
+                            <tr>
+                                <td>
+                                    <div class="mt-1">House Keeper*:</div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <select id="options" formControlName="housekeeper" class="form-control"
+                                            style="appearance: auto">
+                                            <option value="">Select One</option>
+                                            <option *ngFor="let item of HouseKeeperData" [value]="item._id">
+                                                {{ item.housekeeperName }}
+                                            </option>
+                                        </select>
+                                        <!-- <p class="text-danger"
+                                            *ngIf="AssignHousekeepingForm.controls['roomType'].touched && AssignHousekeepingForm.controls['roomType'].invalid">
+                                            Enter valid RoomType!</p> -->
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="mt-1">Room Type*:</div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <select id="options" formControlName="roomType" class="form-control"
+                                            style="appearance: auto" (change)="showRooms($event)">
+                                            <option value="">Select Type</option>
+                                            <option *ngFor="let item of RoomTypes" [value]="item">
+                                                {{ item }}
+                                            </option>
+                                        </select>
+                                        <!-- <p class="text-danger"
+                                            *ngIf="AssignHousekeepingForm.controls['roomType'].touched && AssignHousekeepingForm.controls['roomType'].invalid">
+                                            Enter valid RoomType!</p> -->
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div>Room*:</div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <ng-multiselect-dropdown name="rooms" [placeholder]="'Select Room'"
+                                            formControlName="rooms" [settings]="dropdownSettingsRooms"
+                                            [data]="dropdownListRoom" style="background: white !important">
+                                        </ng-multiselect-dropdown>
+                                        <!-- <p class="text-danger" *ngIf="
+                      AssignHousekeepingForm.controls['rooms'].touched &&
+                      AssignHousekeepingForm.controls['rooms'].invalid
+                    ">
+                                            Enter valid RoomType!
+                                        </p> -->
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="mt-1">Notes:</div>
+                                </td>
+                                <td>
+                                    <textarea type="text" class="form-control field" rows="2"
+                                        formControlName="notes"></textarea>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="d-flex justify-content-center mt-2 pb-2">
+                            <button class="btn light_button button" (click)="cancelpop()">
+                                Cancel
+                            </button>
+                            <button class="btn btn-primary button ms-2" (click)="assignHousekeepingTask()"
+                                [disabled]="AssignHousekeepingForm.invalid">
+                                Add
+                            </button>
+                        </div>
+                    </form>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+<hr>
+<div class="mt-4" style="flex-direction: column;">
+    <div class="mx-4 d-flex justify-content-between" style="background-color: #fff;border-radius: 10px;">
         <div class="d-flex">
             <div class="input_container ms-2">
                 <input type="text" class="form-control field search" [(ngModel)]="SearchText" (input)="search($event)"
@@ -21,12 +164,11 @@
             <div class="btn btn-primary button ms-2" (click)="updateRooms()">Save</div>
         </div>
         <div *ngIf="!isEditable">
-            <div class="btn btn-primary button" (click)="openmodal_addhousekeeper(AddHouseKeeper)">Add Housekeeper</div>
             <div class="btn btn-primary button ms-3" (click)="editbtn()">Edit</div>
         </div>
     </div>
 
-    <div class="mx-4 mt-3 pb-3 x_scroll">
+    <div class="mx-4 mt-2 pb-3 x_scroll">
         <div class="table-box mb-2" style="border-radius: 10px;">
             <table class="table table-sm table-borderless global_table">
                 <thead>
@@ -38,7 +180,6 @@
                     <th> Assigned </th>
                     <th> Completed </th>
                     <th> Remarks </th>
-                    <th> Notes </th>
                 </thead>
                 <tbody>
                     <ng-container *ngFor="let item of RoomDetails; let i = index">
@@ -92,21 +233,12 @@
                                 <div>{{ item.Service }}</div>
                             </td>
                             <td>
-                                <div>{{ item.HouseKeeperName }}</div>
+                                <div>{{ item.housekeeperName }}</div>
                             </td>
                             <td>
                                 <div>{{ item.Status }}</div>
                             </td>
                             <td style="word-wrap: break-word">{{ item.Remarks }}</td>
-                            <td>
-                                <ng-container *ngIf="!isEditable && item.HouseKeeperName && item.Status">
-                                    <img src="../../../../assets/images/remark.png" class="table_icon" />
-                                </ng-container>
-                                <ng-container *ngIf="isEditable && item.HouseKeeperName && item.Status">
-                                    <img src="../../../../assets/images/remark.png" class="table_icon"
-                                        (click)="openModalRemark(Notes, item, i)" />
-                                </ng-container>
-                            </td>
                         </tr>
                     </ng-container>
                 </tbody>
@@ -115,24 +247,6 @@
     </div>
 </div>
 
-<ng-template #Notes let-modal>
-    <div class="modal_title d-flex mx-2" style="margin-top: -1px">
-        <div class="pt-1" style="margin-left: 35%">HouseKeeping Notes</div>
-        <div class="mt-1" style="margin-left: 28%; cursor: pointer">
-            <img src="../../../../assets/images/white_cross.png" width="13" (click)="modal.close('Close click')" />
-        </div>
-    </div>
-    <div class="d-flex justify-content-center custom_label mt-3 px-3">
-        <div class="mt-1">Notes:</div>
-        <textarea class="form-control field ms-2" rows="3" [(ngModel)]="CurrentRemark"></textarea>
-    </div>
-    <div class="d-flex justify-content-center my-3">
-        <div class="btn btn-light button" (click)="modal.close('Close click')">
-            Cancel
-        </div>
-        <div class="btn btn-primary button ms-2" (click)="saveRemark()">Save</div>
-    </div>
-</ng-template>
 
 <ng-template #Range let-modal>
     <div class="modal-header">
@@ -256,48 +370,40 @@
                 <td>
                     <div class="select1" (click)="show_Schedule()" style="cursor: pointer">
                         <div class="form-control field">Add Schedule</div>
-                        <div class="select1__arrow" *ngIf="this.Schedules == false"></div>
-                        <div class="select1__arrow1" *ngIf="this.Schedules == true"></div>
+                        <div class="select1__arrow" *ngIf="this.isShowingSchedule == false"></div>
+                        <div class="select1__arrow1" *ngIf="this.isShowingSchedule == true"></div>
                     </div>
                 </td>
             </tr>
-            <ng-container *ngIf="Schedules" formArrayName="Schedule">
+            <ng-container *ngIf="isShowingSchedule" formArrayName="schedule">
                 <tr *ngFor="
-                let item of Schedule.controls;
+                let item of schedule.controls;
                 let i = index
             ">
                     <td class="custom_label" [formGroupName]="i">
                         <div class="mt-3">
                             {{
-                            item.get('Day')?.value
+                            item.get('day')?.value
                             }}
                         </div>
                     </td>
                     <td class="custom_label" [formGroupName]="i">
                         <div class="d-flex mt-2">
                             <div class="check align-content-center" style="column-width: 15px">
-                                <input type="checkbox" formControlName="Working" style="margin-top: 6px !important" />
+                                <input type="checkbox" formControlName="working" style="margin-top: 6px !important" />
                             </div>
 
                             <div class="mt-2 ms-2">From:</div>
-                            <input type="time" class="form-control field ms-1" formControlName="ShiftStartTime"
-                                [readonly]="!item.get('Working')?.value" />
+                            <input type="time" class="form-control field ms-1" formControlName="shiftStartTime"
+                                [readonly]="!item.get('working')?.value" />
 
                             <div class="mt-2 ms-2">To:</div>
-                            <input type="time" class="form-control field ms-1" formControlName="ShiftEndTime"
-                                [readonly]="!item.get('Working')?.value" />
+                            <input type="time" class="form-control field ms-1" formControlName="shiftEndTime"
+                                [readonly]="!item.get('working')?.value" />
                         </div>
                     </td>
                 </tr>
             </ng-container>
-            <tr>
-                <td class="custom_label">
-                    <div class="mt-2">Notes:</div>
-                </td>
-                <td>
-                    <input type="text" class="form-control field" formControlName="Notes" />
-                </td>
-            </tr>
             <tr>
                 <td class="custom_label">
                     <div class="mt-2">Email*:</div>

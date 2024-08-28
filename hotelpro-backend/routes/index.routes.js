@@ -10,8 +10,8 @@ import paymentRouter from "./payment.routes.js";
 const router = express.Router();
 
 router.use("/user", userRouter);
-router.use("/property", propertyRouter);
 router.use(verifyJWT); // apply middleware on subsequent routes
+router.use("/property", propertyRouter);
 router.use("/propertyunit", propertyUnitRouter);
 router.use("/room", roomRouter);
 router.use("/ratemanagement", ratemanagementRouter);

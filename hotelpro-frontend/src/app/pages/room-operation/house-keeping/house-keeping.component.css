@@ -1,3 +1,7 @@
+.inline2 {
+  display: flex;
+}
+
 .button {
   width: 154px;
   border-radius: 7px;
@@ -96,6 +100,52 @@ input[type="checkbox"]:checked {
 .table-box {
   max-height: 431px;
   overflow-y: auto;
+}
+
+.form-check-input {
+  width: 100%;
+  margin-left: 0px;
+}
+
+.blue_container1 {
+  background: #387cf7;
+  color: #fff;
+  font-size: 14px;
+  letter-spacing: 1px;
+  font-weight: 600;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+.add_table td:nth-child(2) {
+  padding-right: 4px;
+  padding-left: 8px;
+}
+
+.add_table td:first-child {
+  width: 41.5%;
+}
+
+.add_table tr:first-child td:first-child,
+.add_table tr:first-child td:last-child {
+  padding-top: 8px;
+}
+
+.add_table tr:last-child td:first-child,
+.add_table tr:last-child td:last-child {
+  padding-bottom: 8px;
+}
+
+.add_table tr:first-child td:nth-child(2) {
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+}
+
+@media only screen and (max-width: 990px) {
+  .inline2 {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 @media only screen and (max-width: 440px) {

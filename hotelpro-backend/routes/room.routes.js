@@ -36,6 +36,8 @@ router.post(
 );
 
 router.post("/create-house-keeper", roomIndex.createHouseKeeper);
+router.post("/read-house-keeper", roomIndex.getHouseKeeper);
+router.post("/delete-house-keeper", roomIndex.deleteHouseKeeper);
 router.post(
   "/read-rooms-with-house-keeping",
   roomIndex.getRoomsWithHouseKeeping
@@ -44,5 +46,6 @@ router.post(
   "/update-rooms-with-house-keeping",
   roomIndex.updateRoomsWithHouseKeeping
 );
+router.post("/create-house-keeping-task", roomIndex.createHouseKeepingTask);
 
 export default router;

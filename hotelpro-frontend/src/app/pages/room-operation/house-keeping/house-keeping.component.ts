@@ -30,21 +30,45 @@ import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
   styleUrl: './house-keeping.component.css'
 })
 export class HouseKeepingComponent implements OnInit {
+  HouseKeeperForm!: FormGroup;
+  AssignHousekeepingForm!: FormGroup;
   propertyUnitId: string | null = '';
+  Start: number = 0;
+  End: number = 0;
+  SelectCondition = 'dirty';
+  SelectRoomType = 'all';
   RoomDetails: any;
   CurrentRemark: any;
   CurrentRemarkIndex: any;
   SearchText: any;
   RoomTypes: any;
-  Start: number = 0;
-  End: number = 0;
-  SelectRoomType = 'all';
-  SelectCondition = 'dirty';
+  HouseKeeperData: any;
   Flag = false;
   isEditable = false;
   SelectRoom = '';
-  HouseKeeperForm!: FormGroup;
-  Schedules = false;
+  isShowingSchedule = false;
+  ShowAdd = false;
+
+  dropdownSettings!: {
+    singleSelection: boolean;
+    idField: string;
+    textField: string;
+    unSelectAllText: string;
+    enableCheckAll: boolean;
+    itemsShowLimit: number;
+    allowSearchFilter: boolean;
+  };
+  dropdownListRoom: any = [];
+  dropdownSettingsRooms!: {
+    singleSelection: boolean;
+    idField: string;
+    textField: string;
+    unSelectAllText: string;
+    enableCheckAll: boolean;
+    itemsShowLimit: number;
+    allowSearchFilter: boolean;
+  };
+  dropdownList: any = [];
 
   constructor(
     private crudService: CrudService,
@@ -53,14 +77,70 @@ export class HouseKeepingComponent implements OnInit {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private modalService: NgbModal,
-  ) {}
+  ) { }
 
   ngOnInit() {
-    
-    this.propertyUnitId =
-    this.activeRoute.snapshot.paramMap.get('propertyUnitId');
-    this.isEditable = false;
 
+    this.dropDownSettings();
+    this.propertyUnitId =
+      this.activeRoute.snapshot.paramMap.get('propertyUnitId');
+    this.isEditable = false;
+    this.HouseKeeperForm = this.fb.group({
+      propertyUnitId: [this.propertyUnitId],
+      firstName: ['', [
+        Validators.required,
+        Validators.pattern("^[a-zA-Z.'\\s]*$"),
+      ]],
+      lastName: ['', [
+        Validators.required,
+        Validators.pattern("^[a-zA-Z.'\\s]*$"),
+      ]],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required]],
+      schedule: this.fb.array([
+        this.createScheduleGroup('MONDAY', true),
+        this.createScheduleGroup('TUESDAY', true),
+        this.createScheduleGroup('WEDNESDAY', true),
+        this.createScheduleGroup('THURSDAY', true),
+        this.createScheduleGroup('FRIDAY', true),
+        this.createScheduleGroup('SATURDAY', false),
+        this.createScheduleGroup('SUNDAY', false),
+      ]),
+    });
+
+    this.AssignHousekeepingForm = this.fb.group({
+      propertyUnitId: [this.propertyUnitId],
+      housekeeper: ['', Validators.required],
+      roomType: ['', Validators.required],
+      rooms: [[], Validators.required],
+      notes: [''],
+    });
+
+    this.fetchData();
+  }
+
+  dropDownSettings() {
+    this.dropdownSettings = {
+      singleSelection: false,
+      idField: 'item_id',
+      textField: 'item_text',
+      unSelectAllText: 'UnSelect All',
+      enableCheckAll: false,
+      itemsShowLimit: 2,
+      allowSearchFilter: true,
+    };
+    this.dropdownSettingsRooms = {
+      singleSelection: false,
+      idField: 'item_id',
+      textField: 'item_text',
+      unSelectAllText: 'UnSelect All',
+      enableCheckAll: true,
+      itemsShowLimit: 1,
+      allowSearchFilter: true,
+    };
+  }
+
+  fetchData() {
     this.crudService
       .post(APIConstant.READ_ROOMS_WITH_HOUSE_KEEPING, {
         propertyUnitId: this.propertyUnitId,
@@ -73,93 +153,140 @@ export class HouseKeepingComponent implements OnInit {
         this.alertService.errorAlert(error.statusMessage);
       });
 
-      this.HouseKeeperForm = this.fb.group({
-        propertyUnitId: [this.propertyUnitId],
-        LanguagePreference: ('English'),
-        firstName: ['', [
-          Validators.required,
-          Validators.pattern("^[a-zA-Z.'\\s]*$"),
-        ]],
-        lastName: ['', [
-          Validators.required,
-          Validators.pattern("^[a-zA-Z.'\\s]*$"),
-        ]],
-        Notes: [''],
-        email: ['', [Validators.required, Validators.email]],
-        phone: ['', [Validators.required]],
-        Schedule: this.fb.array([
-          this.createScheduleGroup('MONDAY', true),
-          this.createScheduleGroup('TUESDAY', true),
-          this.createScheduleGroup('WEDNESDAY', true),
-          this.createScheduleGroup('THURSDAY', true),
-          this.createScheduleGroup('FRIDAY', true),
-          this.createScheduleGroup('SATURDAY', false),
-          this.createScheduleGroup('SUNDAY', false),
-        ]),
+    this.crudService
+      .post(APIConstant.READ_HOUSE_KEEPER, {
+        propertyUnitId: this.propertyUnitId,
+      })
+      .then((response: any) => {
+        this.HouseKeeperData = response.data.housekeeper_details;
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(error.statusMessage);
       });
   }
 
-  get Schedule(): FormArray {
-    return this.HouseKeeperForm.get('Schedule') as FormArray;
+  get schedule(): FormArray {
+    return this.HouseKeeperForm.get('schedule') as FormArray;
   }
 
   createScheduleGroup(day: string, working: boolean): FormGroup {
     return this.fb.group({
-      Day: [day],
-      ShiftStartTime: ['12:00'],
-      ShiftEndTime: ['00:00'],
-      Working: [working],
+      day: [day],
+      shiftStartTime: ['12:00'],
+      shiftEndTime: ['00:00'],
+      working: [working],
     });
-  } 
+  }
 
   addHouseKeeper() {
     let housekeeper = this.HouseKeeperForm.value;
-    housekeeper.propertyUnitId = this.propertyUnitId;
     let working = false;
-    for (let s of housekeeper.Schedule) {
-      if (s.Working) {
+    for (let s of housekeeper.schedule) {
+      if (s.working) {
         working = true;
       }
       let d = new Date();
       d.setHours(
-        s.ShiftEndTime.split(':')[0],
-        s.ShiftEndTime.split(':')[1],
+        s.shiftEndTime.split(':')[0],
+        s.shiftEndTime.split(':')[1],
         0,
         0
       );
       let d2 = new Date();
       d2.setHours(
-        s.ShiftStartTime.split(':')[0],
-        s.ShiftStartTime.split(':')[1],
+        s.shiftStartTime.split(':')[0],
+        s.shiftStartTime.split(':')[1],
         0,
         0
       );
 
-      s.ShiftEndTime = d.getHours() + ':' + d.getMinutes();
-      s.ShiftStartTime = d2.getHours() + ':' + d2.getMinutes();
+      s.shiftEndTime = d.getHours() + ':' + d.getMinutes();
+      s.shiftStartTime = d2.getHours() + ':' + d2.getMinutes();
     }
     if (working) {
       this.crudService
-      .post(APIConstant.READ_ROOMS_WITH_HOUSE_KEEPING, {
-        housekeeper,
-      })
-      .then((response: any) => {
-        this.alertService.successAlert('Housekeeper added Successfully!');
-        this.ngOnInit();
-        this.modalService.dismissAll();
-      })
-      .catch((error) => {
-        this.alertService.errorAlert(error?.error?.statusMessage);
-      });
+        .post(APIConstant.CREATE_HOUSE_KEEPER,
+          housekeeper,
+        )
+        .then((response: any) => {
+          this.alertService.successAlert('Housekeeper added successfully!');
+          this.ngOnInit();
+        })
+        .catch((error) => {
+          this.alertService.errorAlert(error?.error?.message);
+        })
+        .finally(() => {
+          this.modalService.dismissAll();
+        });
     } else {
-      this.alertService.errorAlert('Please add valid Schedule!');
+      this.alertService.errorAlert('Please add valid schedule!');
     }
   }
 
-  show_Schedule() {
-    this.Schedules = !this.Schedules;
+  changeAction(i: any) {
+    if (this.HouseKeeperData[i].assignedRoom == 0) {
+      this.crudService
+        .post(APIConstant.DELETE_HOUSE_KEEPER, {
+          housekeeperId: this.HouseKeeperData[i]._id,
+          active: !this.HouseKeeperData[i].active,
+        })
+        .then((response: any) => {
+          this.ngOnInit();
+        })
+        .catch((error) => {
+          this.alertService.errorAlert(error.statusMessage);
+        });
+    } else {
+      this.alertService.errorAlert('You cannot deactivate the housekeeper if the room is assigned to them. Please unassign the room and try again.');
+      this.ngOnInit();
+    }
   }
-  
+
+  cancelpop() {
+    this.AssignHousekeepingForm.patchValue({
+      roomType: '',
+      rooms: [],
+      notes: '',
+      housekeeper: ''
+    });
+
+    this.ShowAdd = false;
+  }
+
+  assignHousekeepingTask() {
+    this.crudService
+      .post(APIConstant.CREATE_HOUSE_KEEPING_TASK,
+        this.AssignHousekeepingForm.value,
+      )
+      .then((response: any) => {
+        this.alertService.successAlert('Housekeeping task assigned successfully!');
+        this.ngOnInit();
+
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(error?.error?.message);
+      })
+  }
+
+  showRooms(event: any) {
+    this.dropdownListRoom = [];
+    for (let i of this.RoomDetails) {
+      if (i.roomType == event.target.value && i.roomCondition == 'dirty') {
+        this.AssignHousekeepingForm.patchValue({ rooms: [] });
+        let obj = {
+          item_id: i._id,
+          item_text: i.roomName,
+        };
+        this.dropdownListRoom.push(obj);
+      }
+    }
+  }
+
+
+  show_Schedule() {
+    this.isShowingSchedule = !this.isShowingSchedule;
+  }
+
   editbtn() {
     this.isEditable = true;
   }
@@ -168,6 +295,10 @@ export class HouseKeepingComponent implements OnInit {
     console.log(conditon);
     this.RoomDetails[i].roomCondition = conditon;
     this.RoomDetails[i].Changed = true;
+  }
+
+  showAddpop() {
+    this.ShowAdd = true;
   }
 
   rangeUpdate() {
@@ -255,12 +386,7 @@ export class HouseKeepingComponent implements OnInit {
       });
   }
 
-  openModalRemark(content: any, item: any, i: any) {
-    this.CurrentRemark = item.Remarks ? item.Remarks : '';
-    this.CurrentRemarkIndex = i;
-    this.modalService.open(content, { centered: true });
-  }
-  
+
   openModal_sm(content: any) {
     this.Flag = false;
     this.Start = 0;
@@ -271,18 +397,8 @@ export class HouseKeepingComponent implements OnInit {
     this.modalService.open(content, { centered: true });
   }
 
-  openmodal_addhousekeeper(content: any) {
-    this.modalService.open(content, { centered: true });
-  }
-  
   openModalAddHouseKeeper(content: any) {
     this.modalService.open(content, { centered: true });
-  }
-
-  saveRemark() {
-    this.RoomDetails[this.CurrentRemarkIndex].Remarks = this.CurrentRemark;
-    this.RoomDetails[this.CurrentRemarkIndex].Changed = true;
-    this.modalService.dismissAll();
   }
 
   search(event: any) {
