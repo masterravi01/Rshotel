@@ -85,6 +85,7 @@ const createReservation = asyncHandler(async (req, res) => {
       let customerAddress = new Address(groupDetails);
       customerDetails.addressId = customerAddress._id;
 
+      groupData.customerId = customerDetails._id;
       UserEntries.push(customerDetails);
       AddressEntries.push(customerAddress);
 
@@ -449,6 +450,213 @@ const uploadReservationImages = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Reservation Rate get successfully!"));
 });
 
+const guestFolio = asyncHandler(async (req, res) => {
+  const { propertyUnitId } = req.params;
+  const { groupId } = req.body;
+
+  const groupReservationDetails = await GroupReservation.aggregate([
+    {
+      $match: {
+        _id: new ObjectId(groupId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "customerId",
+        foreignField: "_id",
+        as: "customerDetails",
+        pipeline: [
+          {
+            $lookup: {
+              from: "addresses",
+              localField: "addressId",
+              foreignField: "_id",
+              as: "customerAddress",
+            },
+          },
+          {
+            $unwind: {
+              path: "$customerAddress",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: "$customerDetails",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "reservations",
+        localField: "_id",
+        foreignField: "groupId",
+        as: "reservations",
+        pipeline: [
+          {
+            $lookup: {
+              from: "rooms",
+              localField: "roomId",
+              foreignField: "_id",
+              as: "roomDetails",
+              pipeline: [
+                {
+                  $lookup: {
+                    from: "roomtypes",
+                    localField: "roomTypeId",
+                    foreignField: "_id",
+                    as: "roomTypeDetails",
+                  },
+                },
+                {
+                  $unwind: {
+                    path: "$roomTypeDetails",
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: {
+              path: "$roomDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "userId",
+              foreignField: "_id",
+              as: "guestDetails",
+              pipeline: [
+                {
+                  $lookup: {
+                    from: "addresses",
+                    localField: "addressId",
+                    foreignField: "_id",
+                    as: "guestAddress",
+                  },
+                },
+                {
+                  $unwind: {
+                    path: "$guestAddress",
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: {
+              path: "$guestDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "secondaryUserIds",
+              foreignField: "_id",
+              as: "secondaryGuests",
+              pipeline: [
+                {
+                  $lookup: {
+                    from: "addresses",
+                    localField: "addressId",
+                    foreignField: "_id",
+                    as: "guestAddress",
+                  },
+                },
+                {
+                  $unwind: {
+                    path: "$guestAddress",
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $lookup: {
+              from: "reservationdetails",
+              localField: "_id",
+              foreignField: "reservationId",
+              as: "reservationDetails",
+            },
+          },
+          {
+            $unwind: {
+              path: "$reservationDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "rateplansetups",
+              localField: "rateplanId",
+              foreignField: "_id",
+              as: "rateDetails",
+            },
+          },
+          {
+            $unwind: {
+              path: "$rateDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "roombalances",
+              localField: "_id",
+              foreignField: "reservationId",
+              as: "roomBalances",
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "guesttransactions",
+        localField: "_id",
+        foreignField: "groupId",
+        as: "paymentDetails",
+        pipeline: [
+          {
+            $lookup: {
+              from: "transactioncodes",
+              localField: "transactionCodeId",
+              foreignField: "_id",
+              as: "transactionDetails",
+            },
+          },
+          {
+            $unwind: {
+              path: "$transactionDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        groupReservationDetails,
+        "Reservation retrieved successfully!"
+      )
+    );
+});
+
 export default {
   getAllReservations,
   getReservationById,
@@ -457,4 +665,5 @@ export default {
   deleteReservationById,
   readReservationRate,
   uploadReservationImages,
+  guestFolio,
 };

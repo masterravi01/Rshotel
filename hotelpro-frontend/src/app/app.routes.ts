@@ -160,7 +160,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'guest-folio/:reservationId',
+        path: 'guest-folio/:groupId',
         loadComponent: () =>
           import(
             './pages/reservation-collection/guest-folio/guest-folio.component'

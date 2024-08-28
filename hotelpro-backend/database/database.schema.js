@@ -607,6 +607,10 @@ const groupReservationSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "PropertyUnit",
     },
+    customerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
     arrival: Date,
     departure: Date,
     adults: Number,
@@ -636,6 +640,10 @@ const reservationSchema = new Schema(
     propertyUnitId: {
       type: Schema.Types.ObjectId,
       ref: "PropertyUnit",
+    },
+    rateplanId: {
+      type: Schema.Types.ObjectId,
+      ref: "RatePlanSetup",
     },
     roomId: {
       type: Schema.Types.ObjectId,
