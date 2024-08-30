@@ -125,6 +125,9 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!username && !email) {
     throw new ApiError(400, "Username or email is required");
   }
+  if (!password) {
+    throw new ApiError(400, "Password is required");
+  }
 
   const user = await User.findOne({
     $or: [{ username: email }, { email: email }],
@@ -185,6 +188,7 @@ const loginUser = asyncHandler(async (req, res) => {
           path: "$property",
         },
       },
+
       {
         $project: {
           firstName: "$firstName",
@@ -197,7 +201,32 @@ const loginUser = asyncHandler(async (req, res) => {
           propertyName: "$property.propertyName",
         },
       },
+      {
+        $lookup: {
+          from: "propertyunits",
+          localField: "propertyId",
+          foreignField: "propertyId",
+          as: "propertyUnits",
+          pipeline: [
+            {
+              $project: {
+                propertyUnitId: "$_id",
+                propertyUnitCode: 1,
+                propertyUnitName: 1,
+              },
+            },
+          ],
+        },
+      },
     ]);
+    if (loggedInUser[0]?.propertyUnits?.[0]) {
+      loggedInUser[0].propertyUnitId =
+        loggedInUser[0]?.propertyUnits[0]?.propertyUnitId;
+      loggedInUser[0].propertyUnitCode =
+        loggedInUser[0]?.propertyUnits[0]?.propertyUnitCode;
+      loggedInUser[0].propertyUnitName =
+        loggedInUser[0]?.propertyUnits[0]?.propertyUnitName;
+    }
   }
 
   return res

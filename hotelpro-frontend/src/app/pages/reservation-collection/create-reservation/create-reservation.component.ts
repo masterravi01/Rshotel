@@ -13,6 +13,7 @@ import { CommonModule, DatePipe, JsonPipe } from '@angular/common';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-create-reservation',
@@ -46,13 +47,15 @@ export class CreateReservationComponent implements OnInit {
     private fb: FormBuilder,
     private crudService: CrudService,
     private alertService: AlertService,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
     private modalService: NgbModal
   ) {}
 
   ngOnInit(): void {
-    this.propertyUnitId = this.route.snapshot.paramMap.get('propertyUnitId');
+    this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
+    // this.propertyUnitId = this.route.snapshot.paramMap.get('propertyUnitId');
     this.initForms();
   }
 
@@ -199,7 +202,7 @@ export class CreateReservationComponent implements OnInit {
         roomTypeRooms: this.roomTypeRooms,
       })
     );
-    this.router.navigate([`/reservation-info/${this.propertyUnitId}`]);
+    this.router.navigate([`/reservation-info`]);
   }
 
   private prepareReservationDetails(): any[] {

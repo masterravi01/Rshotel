@@ -651,7 +651,7 @@ const guestFolio = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        groupReservationDetails,
+        groupReservationDetails?.[0],
         "Reservation retrieved successfully!"
       )
     );

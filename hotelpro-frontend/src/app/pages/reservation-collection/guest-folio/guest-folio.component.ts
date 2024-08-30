@@ -4,12 +4,17 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
-import { JsonPipe } from '@angular/common';
+import {
+  CommonModule,
+  CurrencyPipe,
+  DatePipe,
+  JsonPipe,
+} from '@angular/common';
 
 @Component({
   selector: 'app-guest-folio',
   standalone: true,
-  imports: [JsonPipe],
+  imports: [JsonPipe, DatePipe, CurrencyPipe, CommonModule],
   templateUrl: './guest-folio.component.html',
   styleUrl: './guest-folio.component.css',
 })

@@ -20,6 +20,7 @@ import {
   FileSystemFileEntry,
   FileSystemDirectoryEntry,
 } from 'ngx-file-drop';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-reservation-info',
@@ -47,13 +48,15 @@ export class ReservationInfoComponent implements OnInit {
     private modalService: NgbModal,
     private crudService: CrudService,
     private alertService: AlertService,
+    private authService: AuthService,
     private activeRoute: ActivatedRoute,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    this.propertyUnitId = this.route.snapshot.paramMap.get('propertyUnitId');
+    this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
+    // this.propertyUnitId = this.route.snapshot.paramMap.get('propertyUnitId');
     this.initializeForms();
     this.loadData();
   }
@@ -259,7 +262,7 @@ export class ReservationInfoComponent implements OnInit {
       'groupDetails',
       JSON.stringify(this.groupForm.value)
     );
-    this.router.navigate([`/reservation-payment/${this.propertyUnitId}`]);
+    this.router.navigate([`/reservation-payment`]);
   }
   onReserve(content: TemplateRef<any>): void {
     this.modalService.open(content).result.then((result) => {
