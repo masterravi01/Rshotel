@@ -298,7 +298,11 @@ export class HouseKeepingComponent implements OnInit {
   }
 
   showAddpop() {
-    this.ShowAdd = true;
+    if (this.HouseKeeperData?.length == 0) {
+      this.alertService.errorAlert("Please add housekeeper for assign housekeeping task");
+    } else {
+      this.ShowAdd = true;
+    }
   }
 
   rangeUpdate() {

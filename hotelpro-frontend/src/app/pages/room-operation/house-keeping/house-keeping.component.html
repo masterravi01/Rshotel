@@ -176,8 +176,8 @@
                     <th> Room </th>
                     <th> Condition </th>
                     <th> Status </th>
-                    <th> Service </th>
-                    <th> Assigned </th>
+                    <th> Task </th>
+                    <th> Housekeeper </th>
                     <th> Completed </th>
                     <th> Remarks </th>
                 </thead>
@@ -230,15 +230,15 @@
                                 <div>{{ item.roomStatus }}</div>
                             </td>
                             <td>
-                                <div>{{ item.Service }}</div>
+                                <div>{{ item.taskName }}</div>
                             </td>
                             <td>
                                 <div>{{ item.housekeeperName }}</div>
                             </td>
                             <td>
-                                <div>{{ item.Status }}</div>
+                                <div>{{ item.isCompleted == false ? "Incomplete" : '' }}</div>
                             </td>
-                            <td style="word-wrap: break-word">{{ item.Remarks }}</td>
+                            <td style="word-wrap: break-word">{{ item.notes }}</td>
                         </tr>
                     </ng-container>
                 </tbody>

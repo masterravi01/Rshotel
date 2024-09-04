@@ -113,11 +113,6 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
   let { propertyUnitId } = req.body;
   let data = {};
 
-  let Today = new Date();
-  let d = new Date(Today);
-  d.setDate(Today.getDate() + 1);
-  d.setUTCHours(0, 0, 0, 0);
-
   data.RoomDetails = await RoomType.aggregate([
     {
       $match: {
@@ -143,6 +138,13 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
         localField: "RoomDetails._id",
         foreignField: "roomId",
         as: "houseKeepingTaskDetails",
+        pipeline: [
+          {
+            $match: {
+              isCompleted: false,
+            },
+          },
+        ],
       },
     },
     {
@@ -152,95 +154,37 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
       },
     },
     {
-      $project: {
-        RoomDetails: 1,
-        roomTypeName: 1,
-        houseKeepingTaskDetails: {
-          $cond: [
-            {
-              $and: [
-                {
-                  $lte: ["$houseKeepingTaskDetails.CreatedAt", d],
-                },
-                {
-                  $eq: ["$houseKeepingTaskDetails.isCompleted", false],
-                },
-              ],
-            },
-            "$houseKeepingTaskDetails",
-            "",
-          ],
-        },
-        housekeeperId: {
-          $cond: [
-            {
-              $and: [
-                {
-                  $lte: ["$houseKeepingTaskDetails.CreatedAt", d],
-                },
-                {
-                  $eq: ["$houseKeepingTaskDetails.isCompleted", false],
-                },
-              ],
-            },
-            "$houseKeepingTaskDetails.housekeeperId",
-            "",
-          ],
-        },
+      $lookup: {
+        from: "users",
+        localField: "houseKeepingTaskDetails.housekeeperId",
+        foreignField: "_id",
+        as: "housekeeper",
       },
     },
     {
       $unwind: {
-        path: "$HouseKeeperDetails",
+        path: "$housekeeper",
         preserveNullAndEmptyArrays: true,
       },
     },
     {
-      $group: {
+      $project: {
         _id: "$RoomDetails._id",
-        roomNumber: {
-          $first: "$RoomDetails.roomNumber",
+        roomNumber: "$RoomDetails.roomNumber",
+        roomName: "$RoomDetails.roomName",
+        roomType: "$roomTypeName",
+        roomCondition: "$RoomDetails.roomCondition",
+        roomStatus: "$RoomDetails.roomStatus",
+        taskName: "$houseKeepingTaskDetails.taskName",
+        isCompleted: "$houseKeepingTaskDetails.isCompleted",
+        housekeeperId: "$HouseKeeperDetails._id",
+        housekeeperName: {
+          $concat: ["$housekeeper.firstName", " ", "$housekeeper.lastName"],
         },
-        roomName: {
-          $first: "$RoomDetails.roomName",
-        },
-        roomType: {
-          $first: "$roomTypeName",
-        },
-        roomCondition: {
-          $first: "$RoomDetails.roomCondition",
-        },
-        roomStatus: {
-          $first: "$RoomDetails.roomStatus",
-        },
-        Service: {
-          $last: "$houseKeepingTaskDetails.ServiceType",
-        },
-        isCompleted: {
-          $last: "$houseKeepingTaskDetails.isCompleted",
-        },
-        housekeeperId: {
-          $last: "$HouseKeeperDetails._id",
-        },
-        HouseKeeperRoomDetailsId: {
-          $last: "$houseKeepingTaskDetails._id",
-        },
-        houseKeeperName: {
-          $last: "$HouseKeeperDetails.HousekeeperName",
-        },
-        DND: {
-          $last: "$houseKeepingTaskDetails.DND",
-        },
-        Remarks: {
-          $last: "$houseKeepingTaskDetails.Remarks",
-        },
+        notes: "$houseKeepingTaskDetails.taskDescription",
       },
     },
-    {
-      $addFields: {
-        Show: true,
-      },
-    },
+    { $addFields: { Show: true } },
     {
       $sort: {
         roomType: 1,
@@ -267,32 +211,32 @@ const updateRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
   for (let j = 0; j < RoomDetails.length; j++) {
     updateRoomEntries.push(
       mongo.bulkwriteupdateone(
-        { _id: RoomDetails[j]._id },
+        { _id: new ObjectId(RoomDetails[j]._id) },
         {
           roomCondition: RoomDetails[j].roomCondition,
         }
       )
     );
 
-    if (RoomDetails[j].housekeeperId) {
-      let housekeeping_detail = {};
-      housekeeping_detail.housekeeperId = RoomDetails[j].housekeeperId;
-      housekeeping_detail.roomId = RoomDetails[j]._id;
-      housekeeping_detail.taskDescription = RoomDetails[j].Remarks;
-      housekeeping_detail.taskName = RoomDetails[j].taskName;
-      if (RoomDetails[j].HouseKeeperRoomDetailsId) {
-        await mongo.updateCollection(
-          HousekeepingTask,
-          {
-            _id: new ObjectId(RoomDetails[j].HouseKeeperRoomDetailsId),
-          },
-          housekeeping_detail
-        );
-      } else {
-        housekeeping_detail = new HousekeepingTask(housekeeping_detail);
-        await mongo.insertIntoCollection(housekeeping_detail);
-      }
-    }
+    // if (RoomDetails[j].housekeeperId) {
+    //   let housekeeping_detail = {};
+    //   housekeeping_detail.housekeeperId = RoomDetails[j].housekeeperId;
+    //   housekeeping_detail.roomId = RoomDetails[j]._id;
+    //   housekeeping_detail.taskDescription = RoomDetails[j].Remarks;
+    //   housekeeping_detail.taskName = RoomDetails[j].taskName;
+    //   if (RoomDetails[j].HouseKeeperRoomDetailsId) {
+    //     await mongo.updateCollection(
+    //       HousekeepingTask,
+    //       {
+    //         _id: new ObjectId(RoomDetails[j].HouseKeeperRoomDetailsId),
+    //       },
+    //       housekeeping_detail
+    //     );
+    //   } else {
+    //     housekeeping_detail = new HousekeepingTask(housekeeping_detail);
+    //     await mongo.insertIntoCollection(housekeeping_detail);
+    //   }
+    // }
   }
 
   await Promise.all([Room.bulkWrite(updateRoomEntries)]);
