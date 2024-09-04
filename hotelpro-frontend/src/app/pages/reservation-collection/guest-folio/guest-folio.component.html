@@ -1,1 +1,250 @@
-<p>guest-folio works!</p>
+<div class="m-3 row g-0">
+  <div class="col-9">
+    <div class="container_form p-3 m-2 rounded">
+      <label class="form-label fw-semibold">Customer Details</label>
+      <div class="row">
+        <div class="col-8">
+          <div class="d-flex flex-column">
+            <label class="form-label">
+              Name :
+              <span class="fw-semibold"
+                >{{ groupDetails?.customerDetails?.firstName }}
+                {{ groupDetails?.customerDetails?.lastName }}</span
+              ></label
+            >
+            <label class="form-label">
+              Phone :
+              <span class="fw-semibold"
+                >{{ groupDetails?.customerDetails?.phone }}
+              </span></label
+            >
+            <label class="form-label">
+              Email :
+              <span class="fw-semibold"
+                >{{ groupDetails?.customerDetails?.email }}
+              </span></label
+            >
+            <label class="form-label">
+              Address :
+              <span class="fw-semibold"
+                >{{
+                  groupDetails?.customerDetails?.customerAddress?.addressLine1
+                }},{{ groupDetails?.customerDetails?.customerAddress?.city }},{{
+                  groupDetails?.customerDetails?.customerAddress?.state
+                }},
+                {{ groupDetails?.customerDetails?.customerAddress?.country }},
+                {{ groupDetails?.customerDetails?.customerAddress?.zipCode }}
+              </span></label
+            >
+          </div>
+        </div>
+        <div class="col-4 text-end">
+          <div class="d-flex flex-column">
+            <label class="form-label fw-semibold"> View Details </label>
+            <label class="form-label fw-semibold"> Edit Details </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card container_form p-3 m-2 rounded">
+      <label class="form-label fw-semibold">Reservation Summary</label>
+      <div class="card-body">
+        <label class="form-label">
+          Checkin Date :
+          <span class="fw-semibold">{{
+            groupDetails?.arrival | date : "MMM d, y"
+          }}</span></label
+        >
+        <label class="form-label">
+          Checkout Date :
+          <span class="fw-semibold">{{
+            groupDetails?.departure | date : "MMM d, y"
+          }}</span></label
+        >
+        <label class="form-label">
+          Adults/Children:
+          <span class="fw-semibold"
+            >{{ groupDetails?.adults }} /{{ groupDetails?.childs }}</span
+          ></label
+        >
+        <label class="form-label">
+          Total Cost:
+          <span class="fw-semibold"
+            >{{ groupDetails?.totalCost | currency }}
+          </span></label
+        >
+        <label class="form-label">
+          Total Price:
+          <span class="fw-semibold"
+            >{{ groupDetails?.totalPrice | currency }}
+          </span></label
+        >
+        <label class="form-label">
+          Total Tax:
+          <span class="fw-semibold"
+            >{{ groupDetails?.totalTax | currency }}
+          </span></label
+        >
+        <label class="form-label">
+          Total Payment:
+          <span class="fw-semibold"
+            >{{ groupDetails?.totalPayment | currency }}
+          </span></label
+        >
+        <label class="form-label">
+          Total Deposit:
+          <span class="fw-semibold"
+            >{{ groupDetails?.totalDeposit | currency }}
+          </span></label
+        >
+        <label class="form-label">
+          Total Balance:
+          <span class="fw-semibold"
+            >{{ groupDetails?.totalBalance | currency }}
+          </span></label
+        >
+      </div>
+    </div>
+  </div>
+
+  @for (reservation of groupDetails?.reservations; track reservation; let i =
+  $index) {
+  <div class="col-md-12">
+    <div class="container_form p-3 m-2 rounded">
+      <div class="row">
+        <h5 class="form-label fw-semibold">Room {{ i }}</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-9">
+    <div class="container_form p-3 m-2 rounded">
+      <label class="form-label fw-semibold">Guest Details</label>
+      <div class="row">
+        <div class="col-8">
+          <label class="form-label">
+            Name :
+            <span class="fw-semibold"
+              >{{ reservation?.guestDetails?.firstName }}
+              {{ reservation?.guestDetails?.lastName }}</span
+            ></label
+          >
+          <label class="form-label">
+            Phone :
+            <span class="fw-semibold"
+              >{{ reservation?.guestDetails?.phone }}
+            </span></label
+          >
+          <label class="form-label">
+            Email :
+            <span class="fw-semibold"
+              >{{ reservation?.guestDetails?.email }}
+            </span></label
+          >
+          <label class="form-label">
+            Address :
+            <span class="fw-semibold"
+              >{{ reservation?.guestDetails?.guestAddress?.addressLine1 }},{{
+                reservation?.guestDetails?.guestAddress?.city
+              }},{{ reservation?.guestDetails?.guestAddress?.state }},
+              {{ reservation?.guestDetails?.guestAddress?.country }},
+              {{ reservation?.guestDetails?.guestAddress?.zipCode }}
+            </span></label
+          >
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Balance</th>
+                <th scope="col">Date</th>
+                <th scope="col">Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of reservation?.roomBalances">
+                <td>{{ r.balance }}</td>
+                <td>{{ r.balanceDate | date }}</td>
+                <td>{{ r.balanceName }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-4 text-end">
+          <div class="d-flex flex-column">
+            <label class="form-label fw-semibold"> View Details </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card container_form p-3 m-2 rounded">
+      <label class="form-label fw-semibold">Reservation Summary</label>
+      <div class="card-body">
+        <label class="form-label">
+          Adults/Children:
+          <span class="fw-semibold"
+            >{{ reservation?.reservationDetails?.adults }} /{{
+              reservation?.reservationDetails?.childs
+            }}</span
+          ></label
+        >
+        <label class="form-label">
+          Room Cost:
+          <span class="fw-semibold"
+            >{{ reservation?.reservationDetails?.roomCost | currency }}
+          </span></label
+        >
+        <label class="form-label">
+          Room :
+          <span class="fw-semibold"
+            >{{ reservation?.roomDetails?.roomTypeDetails?.roomTypeName }} -{{
+              reservation?.roomDetails?.roomName
+            }}
+          </span></label
+        >
+        <label class="form-label">
+          RatePlan :
+          <span class="fw-semibold"
+            >{{ reservation?.rateDetails?.ratePlanName }}
+          </span></label
+        >
+        <label class="form-label">
+          Status :
+          <span class="fw-semibold"
+            >{{ reservation?.reservationStatus }}
+          </span></label
+        >
+      </div>
+    </div>
+  </div>
+  }
+  <div class="col-9">
+    <div class="container_form p-3 m-2 rounded">
+      <label class="form-label fw-semibold">Payment Details</label>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Payment</th>
+            <th scope="col">Date</th>
+            <th scope="col">Receipt</th>
+            <th scope="col">Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of groupDetails?.paymentDetails">
+            <td>{{ r.transactionDetails?.transactionRate }}</td>
+            <td>{{ r.transactionDate | date }}</td>
+            <td>{{ r.transactionDetails?.receipt }}</td>
+
+            <td>
+              {{ r.transactionDetails?.isRefund ? "Refund" : ""
+              }}{{ r.isDeposit ? "Deposit" : ""
+              }}{{ r.isAuthorize ? "Authorized" : "" }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

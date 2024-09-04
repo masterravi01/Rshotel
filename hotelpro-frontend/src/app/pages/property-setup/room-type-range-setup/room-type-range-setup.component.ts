@@ -48,6 +48,7 @@ export class RoomTypeRangeSetupComponent implements OnInit {
         description: ['', Validators.required],
         adultOccupancy: [0, [Validators.min(1), Validators.required]],
         childOccupancy: [0, Validators.required],
+        baseRate: [0, Validators.required],
         rooms: this.fb.array([]),
       },
       { validators: [this.totalRoomsValidator(), this.noOverlappingRanges()] }

@@ -11,6 +11,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-create-reservation-payment',
@@ -32,11 +33,13 @@ export class CreateReservationPaymentComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private alertService: AlertService,
+    private authService: AuthService,
     private crudService: CrudService
   ) {}
 
   ngOnInit(): void {
-    this.propertyUnitId = this.route.snapshot.paramMap.get('propertyUnitId');
+    this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
+    // this.propertyUnitId = this.route.snapshot.paramMap.get('propertyUnitId');
     this.paymentForm = this.fb.group({
       paymentType: ['cash'],
       amount: [10, [Validators.min(1), Validators.required]],
@@ -99,6 +102,15 @@ export class CreateReservationPaymentComponent implements OnInit {
     return index;
   }
   removePaymnetObj(index: number) {
+    if (!this.paymentEntries[index].deposit) {
+      this.currentBalance += this.paymentEntries[index].amount;
+      this.paymentForm.patchValue({
+        paymentType: 'cash',
+        amount: this.currentBalance,
+        deposit: false,
+        remark: '',
+      });
+    }
     this.paymentEntries.splice(index, 1);
   }
 }

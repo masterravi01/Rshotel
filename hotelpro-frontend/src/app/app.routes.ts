@@ -133,7 +133,7 @@ export const routes: Routes = [
       //reservation collection
 
       {
-        path: 'create-reservation/:propertyUnitId',
+        path: 'create-reservation',
         loadComponent: () =>
           import(
             './pages/reservation-collection/create-reservation/create-reservation.component'
@@ -142,7 +142,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'reservation-info/:propertyUnitId',
+        path: 'reservation-info',
         loadComponent: () =>
           import(
             './pages/reservation-collection/reservation-info/reservation-info.component'
@@ -151,7 +151,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'reservation-payment/:propertyUnitId',
+        path: 'reservation-payment',
         loadComponent: () =>
           import(
             './pages/reservation-collection/create-reservation-payment/create-reservation-payment.component'
@@ -160,7 +160,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'guest-folio/:reservationId',
+        path: 'guest-folio/:groupId',
         loadComponent: () =>
           import(
             './pages/reservation-collection/guest-folio/guest-folio.component'

@@ -1,8 +1,15 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
-import { RoomType, Room } from "../../database/database.schema.js";
+import {
+  RoomType,
+  Room,
+  RatePlanSetup,
+  RatePlanRoomRate,
+  RatePlanRoomType,
+} from "../../database/database.schema.js";
 import mongoose from "mongoose";
+import { AvailableRateTypeEnum } from "../../constants.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 // GET all room types
@@ -104,6 +111,7 @@ const createRoomTypeWithRooms = asyncHandler(async (req, res) => {
     childOccupancy,
     totalrooms,
     rooms,
+    baseRate,
   } = req.body;
   const { propertyUnitId } = req.params;
 
@@ -118,8 +126,6 @@ const createRoomTypeWithRooms = asyncHandler(async (req, res) => {
     totalrooms,
     propertyUnitId,
   });
-
-  await newRoomType.save();
 
   // Create the rooms
   const roomDocuments = [];
@@ -153,7 +159,40 @@ const createRoomTypeWithRooms = asyncHandler(async (req, res) => {
       );
   }
 
-  await Room.insertMany(roomDocuments);
+  //default rate flow
+  let ratePlan = await RatePlanSetup.findOne({ propertyUnitId });
+  if (!ratePlan) {
+    ratePlan = new RatePlanSetup({
+      active: true,
+      isBaseRate: true,
+      ratePlanName: "Best Available Rate",
+      ratePlanShortName: "BAR",
+      propertyUnitId,
+      isRefundable: true,
+    });
+
+    await ratePlan.save();
+  }
+  const rateRoomType = new RatePlanRoomType({
+    ratePlanSetupId: ratePlan._id,
+    roomTypeId: newRoomType._id,
+  });
+  const rateEntries = [];
+  for (let ratetype of AvailableRateTypeEnum) {
+    const roomTypeRate = new RatePlanRoomRate({
+      ratePlanRoomDetailId: rateRoomType._id,
+      rateType: ratetype,
+      baseRate: baseRate ? baseRate : 0,
+    });
+
+    rateEntries.push(roomTypeRate);
+  }
+  await Promise.all([
+    newRoomType.save(),
+    Room.insertMany(roomDocuments),
+    rateRoomType.save(),
+    RatePlanRoomRate.insertMany(rateEntries),
+  ]);
 
   return res
     .status(201)
