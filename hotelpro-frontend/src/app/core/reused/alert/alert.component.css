@@ -1,9 +1,27 @@
 .alert-container {
-  display: flex;
-  justify-content: center; /* Center horizontally */
-  position: fixed;
-  top: 20px; /* Adjust as needed */
-  width: 100%;
-  z-index: 1; /* Ensure it appears above other content */
-  /* Additional styles if necessary */
+  position: relative;
+  z-index: 2;
+  top: 30px;
+}
+.center-div {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+@media only screen and (max-width: 768px) {
+  .center-div {
+    left: 35%;
+    transform: translateX(-35%);
+  }
+}
+
+@media only screen and (max-width: 500px) {
+  .alert-container {
+    top: 0;
+  }
+  .center-div {
+    left: 0;
+    transform: translateX(0);
+    width: 100%;
+  }
 }
