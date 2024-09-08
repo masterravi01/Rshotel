@@ -78,14 +78,15 @@ export const AvailableRateTypeEnum = Object.values(RateTypeEnum);
  * @type {{ MON: "mon"; TUE: "tue"; WED: "wed"; THU: "thu"; FRI: "fri"; SAT: "sat"; SUN: "sun"} as const}
  */
 export const WeekDayEnum = {
-  MON: "mon",
-  TUE: "tue",
-  WED: "wed",
-  THU: "thu",
-  FRI: "fri",
-  SAT: "sat",
-  SUN: "sun",
+  MONDAY: "monday",
+  TUESDAY: "tuesday",
+  WEDNESDAY: "wednesday",
+  THURSDAY: "thursday",
+  FRIDAY: "friday",
+  SATURDAY: "saturday",
+  SUNDAY: "sunday",
 };
+
 export const AvailableWeekDayEnum = Object.values(WeekDayEnum);
 
 /**
