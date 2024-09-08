@@ -3,7 +3,7 @@
     <div class="mx-4 mt-4 inline2">
         <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12 pl-0">
             <div class="d-flex justify-content-end">
-                <div class="btn btn-primary button" (click)="openModalAddHouseKeeper(AddHouseKeeper)">Add Housekeeper
+                <div class="btn btn-success button" (click)="openModalAddHouseKeeper(AddHouseKeeper)">Add Housekeeper
                 </div>
             </div>
             <div class="mt-2">
@@ -30,15 +30,14 @@
                                 <div>{{ d.assignedRoom }}</div>
                             </td>
                             <td>
-                                <a class="link" [routerLink]="
-                    '/frontdesk/housekeepingoperation/viewhousekeeper/' + d._id
-                  ">
+                                <a class="link" (click)="openModalEditHouseKeeper(AddHouseKeeper, i)">
                                     View
                                 </a>
                             </td>
                             <td>
                                 <label class="switch" style="margin-bottom: -10px !important">
-                                    <input type="checkbox" (click)="changeAction(i)" [checked]="d.active == true" />
+                                    <input type="checkbox" (click)="activeDeactiveHousekeeper(i)"
+                                        [checked]="d.active == true" />
                                     <span class="slider round"></span>
                                 </label>
                             </td>
@@ -129,7 +128,7 @@
                             <button class="btn light_button button" (click)="cancelpop()">
                                 Cancel
                             </button>
-                            <button class="btn btn-primary button ms-2" (click)="assignHousekeepingTask()"
+                            <button class="btn btn-success button ms-2" (click)="assignHousekeepingTask()"
                                 [disabled]="AssignHousekeepingForm.invalid">
                                 Add
                             </button>
@@ -145,8 +144,7 @@
     <div class="mx-4 d-flex justify-content-between" style="background-color: #fff;border-radius: 10px;">
         <div class="d-flex">
             <div class="input_container ms-2">
-                <input type="text" class="form-control field search" [(ngModel)]="SearchText" (input)="search($event)"
-                    placeholder="Search" />
+                <input type="text" class="form-control field search" (input)="search($event)" placeholder="Search" />
                 <div class="input_img">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" class="bi bi-search"
                         viewBox="0 0 16 16">
@@ -161,7 +159,7 @@
         </div>
         <div *ngIf="isEditable">
             <div class="btn btn-light button" (click)="ngOnInit()">Cancel</div>
-            <div class="btn btn-primary button ms-2" (click)="updateRooms()">Save</div>
+            <div class="btn btn-success button ms-2" (click)="updateRooms()">Save</div>
         </div>
         <div *ngIf="!isEditable">
             <div class="btn btn-primary button ms-3" (click)="editbtn()">Edit</div>
@@ -178,8 +176,8 @@
                     <th> Status </th>
                     <th> Task </th>
                     <th> Housekeeper </th>
-                    <th> Completed </th>
                     <th> Remarks </th>
+                    <th> Action </th>
                 </thead>
                 <tbody>
                     <ng-container *ngFor="let item of RoomDetails; let i = index">
@@ -235,10 +233,13 @@
                             <td>
                                 <div>{{ item.housekeeperName }}</div>
                             </td>
-                            <td>
-                                <div>{{ item.isCompleted == false ? "Incomplete" : '' }}</div>
-                            </td>
                             <td style="word-wrap: break-word">{{ item.notes }}</td>
+                            <td>
+                                <a *ngIf="item.isCompleted == false" class="link" (click)="completeTask(item)">
+                                    Complete
+                                </a>
+
+                            </td>
                         </tr>
                     </ng-container>
                 </tbody>
@@ -322,7 +323,7 @@
         <div class="btn btn-light button" (click)="modal.close('Close click')">
             Cancel
         </div>
-        <div class="btn btn-primary button ms-2" (click)="rangeUpdate()">
+        <div class="btn btn-success button ms-2" (click)="rangeUpdate()">
             Update
         </div>
     </div>
@@ -330,7 +331,7 @@
 
 <ng-template #AddHouseKeeper let-modal>
     <div class="modal-header">
-        <h4 class="modal-title" id="modal-basic-title">Add Housekeeper</h4>
+        <h4 class="modal-title" id="modal-basic-title">{{modalAction}} Housekeeper</h4>
         <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss(false)"></button>
     </div>
     <form [formGroup]="HouseKeeperForm" class="px-2 mt-2 fix_height">
@@ -435,7 +436,8 @@
             <button class="btn light_button button" (click)="modal.close('Close click')">
                 CANCEL
             </button>
-            <button class="btn btn-primary button ms-2" [disabled]="!HouseKeeperForm.valid" (click)="addHouseKeeper()">
+            <button class="btn btn-success button ms-2" [disabled]="!HouseKeeperForm.valid"
+                (click)="addUpdateHouseKeeper()">
                 Save
             </button>
         </div>

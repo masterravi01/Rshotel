@@ -5,7 +5,12 @@ import bcrypt from "bcrypt";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
-import { UserTypesEnum, SALT_WORK_FACTOR } from "../../constants.js";
+import {
+  UserTypesEnum,
+  SALT_WORK_FACTOR,
+  RoomConditionEnum,
+  AvailableWeekDayEnum,
+} from "../../constants.js";
 
 import {
   HousekeepingTask,
@@ -24,7 +29,7 @@ const createHouseKeeper = asyncHandler(async (req, res) => {
   let data = {};
 
   const existedUser = await User.findOne({
-    email,
+    $or: [{ email }, { phone }],
   });
 
   if (existedUser) {
@@ -60,6 +65,36 @@ const createHouseKeeper = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, data, "House Keeper Added Successfully"));
 });
+const updateHouseKeeper = asyncHandler(async (req, res) => {
+  let { _id, firstName, lastName, email, phone, schedule } = req.body;
+  let data = {};
+
+  const updateWorkerShiftEntries = schedule.map((s) =>
+    mongo.bulkwriteupdateone(
+      { _id: s._id },
+      {
+        day: s.day,
+        working: s.working,
+        shiftEndTime: s.shiftEndTime,
+        shiftStartTime: s.shiftStartTime,
+      }
+    )
+  );
+
+  await Promise.all([
+    housekeeperWorkerShift.bulkWrite(updateWorkerShiftEntries),
+    User.findByIdAndUpdate(_id, {
+      firstName,
+      lastName,
+      email,
+      phone,
+    }),
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, data, "House Keeper Updated Successfully"));
+});
 
 const getHouseKeeper = asyncHandler(async (req, res) => {
   let { propertyUnitId } = req.body;
@@ -73,11 +108,20 @@ const getHouseKeeper = asyncHandler(async (req, res) => {
       },
     },
     {
+      $lookup: {
+        from: "housekeeperworkershifts",
+        localField: "_id",
+        foreignField: "housekeeperId",
+        as: "schedule",
+      },
+    },
+    {
       $project: {
         housekeeperName: {
           $concat: ["$firstName", " ", "$lastName"],
         },
         active: "$isLoginable",
+        schedule: 1,
       },
     },
     {
@@ -112,86 +156,131 @@ const deleteHouseKeeper = asyncHandler(async (req, res) => {
 const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
   let { propertyUnitId } = req.body;
   let data = {};
-
-  data.RoomDetails = await RoomType.aggregate([
-    {
-      $match: {
-        propertyUnitId: new ObjectId(propertyUnitId),
-      },
-    },
-    {
-      $lookup: {
-        from: "rooms",
-        localField: "_id",
-        foreignField: "roomTypeId",
-        as: "RoomDetails",
-      },
-    },
-    {
-      $unwind: {
-        path: "$RoomDetails",
-      },
-    },
-    {
-      $lookup: {
-        from: "housekeepingtasks",
-        localField: "RoomDetails._id",
-        foreignField: "roomId",
-        as: "houseKeepingTaskDetails",
-        pipeline: [
-          {
-            $match: {
-              isCompleted: false,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $unwind: {
-        path: "$houseKeepingTaskDetails",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "houseKeepingTaskDetails.housekeeperId",
-        foreignField: "_id",
-        as: "housekeeper",
-      },
-    },
-    {
-      $unwind: {
-        path: "$housekeeper",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $project: {
-        _id: "$RoomDetails._id",
-        roomNumber: "$RoomDetails.roomNumber",
-        roomName: "$RoomDetails.roomName",
-        roomType: "$roomTypeName",
-        roomCondition: "$RoomDetails.roomCondition",
-        roomStatus: "$RoomDetails.roomStatus",
-        taskName: "$houseKeepingTaskDetails.taskName",
-        isCompleted: "$houseKeepingTaskDetails.isCompleted",
-        housekeeperId: "$HouseKeeperDetails._id",
-        housekeeperName: {
-          $concat: ["$housekeeper.firstName", " ", "$housekeeper.lastName"],
+  [data.RoomDetails, data.housekeeperDetail] = await Promise.all([
+    RoomType.aggregate([
+      {
+        $match: {
+          propertyUnitId: new ObjectId(propertyUnitId),
         },
-        notes: "$houseKeepingTaskDetails.taskDescription",
       },
-    },
-    { $addFields: { Show: true } },
-    {
-      $sort: {
-        roomType: 1,
-        roomNumber: 1,
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_id",
+          foreignField: "roomTypeId",
+          as: "RoomDetails",
+        },
       },
-    },
+      {
+        $unwind: {
+          path: "$RoomDetails",
+        },
+      },
+      {
+        $lookup: {
+          from: "housekeepingtasks",
+          localField: "RoomDetails._id",
+          foreignField: "roomId",
+          as: "houseKeepingTaskDetails",
+          pipeline: [
+            {
+              $match: {
+                isCompleted: false,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$houseKeepingTaskDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "houseKeepingTaskDetails.housekeeperId",
+          foreignField: "_id",
+          as: "housekeeper",
+        },
+      },
+      {
+        $unwind: {
+          path: "$housekeeper",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: "$RoomDetails._id",
+          roomNumber: "$RoomDetails.roomNumber",
+          roomName: "$RoomDetails.roomName",
+          roomType: "$roomTypeName",
+          roomCondition: "$RoomDetails.roomCondition",
+          roomStatus: "$RoomDetails.roomStatus",
+          taskName: "$houseKeepingTaskDetails.taskName",
+          isCompleted: "$houseKeepingTaskDetails.isCompleted",
+          housekeeperId: "$HouseKeeperDetails._id",
+          housekeeperName: {
+            $concat: ["$housekeeper.firstName", " ", "$housekeeper.lastName"],
+          },
+          notes: "$houseKeepingTaskDetails.taskDescription",
+          housekeepingId: "$houseKeepingTaskDetails._id",
+        },
+      },
+      { $addFields: { Show: true } },
+      {
+        $sort: {
+          roomType: 1,
+          roomNumber: 1,
+        },
+      },
+    ]),
+    User.aggregate([
+      {
+        $match: {
+          propertyUnitId: new ObjectId(propertyUnitId),
+          userType: "housekeeper",
+        },
+      },
+      {
+        $lookup: {
+          from: "housekeeperworkershifts",
+          localField: "_id",
+          foreignField: "housekeeperId",
+          as: "schedule",
+        },
+      },
+      {
+        $project: {
+          housekeeperName: {
+            $concat: ["$firstName", " ", "$lastName"],
+          },
+          active: "$isLoginable",
+          schedule: 1,
+          firstName: 1,
+          lastName: 1,
+          phone: 1,
+          email: 1,
+        },
+      },
+      {
+        $addFields: {
+          assignedRoom: 0,
+        },
+      },
+    ]),
   ]);
+
+  for (let hd of data.housekeeperDetail) {
+    hd.schedule.sort((a, b) => {
+      return (
+        AvailableWeekDayEnum.indexOf(a.day) -
+        AvailableWeekDayEnum.indexOf(b.day)
+      );
+    });
+  }
 
   return res
     .status(200)
@@ -217,26 +306,6 @@ const updateRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
         }
       )
     );
-
-    // if (RoomDetails[j].housekeeperId) {
-    //   let housekeeping_detail = {};
-    //   housekeeping_detail.housekeeperId = RoomDetails[j].housekeeperId;
-    //   housekeeping_detail.roomId = RoomDetails[j]._id;
-    //   housekeeping_detail.taskDescription = RoomDetails[j].Remarks;
-    //   housekeeping_detail.taskName = RoomDetails[j].taskName;
-    //   if (RoomDetails[j].HouseKeeperRoomDetailsId) {
-    //     await mongo.updateCollection(
-    //       HousekeepingTask,
-    //       {
-    //         _id: new ObjectId(RoomDetails[j].HouseKeeperRoomDetailsId),
-    //       },
-    //       housekeeping_detail
-    //     );
-    //   } else {
-    //     housekeeping_detail = new HousekeepingTask(housekeeping_detail);
-    //     await mongo.insertIntoCollection(housekeeping_detail);
-    //   }
-    // }
   }
 
   await Promise.all([Room.bulkWrite(updateRoomEntries)]);
@@ -246,7 +315,6 @@ const updateRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Housekeeping task updated successfully"));
 });
 
-// POST create a new housekeeping task
 const createHouseKeepingTask = asyncHandler(async (req, res) => {
   const {
     housekeeper: housekeeperId,
@@ -274,11 +342,26 @@ const createHouseKeepingTask = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, {}, "Housekeeping task assigned successfully"));
 });
 
+const completeTaskById = asyncHandler(async (req, res) => {
+  const { housekeepingId, roomId } = req.body;
+
+  await Promise.all([
+    HousekeepingTask.findByIdAndUpdate(housekeepingId, { isCompleted: true }),
+    Room.findByIdAndUpdate(roomId, { roomCondition: RoomConditionEnum.CLEAN }),
+  ]);
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, {}, "Housekeeping task completed successfully"));
+});
+
 export default {
   createHouseKeeper,
+  updateHouseKeeper,
   getHouseKeeper,
   deleteHouseKeeper,
   getRoomsWithHouseKeeping,
   updateRoomsWithHouseKeeping,
   createHouseKeepingTask,
+  completeTaskById,
 };

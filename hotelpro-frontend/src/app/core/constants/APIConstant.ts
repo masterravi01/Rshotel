@@ -35,11 +35,13 @@ export const APIConstant = {
   READ_AVAILABLE_ROOM_FOR_DATERANGE: 'room/read-available-room-for-daterange/',
 
   CREATE_HOUSE_KEEPER: 'room/create-house-keeper/',
+  UPDATE_HOUSE_KEEPER: 'room/update-house-keeper/',
   READ_HOUSE_KEEPER: 'room/read-house-keeper/',
   DELETE_HOUSE_KEEPER: 'room/delete-house-keeper/',
   READ_ROOMS_WITH_HOUSE_KEEPING: 'room/read-rooms-with-house-keeping/',
   UPDATE_ROOMS_WITH_HOUSE_KEEPING: 'room/update-rooms-with-house-keeping/',
   CREATE_HOUSE_KEEPING_TASK: 'room/create-house-keeping-task/',
+  COMPLETE_TASK_BY_ID: 'room/complete-task-by-id/',
 
   CREATE_TAX: 'propertyunit/create-tax',
   UPDATE_TAX: 'propertyunit/update-tax/',
