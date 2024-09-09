@@ -221,7 +221,7 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
           roomStatus: "$RoomDetails.roomStatus",
           taskName: "$houseKeepingTaskDetails.taskName",
           isCompleted: "$houseKeepingTaskDetails.isCompleted",
-          housekeeperId: "$HouseKeeperDetails._id",
+          housekeeperId: "$housekeeper._id",
           housekeeperName: {
             $concat: ["$housekeeper.firstName", " ", "$housekeeper.lastName"],
           },
@@ -272,6 +272,16 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
       },
     ]),
   ]);
+
+  for (let hd of data.housekeeperDetail) { 
+    let assignRoomCount = 0;
+    for (let rd of data.RoomDetails) { 
+      if (rd.housekeeperId && hd._id.toString() == rd.housekeeperId.toString()) { 
+        assignRoomCount++;
+      }
+    }
+    hd.assignedRoom = assignRoomCount;
+  }
 
   for (let hd of data.housekeeperDetail) {
     hd.schedule.sort((a, b) => {
