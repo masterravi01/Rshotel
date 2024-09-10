@@ -1,17 +1,52 @@
 <div class="m-3 row g-0">
-  <div class="col-9">
+  <div class="container_form p-3 m-2 rounded">
+    <div class="d-flex justify-content-between">
+      <div class="">
+        <p class="form-label fs-5 fw-semibold">
+          Reservation Folio (#RES421)
+          {{ groupDetails?.arrival | date : "MMM d, y" }}
+          <i class="material-symbols-rounded" style="vertical-align: middle">
+            line_end_arrow_notch</i
+          >{{ groupDetails?.departure | date : "MMM d, y" }} Rooms:{{
+            groupDetails?.reservations?.length
+          }}
+        </p>
+      </div>
+
+      <div class="">
+        <i class="material-symbols-rounded mt-2" style="vertical-align: middle">
+          print</i
+        >
+      </div>
+    </div>
+  </div>
+  <div class="col-md-9 col-12">
     <div class="container_form p-3 m-2 rounded">
-      <label class="form-label fw-semibold">Customer Details</label>
       <div class="row">
         <div class="col-8">
           <div class="d-flex flex-column">
+            <label class="form-label fw-semibold mb-2"
+              >Customer Details:
+              <i
+                class="material-symbols-rounded"
+                style="vertical-align: middle; font-size: 20px"
+              >
+                edit</i
+              >
+              <i
+                class="material-symbols-rounded"
+                style="vertical-align: middle; font-size: 20px"
+              >
+                file_present</i
+              ></label
+            >
             <label class="form-label">
               Name :
               <span class="fw-semibold"
                 >{{ groupDetails?.customerDetails?.firstName }}
                 {{ groupDetails?.customerDetails?.lastName }}</span
-              ></label
-            >
+              >
+            </label>
             <label class="form-label">
               Phone :
               <span class="fw-semibold"
@@ -40,69 +75,46 @@
         </div>
         <div class="col-4 text-end">
           <div class="d-flex flex-column">
-            <label class="form-label fw-semibold"> View Details </label>
-            <label class="form-label fw-semibold"> Edit Details </label>
+            <label class="form-label fw-semibold mt-2"> Make Payment </label>
+            <label class="form-label fw-semibold mt-2"> View Logs </label>
+            <label class="form-label fw-semibold mt-2">
+              Cancel Reservations</label
+            >
+            <label class="form-label fw-semibold mt-2"> Add Room </label>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-3">
+  <div class="col-md-3 col-12">
     <div class="card container_form p-3 m-2 rounded">
       <label class="form-label fw-semibold">Reservation Summary</label>
-      <div class="card-body">
-        <label class="form-label">
-          Checkin Date :
-          <span class="fw-semibold">{{
-            groupDetails?.arrival | date : "MMM d, y"
-          }}</span></label
-        >
-        <label class="form-label">
-          Checkout Date :
-          <span class="fw-semibold">{{
-            groupDetails?.departure | date : "MMM d, y"
-          }}</span></label
-        >
+      <div class="card-body pt-2">
         <label class="form-label">
           Adults/Children:
           <span class="fw-semibold"
             >{{ groupDetails?.adults }} /{{ groupDetails?.childs }}</span
           ></label
         >
+        <br />
         <label class="form-label">
           Total Cost:
           <span class="fw-semibold"
             >{{ groupDetails?.totalCost | currency }}
           </span></label
         >
+        <br />
         <label class="form-label">
           Total Price:
           <span class="fw-semibold"
             >{{ groupDetails?.totalPrice | currency }}
           </span></label
         >
+        <br />
         <label class="form-label">
           Total Tax:
           <span class="fw-semibold"
             >{{ groupDetails?.totalTax | currency }}
-          </span></label
-        >
-        <label class="form-label">
-          Total Payment:
-          <span class="fw-semibold"
-            >{{ groupDetails?.totalPayment | currency }}
-          </span></label
-        >
-        <label class="form-label">
-          Total Deposit:
-          <span class="fw-semibold"
-            >{{ groupDetails?.totalDeposit | currency }}
-          </span></label
-        >
-        <label class="form-label">
-          Total Balance:
-          <span class="fw-semibold"
-            >{{ groupDetails?.totalBalance | currency }}
           </span></label
         >
       </div>
@@ -113,29 +125,81 @@
   $index) {
   <div class="col-md-12">
     <div class="container_form p-3 m-2 rounded">
-      <div class="row">
-        <h5 class="form-label fw-semibold">Room {{ i }}</h5>
+      <div class="d-flex justify-content-between">
+        <div class="">
+          <p class="form-label fs-5 fw-semibold">
+            #Res141 ({{
+              reservation?.roomDetails?.roomTypeDetails?.roomTypeName
+            }}
+            -{{ reservation?.roomDetails?.roomName }})
+            {{ reservation?.arrival | date }}
+            <i class="material-symbols-rounded" style="vertical-align: middle">
+              line_end_arrow_notch</i
+            >{{ reservation?.departure | date }}
+          </p>
+        </div>
+
+        <div class="">
+          <i
+            class="material-symbols-rounded mt-2"
+            style="vertical-align: middle"
+          >
+            print</i
+          >
+        </div>
       </div>
     </div>
   </div>
-  <div class="col-9">
+  <div class="col-md-9 col-12">
     <div class="container_form p-3 m-2 rounded">
-      <label class="form-label fw-semibold">Guest Details</label>
+      <!-- <label class="form-label fw-semibold">Guest Details</label> -->
       <div class="row">
-        <div class="col-8">
+        <div class="col-md-4 col-12">
+          <div style="height: 200px; text-align: center; margin: 0; padding: 0">
+            <ng-image-slider
+              #nav
+              [images]="imageObject"
+              [infinite]="false"
+              [autoSlide]="1"
+              [imageSize]="{ width: 300, height: 200 }"
+              slideImage="1"
+            ></ng-image-slider>
+          </div>
+        </div>
+        <div class="col-md-5 col-8">
           <label class="form-label">
             Name :
             <span class="fw-semibold"
               >{{ reservation?.guestDetails?.firstName }}
               {{ reservation?.guestDetails?.lastName }}</span
-            ></label
-          >
+            >
+            <i
+              class="material-symbols-rounded ms-1"
+              style="vertical-align: middle; font-size: 20px"
+            >
+              edit</i
+            >
+            <i
+              class="material-symbols-rounded"
+              style="vertical-align: middle; font-size: 20px"
+            >
+              file_present</i
+            >
+            <i
+              class="material-symbols-rounded"
+              style="vertical-align: middle; font-size: 20px"
+            >
+              group</i
+            >
+          </label>
+          <br />
           <label class="form-label">
             Phone :
             <span class="fw-semibold"
               >{{ reservation?.guestDetails?.phone }}
             </span></label
           >
+          <br />
           <label class="form-label">
             Email :
             <span class="fw-semibold"
@@ -152,7 +216,7 @@
               {{ reservation?.guestDetails?.guestAddress?.zipCode }}
             </span></label
           >
-          <table class="table">
+          <!-- <table class="table">
             <thead>
               <tr>
                 <th scope="col">Balance</th>
@@ -167,20 +231,25 @@
                 <td>{{ r.balanceName }}</td>
               </tr>
             </tbody>
-          </table>
+          </table> -->
         </div>
-        <div class="col-4 text-end">
+        <div class="col-md-3 col-4 text-end">
           <div class="d-flex flex-column">
-            <label class="form-label fw-semibold"> View Details </label>
+            <label class="form-label fw-semibold"> Add Guest </label>
+            <label class="form-label fw-semibold mt-2"> Cancel Room </label>
+            <label class="form-label fw-semibold mt-2"> Update Stay </label>
+            <label class="form-label fw-semibold mt-2"> Change Room </label>
+            <label class="form-label fw-semibold mt-2"> Room Charges </label>
+            <label class="form-label fw-semibold mt-2">Make Payment </label>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-3">
+  <div class="col-md-3 col-12">
     <div class="card container_form p-3 m-2 rounded">
       <label class="form-label fw-semibold">Reservation Summary</label>
-      <div class="card-body">
+      <div class="card-body pt-2">
         <label class="form-label">
           Adults/Children:
           <span class="fw-semibold"
@@ -189,26 +258,35 @@
             }}</span
           ></label
         >
+        <br />
         <label class="form-label">
           Room Cost:
           <span class="fw-semibold"
             >{{ reservation?.reservationDetails?.roomCost | currency }}
           </span></label
         >
+        <br />
         <label class="form-label">
-          Room :
+          Payment:
           <span class="fw-semibold"
-            >{{ reservation?.roomDetails?.roomTypeDetails?.roomTypeName }} -{{
-              reservation?.roomDetails?.roomName
-            }}
+            >{{ reservation?.reservationDetails?.payment | currency }}
           </span></label
         >
+        <br />
+        <label class="form-label">
+          Deposit:
+          <span class="fw-semibold"
+            >{{ reservation?.reservationDetails?.deposit | currency }}
+          </span></label
+        >
+        <br />
         <label class="form-label">
           RatePlan :
           <span class="fw-semibold"
             >{{ reservation?.rateDetails?.ratePlanName }}
           </span></label
         >
+        <br />
         <label class="form-label">
           Status :
           <span class="fw-semibold"
@@ -219,10 +297,10 @@
     </div>
   </div>
   }
-  <div class="col-9">
+  <div class="col-md-9 col-12">
     <div class="container_form p-3 m-2 rounded">
-      <label class="form-label fw-semibold">Payment Details</label>
-      <table class="table">
+      <label class="form-label fw-semibold">Payment Details"</label>
+      <table class="table pb-0 pay-table mt-2">
         <thead>
           <tr>
             <th scope="col">Payment</th>
@@ -245,6 +323,33 @@
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+  <div class="col-md-3 col-12">
+    <div class="card container_form p-3 m-2 rounded">
+      <label class="form-label fw-semibold">Payment Summary</label>
+      <div class="card-body pt-2">
+        <label class="form-label">
+          Total Payment:
+          <span class="fw-semibold"
+            >{{ groupDetails?.totalPayment | currency }}
+          </span></label
+        >
+        <br />
+        <label class="form-label">
+          Total Deposit:
+          <span class="fw-semibold"
+            >{{ groupDetails?.totalDeposit | currency }}
+          </span></label
+        >
+        <br />
+        <label class="form-label">
+          Total Balance:
+          <span class="fw-semibold"
+            >{{ groupDetails?.totalBalance | currency }}
+          </span></label
+        >
+      </div>
     </div>
   </div>
 </div>

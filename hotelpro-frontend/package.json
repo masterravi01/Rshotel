@@ -26,6 +26,7 @@
     "ag-grid-community": "^31.3.2",
     "bootstrap": "^5.3.3",
     "crypto-js": "^4.2.0",
+    "ng-image-slider-v17": "^8.0.1",
     "ng-multiselect-dropdown": "^1.0.0",
     "ngx-file-drop": "^16.0.0",
     "ngx-skeleton-loader": "^9.0.0",
