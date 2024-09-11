@@ -15,6 +15,7 @@ export const APIConstant = {
   UPDATE_PROPERTY_UNIT: 'propertyunit/update-propertyunit/',
   CREATE_PROPERTY_UNIT: 'propertyunit/create-propertyunit',
   READ_PROPERTY_UNIT: 'propertyunit/read-propertyunit/',
+  READ_USER_BY_PROPERTY_UNIT: 'propertyunit/read-uesr-by-propertyunit/',
 
   READ_ROOMTYPES: 'room/read-roomtypes/',
   READ_ROOMTYPE_BY_ID: 'room/read-roomtypebyid/',

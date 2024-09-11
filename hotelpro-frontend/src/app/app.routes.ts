@@ -73,6 +73,24 @@ export const routes: Routes = [
         title: 'Dashboard',
         canActivate: [authGuard],
       },
+      {
+        path: 'frontdesk',
+        loadComponent: () =>
+          import(
+            './pages/dashboard/frontdesk-dashboard/frontdesk-dashboard.component'
+          ).then((m) => m.FrontdeskDashboardComponent),
+        title: 'Frontdesk',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'manage-user/:propertyUnitId',
+        loadComponent: () =>
+          import(
+            './pages/dashboard/manage-user/manage-user.component'
+          ).then((m) => m.ManageUserComponent),
+        title: 'Manage User',
+        canActivate: [authGuard],
+      },
 
       //property-setup components
 
