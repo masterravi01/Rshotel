@@ -94,8 +94,6 @@ export class ReservationInfoComponent implements OnInit {
       this.populateReservations(data.reservationDetails);
       this.roomTypeRooms = data.roomTypeRooms;
     }
-    this.propertyUnitId =
-      this.activeRoute.snapshot.paramMap.get('propertyUnitId');
   }
 
   private formatDate(date: Date): string {

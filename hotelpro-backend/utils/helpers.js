@@ -161,3 +161,14 @@ export const deleteLocalImage = (...localPaths) => {
     }
   });
 };
+
+export const IsValidObjectId = (id) => {
+  return mongoose.Types.ObjectId.isValid(id);
+};
+
+export const prepareInternalError = (message) => {
+  const error = new Error();
+  error.name = "InternalError";
+  error.message = message;
+  return error;
+};
