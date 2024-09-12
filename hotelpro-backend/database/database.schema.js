@@ -668,6 +668,10 @@ const reservationSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Room",
     },
+    roomTypeId: {
+      type: Schema.Types.ObjectId,
+      ref: "RoomType",
+    },
     tantative: {
       type: Boolean,
       default: false,
@@ -1000,3 +1004,75 @@ const roomBalanceSchema = new Schema(
 );
 
 export const RoomBalance = mongoose.model("RoomBalance", roomBalanceSchema);
+
+const roomLockIdentitySchema = new Schema(
+  {
+    propertyUnitId: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "PropertyUnit",
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+export const RoomLockIdentity = mongoose.model(
+  "RoomLockIdentity",
+  roomLockIdentitySchema
+);
+
+const roomReservationConcurrencySchema = new Schema(
+  {
+    date: {
+      type: Date,
+      required: true,
+    },
+    roomId: {
+      type: Schema.Types.ObjectId,
+      ref: "Room",
+    },
+    roomLockId: {
+      type: Schema.Types.ObjectId,
+      ref: "RoomLockIdentity",
+      required: true,
+    },
+    propertyUnitId: {
+      type: Schema.Types.ObjectId,
+      ref: "PropertyUnit",
+    },
+  },
+  { timestamps: true }
+);
+
+export const RoomReservationConcurrency = mongoose.model(
+  "roomReservationConcurrency",
+  roomReservationConcurrencySchema
+);
+
+const propertyFolioSchema = new Schema(
+  {
+    propertyUnitId: {
+      type: Schema.Types.ObjectId,
+      ref: "PropertyUnit",
+    },
+    currentFolioNumber: {
+      type: Number,
+      default: 1,
+    },
+    currentFolioGroupNumber: {
+      type: Number,
+      default: 1,
+    },
+    currentReceiptNumber: {
+      type: Number,
+      default: 1,
+    },
+  },
+  { timestamps: true }
+);
+
+export const propertyFolio = mongoose.model(
+  "propertyFolio",
+  propertyFolioSchema
+);

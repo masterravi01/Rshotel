@@ -15,6 +15,8 @@ import {
   BillingAccount,
   TransactionCode,
   GuestTransaction,
+  BookingControl,
+  RoomMaintenance,
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
 const ObjectId = mongoose.Types.ObjectId;
@@ -23,11 +25,16 @@ import {
   deleteFromCloudinary,
   uploadOnCloudinary,
 } from "../../utils/cloudinary.js";
-import { deleteLocalImage } from "../../utils/helpers.js";
+import { deleteLocalImage, prepareInternalError } from "../../utils/helpers.js";
 import {
   CLOUD_AVATAR_FOLDER_NAME,
   CLOUD_COVERPIC_FOLDER_NAME,
 } from "../../constants.js";
+
+import {
+  checkAndAllocateRoom,
+  deallocateMultipleRooms,
+} from "./room-reservation-concurrency.js";
 
 // GET all reservations
 const getAllReservations = asyncHandler(async (req, res) => {
@@ -61,61 +68,243 @@ const getReservationById = asyncHandler(async (req, res) => {
 
 const createReservation = asyncHandler(async (req, res) => {
   let session = null;
+  let AllInsertedRoomLockIds = [];
+
   try {
     session = await mongoose.startSession();
     console.log("Session started:", session.id);
 
     await session.withTransaction(async () => {
       console.log("Transaction started");
+
       let { groupDetails, reservationsArray, paymentEntries, propertyUnitId } =
         req.body;
       propertyUnitId = new ObjectId(propertyUnitId);
+      let reservationsRoomTypeIds = [];
+      let assigncheckindate = new Date(groupDetails.arrival);
+      let assigncheckoutdate = new Date(groupDetails.departure);
+
+      // Get unique roomTypeIds from reservationsArray
+      reservationsArray.forEach((r) => {
+        const roomTypeId = new ObjectId(r.roomTypeId);
+        if (!reservationsRoomTypeIds.includes(roomTypeId)) {
+          reservationsRoomTypeIds.push(roomTypeId);
+        }
+      });
+
+      let [
+        OldReservations,
+        TotalRooms,
+        RoomMaintainanceDetails,
+        BookingControlDetails,
+      ] = await Promise.all([
+        Reservation.aggregate([
+          {
+            $match: {
+              $and: [
+                { departure: { $gt: assigncheckindate } },
+                { arrival: { $lt: assigncheckoutdate } },
+                { propertyUnitId },
+                { roomTypeId: { $in: reservationsRoomTypeIds } },
+                {
+                  $or: [
+                    { reservationStatus: "inhouse" },
+                    { reservationStatus: "reserved" },
+                  ],
+                },
+              ],
+            },
+          },
+          { $project: { roomId: 1, tantative: 1, roomTypeId: 1 } },
+        ]),
+        RoomType.aggregate([
+          {
+            $match: {
+              propertyUnitId,
+              _id: { $in: reservationsRoomTypeIds },
+            },
+          },
+          {
+            $lookup: {
+              from: "rooms",
+              localField: "_id",
+              foreignField: "roomTypeId",
+              as: "TotalRoomDetails",
+            },
+          },
+          { $unwind: "$TotalRoomDetails" },
+          {
+            $group: {
+              _id: "$_id",
+              rooms: { $push: "$TotalRoomDetails" },
+              roomId: { $push: { $toString: "$TotalRoomDetails._id" } },
+            },
+          },
+        ]),
+        RoomMaintenance.aggregate([
+          {
+            $match: {
+              $and: [
+                { endDate: { $gt: assigncheckindate } },
+                { startDate: { $lt: assigncheckoutdate } },
+                { isCompleted: { $ne: true } },
+                { propertyUnitId },
+              ],
+            },
+          },
+          {
+            $lookup: {
+              from: "rooms",
+              localField: "roomId",
+              foreignField: "_id",
+              as: "RoomMaintainanceDetails",
+            },
+          },
+          { $unwind: "$RoomMaintainanceDetails" },
+          {
+            $group: {
+              _id: null,
+              MaintainanceRoomId: {
+                $push: { $toString: "$RoomMaintainanceDetails._id" },
+              },
+            },
+          },
+        ]),
+        BookingControl.find({
+          propertyUnitId,
+          date: { $gte: assigncheckindate, $lte: assigncheckoutdate },
+        }).lean(),
+      ]);
+
+      RoomMaintainanceDetails = RoomMaintainanceDetails[0];
+
+      // Update TotalRooms with booking controls and maintenance
+      BookingControlDetails.forEach((b) => {
+        if (
+          b.soldOut &&
+          b.date >= assigncheckindate &&
+          b.date < assigncheckoutdate
+        ) {
+          TotalRooms.forEach((r) => {
+            r.rooms = r.rooms.filter(
+              (room) => room._id.toString() !== b.roomId.toString()
+            );
+            r.roomId = r.roomId.filter((id) => id !== b.roomId);
+          });
+        }
+      });
+
+      TotalRooms.forEach((r) => {
+        r.TotalRoom = r.rooms.length;
+      });
+
+      // Adjust room availability based on old reservations and maintenance
+      for (let i = 0; i < TotalRooms.length; i++) {
+        if (OldReservations.length > 0) {
+          OldReservations.forEach((r) => {
+            if (r.tantative && r.roomTypeId.equals(TotalRooms[i]._id)) {
+              TotalRooms[i].TotalRoom -= 1;
+            } else {
+              const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
+              if (index > -1 && !r.tantative) {
+                TotalRooms[i].rooms.splice(index, 1);
+                TotalRooms[i].roomId.splice(index, 1);
+                TotalRooms[i].TotalRoom -= 1;
+              }
+            }
+          });
+        }
+
+        if (RoomMaintainanceDetails?.MaintainanceRoomId.length > 0) {
+          RoomMaintainanceDetails.MaintainanceRoomId.forEach((id) => {
+            const index = TotalRooms[i].roomId.indexOf(id);
+            if (index > -1) {
+              TotalRooms[i].rooms.splice(index, 1);
+              TotalRooms[i].roomId.splice(index, 1);
+              TotalRooms[i].TotalRoom -= 1;
+            }
+          });
+        }
+      }
+
+      // Handle room reservations and locks
+      for (let reservation of reservationsArray) {
+        for (let r of TotalRooms) {
+          if (String(r._id) === reservation.roomTypeId) {
+            if (r.TotalRoom <= 0)
+              throw prepareInternalError("Rooms not available");
+            if (reservation.roomId == "assign") {
+              delete reservation.roomId;
+              reservation.tantative = true;
+              r.TotalRoom -= 1;
+              continue;
+            }
+            if (reservation.roomId && !r.roomId.includes(reservation.roomId)) {
+              throw prepareInternalError("Selected room is not available");
+            }
+            if (reservation.roomId && r.roomId.includes(reservation.roomId)) {
+              const AllocatedRoomLockResponse = await checkAndAllocateRoom(
+                propertyUnitId,
+                reservation.roomId,
+                assigncheckindate,
+                assigncheckoutdate
+              );
+              if (!AllocatedRoomLockResponse.isRoomAvailable) {
+                throw prepareInternalError(
+                  "The selected room is not available!"
+                );
+              }
+              reservation.roomLockId = AllocatedRoomLockResponse.roomLockId;
+              AllInsertedRoomLockIds.push(reservation.roomLockId);
+              r.TotalRoom -= 1;
+            }
+          }
+        }
+      }
+
+      // Save group reservation and related entries
+      const groupData = new GroupReservation(groupDetails);
+      let customerDetails = new User({
+        ...groupDetails,
+        userType: UserTypesEnum.GUEST,
+      });
+      let customerAddress = new Address(groupDetails);
+      customerDetails.addressId = customerAddress._id;
+      groupData.customerId = customerDetails._id;
+
       let ReservationEntries = [];
       let ReservationDetailEntries = [];
-      let UserEntries = [];
-      let AddressEntries = [];
       let RoomBalanceEntries = [];
+      let UserEntries = [customerDetails];
+      let AddressEntries = [customerAddress];
       let TransactionCodeEntries = [];
       let GuestTransactionEntries = [];
 
-      // Group reservation data
-      const groupData = new GroupReservation(groupDetails);
-      let customerDetails = new User(groupDetails);
-      customerDetails.userType = UserTypesEnum.GUEST;
-      let customerAddress = new Address(groupDetails);
-      customerDetails.addressId = customerAddress._id;
-
-      groupData.customerId = customerDetails._id;
-      UserEntries.push(customerDetails);
-      AddressEntries.push(customerAddress);
-
-      // Handling reservations array
+      // Handle reservations and guests
       for (let reservation of reservationsArray) {
-        let reservationObj = new Reservation(reservation);
-        reservationObj.propertyUnitId = propertyUnitId;
-        reservationObj.arrival = groupData.arrival;
-        reservationObj.departure = groupData.departure;
-        reservationObj.groupId = groupData._id;
+        let reservationObj = new Reservation({
+          ...reservation,
+          propertyUnitId,
+          groupId: groupData._id,
+          arrival: groupData.arrival,
+          departure: groupData.departure,
+        });
 
-        let reservationDetailObj = new ReservationDetail(reservation);
-        reservationDetailObj.reservationId = reservationObj._id;
-        reservationDetailObj.adults =
-          reservation.adultOccupant + reservation.extraAdults;
-        reservationDetailObj.childs =
-          reservation.childOccupant + reservation.extraChilds;
-        ReservationDetailEntries.push(reservationDetailObj);
+        let reservationDetailObj = new ReservationDetail({
+          ...reservation,
+          reservationId: reservationObj._id,
+          adults: reservation.adultOccupant + reservation.extraAdults,
+          childs: reservation.childOccupant + reservation.extraChilds,
+        });
 
-        // Handling guests
-        reservation.guests.forEach((guest, index) => {
-          let guestObj;
-          let guestAddress;
-
+        // Handle guests and guest transactions
+        for (let [index, guest] of reservation.guests.entries()) {
+          let guestObj, guestAddress;
           if (index === 0) {
             if (guest.isSameAsCustomer) {
               reservationObj.userId = customerDetails._id;
             } else {
-              guestObj = new User(guest);
-              guestObj.userType = UserTypesEnum.GUEST;
+              guestObj = new User({ ...guest, userType: UserTypesEnum.GUEST });
               guestAddress = new Address(guest);
               guestObj.addressId = guestAddress._id;
               reservationObj.userId = guestObj._id;
@@ -126,8 +315,7 @@ const createReservation = asyncHandler(async (req, res) => {
             if (guest.isSameAsCustomer) {
               reservationObj.secondaryUserIds.push(customerDetails._id);
             } else {
-              guestObj = new User(guest);
-              guestObj.userType = UserTypesEnum.GUEST;
+              guestObj = new User({ ...guest, userType: UserTypesEnum.GUEST });
               guestAddress = new Address(guest);
               guestObj.addressId = guestAddress._id;
               reservationObj.secondaryUserIds.push(guestObj._id);
@@ -135,104 +323,110 @@ const createReservation = asyncHandler(async (req, res) => {
               AddressEntries.push(guestAddress);
             }
           }
-        });
+        }
+        ReservationEntries.push(reservationObj);
+        ReservationDetailEntries.push(reservationDetailObj);
 
-        // Handling date rates
+        // Handle date rates
         reservation.dateRate.forEach((rate) => {
-          let rb = new RoomBalance(rate);
-          rb.balanceDate = rate.date;
-          rb.reservationId = reservationObj._id;
-          rb.balance = -(
-            rate.baseRate +
-            reservation.extraAdults * rate.adultRate +
-            reservation.extraChilds * rate.childRate
-          );
-          rb.roomId = reservationObj.roomId;
+          let rb = new RoomBalance({
+            balanceDate: rate.date,
+            reservationId: reservationObj._id,
+            balance: -(
+              rate.baseRate +
+              reservation.extraAdults * rate.adultRate +
+              reservation.extraChilds * rate.childRate
+            ),
+            roomId: reservationObj.roomId,
+          });
           RoomBalanceEntries.push(rb);
 
-          let rbtax = new RoomBalance();
-          rbtax.balanceDate = rate.date;
-          rbtax.reservationId = reservationObj._id;
-          rbtax.balanceName = "Tax";
-          rbtax.balance =
-            -(
-              (rate.baseRate +
+          let rbtax = new RoomBalance({
+            balanceDate: rate.date,
+            reservationId: reservationObj._id,
+            balanceName: "Tax",
+            balance:
+              (-(
+                rate.baseRate +
                 reservation.extraAdults * rate.adultRate +
-                reservation.extraChilds * rate.childRate) *
-              reservation.taxPercentage
-            ) / 100;
-          rbtax.roomId = reservationObj.roomId;
+                reservation.extraChilds * rate.childRate
+              ) *
+                reservation.taxPercentage) /
+              100,
+            roomId: reservationObj.roomId,
+          });
           RoomBalanceEntries.push(rbtax);
         });
-
-        ReservationEntries.push(reservationObj);
       }
 
-      // Create Billing Account
-      let billing_account = new BillingAccount();
-      billing_account.billingAccountName =
-        groupDetails.firstName + " " + groupDetails.lastName;
-      billing_account.billingAccountDescription = "";
-      billing_account.propertyUnitId = propertyUnitId;
-      billing_account.userId = customerDetails._id;
+      let billing_account = new BillingAccount({
+        billingAccountName: `${groupDetails.firstName} ${groupDetails.lastName}`,
+        propertyUnitId,
+        userId: customerDetails._id,
+      });
 
-      // Handling payments
-      if (paymentEntries && paymentEntries.length > 0) {
-        for (let i = 0; i < paymentEntries.length; i++) {
-          if (paymentEntries[i].paymentType === "cash") {
-            let transaction_code = {};
-            transaction_code.transactionCode = String(new ObjectId());
-            transaction_code.transactionRate = paymentEntries[i].amount;
-            transaction_code.transactionDetail = paymentEntries[i].remark;
-            transaction_code.receipt = Math.floor(
-              100000 + Math.random() * 900000
-            );
-            transaction_code.transactionType = "Reservation";
-            transaction_code.date = Date.now();
-            transaction_code = new TransactionCode(transaction_code);
-            TransactionCodeEntries.push(transaction_code);
+      // Handle payments
+      if (paymentEntries?.length > 0) {
+        for (let payment of paymentEntries) {
+          if (payment.paymentType === "cash") {
+            let transactionCode = new TransactionCode({
+              transactionCode: String(new ObjectId()),
+              transactionType: "Reservation",
+              transactionRate: payment.amount,
+              transactionDetail: payment.remark,
+              receipt: Math.floor(100000 + Math.random() * 900000),
+              date: Date.now(),
+            });
 
-            let guest_transaction = {};
-            guest_transaction.transactionCodeId = transaction_code._id;
-            guest_transaction.groupId = groupData._id;
-            guest_transaction.userId = customerDetails._id;
-            guest_transaction.isDeposit = paymentEntries[i].deposit;
-            guest_transaction.transactionDate = Date.now();
-            guest_transaction.billingAccountId = billing_account._id;
-            guest_transaction = new GuestTransaction(guest_transaction);
-            GuestTransactionEntries.push(guest_transaction);
+            let guestTransaction = new GuestTransaction({
+              transactionCodeId: transactionCode._id,
+              isDeposit: payment.deposit,
+              transactionDate: Date.now(),
+              userId: customerDetails._id,
+              groupId: groupData._id,
+              billingAccountId: billing_account._id,
+            });
 
-            if (paymentEntries[i].deposit) {
-              groupData.totalDeposit += paymentEntries[i].amount;
+            TransactionCodeEntries.push(transactionCode);
+            GuestTransactionEntries.push(guestTransaction);
+            if (payment.deposit) {
+              groupData.totalDeposit += payment.amount;
             } else {
-              groupData.totalBalance += paymentEntries[i].amount;
-              groupData.totalPayment += paymentEntries[i].amount;
+              groupData.totalBalance += payment.amount;
+              groupData.totalPayment += payment.amount;
             }
           }
         }
       }
 
-      // Saving all entries to the database
-      await Promise.all([
-        groupData.save({ session }),
-        billing_account.save({ session }),
-        User.insertMany(UserEntries, { session }),
-        Address.insertMany(AddressEntries, { session }),
-        Reservation.insertMany(ReservationEntries, { session }),
-        RoomBalance.insertMany(RoomBalanceEntries, { session }),
-        ReservationDetail.insertMany(ReservationDetailEntries, { session }),
-        TransactionCode.insertMany(TransactionCodeEntries, { session }),
-        GuestTransaction.insertMany(GuestTransactionEntries, { session }),
-      ]);
-
-      console.log("Transaction committed successfully");
-      return res
-        .status(201)
-        .json(new ApiResponse(201, {}, "Reservation created successfully"));
+      // Insert all entries
+      try {
+        console.log("Saving All data...");
+        await Promise.all([
+          groupData.save({ session }),
+          Reservation.insertMany(ReservationEntries, { session }),
+          ReservationDetail.insertMany(ReservationDetailEntries, { session }),
+          RoomBalance.insertMany(RoomBalanceEntries, { session }),
+          BillingAccount.insertMany([billing_account], { session }),
+          User.insertMany(UserEntries, { session }),
+          Address.insertMany(AddressEntries, { session }),
+          TransactionCode.insertMany(TransactionCodeEntries, { session }),
+          GuestTransaction.insertMany(GuestTransactionEntries, { session }),
+        ]);
+      } catch (error) {
+        console.error("Error saving All data :", error);
+        throw error;
+      }
     });
+    console.log("Transaction committed successfully");
+    return res
+      .status(201)
+      .json(new ApiResponse(201, {}, "Reservation created successfully"));
   } catch (error) {
-    console.error("Error during transaction:", error.message);
-    console.error("Stack trace:", error.stack);
+    const DeallocatedRoomLocks = await deallocateMultipleRooms(
+      AllInsertedRoomLockIds
+    );
+    console.log("Error in transaction:", error);
     return res
       .status(500)
       .json(
