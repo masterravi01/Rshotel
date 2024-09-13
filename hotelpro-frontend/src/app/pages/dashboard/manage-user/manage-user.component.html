@@ -5,77 +5,77 @@
                 Users
             </div>
             <div class="card-body">
-                <table class="table table-striped text-center">
+                <table class="table text-center">
                     <thead>
                         <tr>
+                            <th scope="col">No.</th>
                             <th scope="col">Name</th>
                             <th scope="col">Mobile</th>
                             <th scope="col">Email</th>
                             <th scope="col">Type</th>
-                            <th scope="col">Active</th>
+                            <th scope="col">Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- @for (PropertyUnit of dashboardData?.property?.propertyUnits; track PropertyUnit; let i =
-                        $index) { -->
-                        <tr>
-                            <th scope="row">{{1}}</th>
-                            <td> propertyUnitName </td>
-                            <td> Deactive</td>
-                            <td>
-                                <button class="btn btn-secondary btn-sm">Edit</button>
-                            </td>
-                            <td style="text-align: center;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor"
-                                    class="bi bi-person" viewBox="0 0 16 16" style="cursor: pointer;">
-                                    <path
-                                        d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
-                                </svg>
-                            </td>
+                        <tr *ngFor="let user of userData; let i = index" (click)="selectUser(user, i)"
+                            [ngClass]="{'selected': selectedUserIndex === i}" style="cursor: pointer;">
+                            <td>{{ i+1 }}</td>
+                            <td>{{ user.firstName }} {{ user.lastName }}</td>
+                            <td>{{ user.phone }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.userType }}</td>
+                            <td>{{ user.isLoginable ? 'Active' : 'Deactive' }}</td>
                         </tr>
-                        <!-- } -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
     <div class="col-lg-4 col-md-4 col-sm-12">
         <div class="card">
             <div class="card-header">
-                Users
+                User Details
             </div>
             <div class="card-body">
-                <table class="table table-striped text-center">
-                    <thead>
+                <form [formGroup]="userForm">
+                    <table class="table">
                         <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">Mobile</th>
-                            <th scope="col">Email</th>
-                            <th scope="col">Type</th>
-                            <th scope="col">Active</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- @for (PropertyUnit of dashboardData?.property?.propertyUnits; track PropertyUnit; let i =
-                        $index) { -->
-                        <tr>
-                            <th scope="row">{{1}}</th>
-                            <td> propertyUnitName </td>
-                            <td> Deactive</td>
+                            <td>First Name</td>
                             <td>
-                                <button class="btn btn-secondary btn-sm">Edit</button>
-                            </td>
-                            <td style="text-align: center;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor"
-                                    class="bi bi-person" viewBox="0 0 16 16" style="cursor: pointer;">
-                                    <path
-                                        d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
-                                </svg>
+                                <input type="text" class="form-control" formControlName="firstName" />
                             </td>
                         </tr>
-                        <!-- } -->
-                    </tbody>
-                </table>
+                        <tr>
+                            <td>Last Name</td>
+                            <td>
+                                <input type="text" class="form-control" formControlName="lastName" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Phone</td>
+                            <td>
+                                <input type="text" class="form-control" formControlName="phone" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Email</td>
+                            <td>
+                                <input type="text" class="form-control" formControlName="email" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Status</td>
+                            <td>
+                                <select class="form-control" id="active" formControlName="active">
+                                    <option [value]="true">Active</option>
+                                    <option [value]="false">Deactive</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                    <button type="submit" class="btn btn-primary" (click)="updateUser()">Update User</button>
+                </form>
             </div>
         </div>
     </div>

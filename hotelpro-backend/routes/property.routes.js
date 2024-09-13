@@ -1,6 +1,7 @@
 import express from "express";
 import { upload } from "../middleware/multer.middleware.js";
 import propertyController from "../controllers/property/property.controller.js";
+import dashboardController from "../controllers/property/dashboard.controller.js";
 const router = express.Router();
 import { verifyJWT } from "../middleware/auth.middlewares.js";
 
@@ -20,7 +21,13 @@ router.post(
 router.post(
   "/read-client-dashboard",
   verifyJWT,
-  propertyController.readClientDashboard
+  dashboardController.readClientDashboard
 );
+router.post(
+  "/read-user-by-propertyunit",
+  verifyJWT,
+  dashboardController.readUserByPropertyUnit
+);
+router.post("/update-user", verifyJWT, dashboardController.updateUser);
 
 export default router;

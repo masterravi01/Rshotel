@@ -22,10 +22,12 @@ import { CustomValidators } from '../../../core/shared/validators/custom-validat
   templateUrl: './manage-user.component.html',
   styleUrl: './manage-user.component.css'
 })
-export class ManageUserComponent implements OnInit {
 
+export class ManageUserComponent implements OnInit {
   propertyUnitId: string | null = '';
-  roomTypesForm!: FormGroup;
+  userForm!: FormGroup;
+  userData: any[] = [];
+  selectedUserIndex = 0;
 
   constructor(
     private crudService: CrudService,
@@ -38,7 +40,12 @@ export class ManageUserComponent implements OnInit {
   ngOnInit(): void {
     this.propertyUnitId =
       this.activeRoute.snapshot.paramMap.get('propertyUnitId');
-    this.roomTypesForm = this.fb.group({
+    this.initForms();
+    this.fetchData();
+  }
+
+  private initForms(): void {
+    this.userForm = this.fb.group({
       firstName: [
         '',
         [
@@ -59,24 +66,57 @@ export class ManageUserComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       active: [true, [Validators.required]],
     });
-
-    this.fetchData();
   }
-
 
   fetchData() {
     this.crudService
       .post(APIConstant.READ_USER_BY_PROPERTY_UNIT, { propertyUnitId: this.propertyUnitId })
       .then((response) => {
-        console.log(response);
+        this.userData = response.data.users;
+        if (this.userData?.length > 0) {
+          this.selectUser(this.userData[0], 0);
+        }
       })
       .catch((error) => {
         this.alertService.errorAlert(
           error?.error?.message ||
-          'An error occurred while fetch users'
+          'An error occurred while fetching users'
         );
         console.error(error);
       });
   }
 
+  selectUser(user: any, index: number): void {
+    this.selectedUserIndex = index; // Track the selected row index
+    this.userForm.patchValue({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      email: user.email,
+      active: user.isLoginable
+    });
+  }
+
+  updateUser(): void {
+    if (this.userForm.valid) {
+      const updatedUser = {
+        ...this.userForm.value,
+        userId: this.userData[this.selectedUserIndex]._id,
+      };
+      this.crudService
+        .post(APIConstant.UPDATE_USER, updatedUser)
+        .then(() => {
+          this.alertService.successAlert('User updated successfully');
+          this.fetchData();
+        })
+        .catch((error) => {
+          this.alertService.errorAlert(
+            error?.error?.message ||
+            'An error occurred while updating the user'
+          );
+          console.error(error);
+        });
+    }
+  }
 }
+

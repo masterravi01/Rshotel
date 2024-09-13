@@ -10,8 +10,8 @@ describe('ManageUserComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ManageUserComponent]
     })
-    .compileComponents();
-    
+      .compileComponents();
+
     fixture = TestBed.createComponent(ManageUserComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
