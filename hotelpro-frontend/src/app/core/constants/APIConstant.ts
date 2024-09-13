@@ -18,6 +18,8 @@ export const APIConstant = {
   CREATE_PROPERTY_UNIT: 'propertyunit/create-propertyunit',
   READ_PROPERTY_UNIT: 'propertyunit/read-propertyunit/',
 
+  GET_SUPERADMIN_DASHBOARD: 'admin/get-superadmin-dashboard/',
+
   READ_ROOMTYPES: 'room/read-roomtypes/',
   READ_ROOMTYPE_BY_ID: 'room/read-roomtypebyid/',
   ADD_ROOMTYPES: 'room/add-roomtype/',

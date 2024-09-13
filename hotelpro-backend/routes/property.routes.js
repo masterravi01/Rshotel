@@ -21,7 +21,7 @@ router.post(
 router.post(
   "/read-client-dashboard",
   verifyJWT,
-  dashboardController.readClientDashboard
+  propertyController.getClientDashboard
 );
 router.post(
   "/read-user-by-propertyunit",

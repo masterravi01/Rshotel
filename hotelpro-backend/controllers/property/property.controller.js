@@ -183,6 +183,109 @@ const uploadProfilePhoto = asyncHandler(async (req, res) => {
   return res.status(201).json(new ApiResponse(201, {}, "Upload  successfully"));
 });
 
+const getClientDashboard = asyncHandler(async (req, res) => {
+  const { propertyId } = req.body;
+  const response = {};
+
+  const [property, rooms] = await Promise.all([
+    Property.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(propertyId),
+        },
+      },
+      {
+        $lookup: {
+          from: "propertyunits",
+          localField: "_id",
+          foreignField: "propertyId",
+          as: "propertyunits",
+          pipeline: [
+            {
+              $project: {
+                propertyUnitName: 1,
+                active: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          propertyId: "$_id",
+          propertyName: "$propertyName",
+          isVIP: "$isVIP",
+          propertyUnits: "$propertyunits",
+        },
+      },
+    ]),
+    Property.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(propertyId),
+        },
+      },
+      {
+        $lookup: {
+          from: "propertyunits",
+          localField: "_id",
+          foreignField: "propertyId",
+          as: "propertyUnits",
+        },
+      },
+      {
+        $unwind: {
+          path: "$propertyUnits",
+        },
+      },
+      {
+        $lookup: {
+          from: "roomtypes",
+          localField: "propertyUnits._id",
+          foreignField: "propertyUnitId",
+          as: "roomTypes",
+        },
+      },
+      {
+        $unwind: {
+          path: "$roomTypes",
+        },
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "roomTypes._id",
+          foreignField: "roomTypeId",
+          as: "rooms",
+        },
+      },
+      {
+        $unwind: {
+          path: "$rooms",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          totalRooms: {
+            $sum: 1,
+          },
+        },
+      },
+    ]),
+  ]);
+
+  if (!property || property.length == 0) {
+    throw new ApiError(404, "Property not found");
+  }
+
+  response.property = property[0];
+  response.rooms = rooms[0];
+  return res
+    .status(200)
+    .json(new ApiResponse(200, response, "Property retrieved successfully"));
+});
+
 export default {
   getAllProperties,
   getPropertyById,
@@ -191,4 +294,5 @@ export default {
   deletePropertyById,
   uploadProfilePhoto,
   uploadRoomsPhotos,
+  getClientDashboard,
 };
