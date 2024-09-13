@@ -20,7 +20,7 @@ router.post(
 router.post(
   "/read-client-dashboard",
   verifyJWT,
-  propertyController.readClientDashboard
+  propertyController.getClientDashboard
 );
 
 export default router;

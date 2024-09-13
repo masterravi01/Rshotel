@@ -83,6 +83,15 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
+        path: 'superadmin',
+        loadComponent: () =>
+          import(
+            './pages/dashboard/superadmin-dashboard/superadmin-dashboard.component'
+          ).then((m) => m.SuperadminDashboardComponent),
+        title: 'Super Admin',
+        canActivate: [authGuard],
+      },
+      {
         path: 'manage-user/:propertyUnitId',
         loadComponent: () =>
           import(
