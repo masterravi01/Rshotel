@@ -1,5 +1,5 @@
 /**
- * @type {{ ADMIN: "admin"; CLIENT: "client"; FRONTDESK: "frontdesk"; HOUSEKEEPER: "housekeeper"; GUEST: "guest"; MANAGER: "manager"} as const}
+ * @type {{ ADMIN: "admin"; CLIENT: "client"; FRONTDESK: "frontdesk"; HOUSEKEEPER: "housekeeper"; GUEST: "guest"; MANAGER: "manager"; SUPERADMIN: "superadmin";} as const}
  */
 export const UserTypesEnum = {
   ADMIN: "admin",
@@ -8,6 +8,7 @@ export const UserTypesEnum = {
   HOUSEKEEPER: "housekeeper",
   GUEST: "guest",
   MANAGER: "manager",
+  SUPERADMIN: "superadmin",
 };
 export const AvailableUserTypes = Object.values(UserTypesEnum);
 

@@ -188,19 +188,6 @@ const loginUser = asyncHandler(async (req, res) => {
           path: "$property",
         },
       },
-
-      {
-        $project: {
-          firstName: "$firstName",
-          lastName: "$lastName",
-          email: "$email",
-          userType: "$userType",
-          avatar: "$avatar",
-          isVIP: "$property.isVIP",
-          propertyId: "$property._id",
-          propertyName: "$property.propertyName",
-        },
-      },
       {
         $lookup: {
           from: "propertyunits",
@@ -210,7 +197,6 @@ const loginUser = asyncHandler(async (req, res) => {
           pipeline: [
             {
               $project: {
-                propertyUnitId: "$_id",
                 propertyUnitCode: 1,
                 propertyUnitName: 1,
               },
@@ -218,15 +204,53 @@ const loginUser = asyncHandler(async (req, res) => {
           ],
         },
       },
+      {
+        $unwind: {
+          path: "$propertyUnits",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          firstName: {
+            $first: "$firstName",
+          },
+          lastName: {
+            $first: "$lastName",
+          },
+          email: {
+            $first: "$email",
+          },
+          userType: {
+            $first: "$userType",
+          },
+          avatar: {
+            $first: "$avatar",
+          },
+          isVIP: {
+            $first: "$property.isVIP",
+          },
+          propertyId: {
+            $first: "$property._id",
+          },
+          propertyName: {
+            $first: "$property.propertyName",
+          },
+          propertyUnitId: {
+            $first: "$propertyUnits._id",
+          },
+          propertyUnitCode: {
+            $first: "$propertyUnits.propertyUnitCode",
+          },
+          propertyUnitName: {
+            $first: "$propertyUnits.propertyUnitName",
+          },
+          propertyUnits: {
+            $push: "$propertyUnits",
+          },
+        },
+      },
     ]);
-    if (loggedInUser[0]?.propertyUnits?.[0]) {
-      loggedInUser[0].propertyUnitId =
-        loggedInUser[0]?.propertyUnits[0]?.propertyUnitId;
-      loggedInUser[0].propertyUnitCode =
-        loggedInUser[0]?.propertyUnits[0]?.propertyUnitCode;
-      loggedInUser[0].propertyUnitName =
-        loggedInUser[0]?.propertyUnits[0]?.propertyUnitName;
-    }
   }
 
   return res
