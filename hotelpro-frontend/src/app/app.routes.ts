@@ -65,7 +65,7 @@ export const routes: Routes = [
     component: LayoutComponent,
     children: [
       {
-        path: 'dashboard',
+        path: 'client-dashboard',
         loadComponent: () =>
           import(
             './pages/client/client-dashboard/client-dashboard.component'
@@ -74,7 +74,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'frontdesk',
+        path: 'frontdesk-dashboard',
         loadComponent: () =>
           import(
             './pages/frontdesk/frontdesk-dashboard/frontdesk-dashboard.component'
@@ -83,7 +83,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'superadmin',
+        path: 'superadmin-dashboard',
         loadComponent: () =>
           import(
             './pages/super-admin/superadmin-dashboard/superadmin-dashboard.component'

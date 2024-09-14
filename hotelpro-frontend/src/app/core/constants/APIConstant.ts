@@ -7,6 +7,7 @@ export const APIConstant = {
   CHANGE_PASSWORD: 'user/change-password',
   RESET_PASSWORD: 'user/reset-password/', //reset-password/:resetToken
   REGISTER_USER: 'user/register',
+  CLIENT_LOGIN_BY_SUPERADMIN: 'user/client-login-by-superadmin',
 
   CREATE_PROPERTY: 'property/create-property',
   READ_CLIENT_DASHBOARD: 'property/read-client-dashboard',

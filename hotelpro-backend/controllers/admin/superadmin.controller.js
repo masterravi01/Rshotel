@@ -37,6 +37,7 @@ const readSuperAdminDashboard = asyncHandler(async (req, res) => {
               $concat: ["$user.firstName", " ", "$user.lastName"],
             },
             phone: "$user.phone",
+            email: "$user.email",
             isVIP: 1,
           },
         },

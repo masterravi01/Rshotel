@@ -18,7 +18,7 @@ export class AuthService {
     private router: Router,
     private userInfoService: UserInfoService,
     private alertService: AlertService
-  ) {}
+  ) { }
 
   get tokenRefreshInProgress(): Observable<boolean> {
     return this.tokenRefreshInProgressSubject.asObservable();
@@ -64,10 +64,9 @@ export class AuthService {
         APIConstant.LOGIN,
         credentials
       );
-      console.log(response);
-      this.userInfoService.setUserInfo(response.data);
-      this.alertService.successAlert(response.message);
-      this.router.navigate(['/dashboard']);
+      let userData = response.data;
+      this.userInfoService.setUserInfo(userData);
+      this.router.navigate([`/${userData?.user?.userType}-dashboard`]);
     } catch (error: any) {
       console.error('Error during login:', error);
       this.alertService.errorAlert(error.error.message);

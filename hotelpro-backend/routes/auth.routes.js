@@ -14,6 +14,11 @@ router.get("/verify-email", user.verifyEmail);
 router.get("/resend-email-verification", user.resendEmailVerification);
 
 // Verify by JWT
+router.post(
+  "/client-login-by-superadmin",
+  verifyJWT,
+  user.clientLoginBySuperadmin
+);
 router.post("/logout", verifyJWT, user.logoutUser);
 router.post("/change-password", verifyJWT, user.changeCurrentPassword);
 router.post("/current-user", verifyJWT, user.getCurrentUser);
