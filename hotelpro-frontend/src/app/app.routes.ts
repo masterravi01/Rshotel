@@ -68,7 +68,7 @@ export const routes: Routes = [
         path: 'dashboard',
         loadComponent: () =>
           import(
-            './pages/dashboard/client-dashboard/client-dashboard.component'
+            './pages/client/client-dashboard/client-dashboard.component'
           ).then((m) => m.ClientDashboardComponent),
         title: 'Dashboard',
         canActivate: [authGuard],
@@ -77,7 +77,7 @@ export const routes: Routes = [
         path: 'frontdesk',
         loadComponent: () =>
           import(
-            './pages/dashboard/frontdesk-dashboard/frontdesk-dashboard.component'
+            './pages/frontdesk/frontdesk-dashboard/frontdesk-dashboard.component'
           ).then((m) => m.FrontdeskDashboardComponent),
         title: 'Frontdesk',
         canActivate: [authGuard],
@@ -86,7 +86,7 @@ export const routes: Routes = [
         path: 'superadmin',
         loadComponent: () =>
           import(
-            './pages/dashboard/superadmin-dashboard/superadmin-dashboard.component'
+            './pages/super-admin/superadmin-dashboard/superadmin-dashboard.component'
           ).then((m) => m.SuperadminDashboardComponent),
         title: 'Super Admin',
         canActivate: [authGuard],
@@ -95,7 +95,7 @@ export const routes: Routes = [
         path: 'manage-user/:propertyUnitId',
         loadComponent: () =>
           import(
-            './pages/dashboard/manage-user/manage-user.component'
+            './pages/client/manage-user/manage-user.component'
           ).then((m) => m.ManageUserComponent),
         title: 'Manage User',
         canActivate: [authGuard],
