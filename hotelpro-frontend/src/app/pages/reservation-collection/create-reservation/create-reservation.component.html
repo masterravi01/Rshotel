@@ -3,109 +3,68 @@
     <div class="row row-cols-1 row-cols-md-2">
       <div class="col mt-3">
         <label class="form-label">Arrival Date</label>
-        <input
-          type="date"
-          class="form-control"
-          formControlName="arrival"
-          placeholder="Enter arrival"
-          [ngClass]="{
+        <input type="date" class="form-control" formControlName="arrival" placeholder="Enter arrival" [ngClass]="{
             'is-invalid':
               groupForm.get('arrival')?.invalid &&
               (groupForm.get('arrival')?.dirty ||
                 groupForm.get('arrival')?.touched)
-          }"
-        />
-        <small
-          class="text-danger"
-          *ngIf="
+          }" />
+        <small class="text-danger" *ngIf="
             groupForm.get('arrival')?.invalid &&
             (groupForm.get('arrival')?.dirty ||
               groupForm.get('arrival')?.touched)
-          "
-        >
+          ">
           Arrival is required
         </small>
       </div>
       <div class="col mt-3">
         <label class="form-label">Departure Date</label>
-        <input
-          type="date"
-          class="form-control"
-          formControlName="departure"
-          placeholder="Enter departure"
-          [ngClass]="{
+        <input type="date" class="form-control" formControlName="departure" placeholder="Enter departure" [ngClass]="{
             'is-invalid':
               groupForm.get('departure')?.invalid &&
               (groupForm.get('departure')?.dirty ||
                 groupForm.get('departure')?.touched)
-          }"
-        />
-        <small
-          class="text-danger"
-          *ngIf="
+          }" />
+        <small class="text-danger" *ngIf="
             groupForm.get('departure')?.invalid &&
             (groupForm.get('departure')?.dirty ||
               groupForm.get('departure')?.touched)
-          "
-        >
+          ">
           Departure is required
         </small>
       </div>
       <div class="col mt-3">
         <label class="form-label">Adults</label>
-        <input
-          type="number"
-          class="form-control"
-          formControlName="adults"
-          placeholder="Enter adults"
-          [ngClass]="{
+        <input type="number" class="form-control" formControlName="adults" placeholder="Enter adults" [ngClass]="{
             'is-invalid':
               groupForm.get('adults')?.invalid &&
               (groupForm.get('adults')?.dirty ||
                 groupForm.get('adults')?.touched)
-          }"
-        />
-        <small
-          class="text-danger"
-          *ngIf="
+          }" />
+        <small class="text-danger" *ngIf="
             groupForm.get('adults')?.invalid &&
             (groupForm.get('adults')?.dirty || groupForm.get('adults')?.touched)
-          "
-        >
+          ">
           Adults is required
         </small>
       </div>
       <div class="col mt-3">
         <label class="form-label">Children</label>
-        <input
-          type="number"
-          class="form-control"
-          formControlName="childs"
-          placeholder="Enter children"
-          [ngClass]="{
+        <input type="number" class="form-control" formControlName="childs" placeholder="Enter children" [ngClass]="{
             'is-invalid':
               groupForm.get('childs')?.invalid &&
               (groupForm.get('childs')?.dirty ||
                 groupForm.get('childs')?.touched)
-          }"
-        />
-        <small
-          class="text-danger"
-          *ngIf="
+          }" />
+        <small class="text-danger" *ngIf="
             groupForm.get('childs')?.invalid &&
             (groupForm.get('childs')?.dirty || groupForm.get('childs')?.touched)
-          "
-        >
+          ">
           Children is required
         </small>
       </div>
       <div class="col my-3">
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="readRooms()"
-          [disabled]="groupForm.invalid"
-        >
+        <button type="button" class="btn btn-primary" (click)="readRooms()" [disabled]="groupForm.invalid">
           Show Availability
         </button>
       </div>
@@ -130,51 +89,32 @@
         <td>{{ room.roomtype }} {{ room.rateName }}</td>
         <td>
           {{ room.adultOccupant }} Adults {{ room.childOccupant }} Childs
-          <span
-            class="link text-primary"
-            (click)="openExtraModal(extraGuests, room)"
-          >
+          <span class="link text-primary" (click)="openExtraModal(extraGuests, room)">
             {{
-              room.extraAdults == 0 && room.extraChilds == 0
-                ? "add"
-                : "(" + room.extraAdults + "/" + room.extraChilds + ")"
+            room.extraAdults == 0 && room.extraChilds == 0
+            ? "add"
+            : "(" + room.extraAdults + "/" + room.extraChilds + ")"
             }}
           </span>
         </td>
         <td>{{ room.roomPrice }}</td>
         <td>{{ room.roomCost }}</td>
         <td>
-          <button
-            class="btn btn-primary p-0"
-            (click)="addRoomCount(i)"
-            [disabled]="
+          <button class="btn btn-primary p-0 me-1" (click)="addRoomCount(i)" [disabled]="
               room?.dropdownSettings?.limitSelection >= room.totalRoom
-            "
-          >
-            <i class="material-symbols-rounded" style="vertical-align: middle"
-              >add</i
-            >
+            ">
+            <i class="material-symbols-rounded" style="vertical-align: middle">add</i>
           </button>
           <span class="mx-1">{{ room?.dropdownSettings?.limitSelection }}</span>
-          <button
-            class="btn btn-primary p-0"
-            (click)="removeRoomCount(i)"
-            [disabled]="room?.dropdownSettings?.limitSelection === 0"
-          >
-            <i class="material-symbols-rounded" style="vertical-align: middle"
-              >remove</i
-            >
+          <button class="btn btn-primary p-0 ms-1" (click)="removeRoomCount(i)"
+            [disabled]="room?.dropdownSettings?.limitSelection === 0">
+            <i class="material-symbols-rounded" style="vertical-align: middle">remove</i>
           </button>
         </td>
         <td>
-          <ng-multiselect-dropdown
-            name="roomtype"
-            [placeholder]="'Select Room'"
-            [settings]="room.dropdownSettings"
-            [data]="dropDownData(room.rooms, i)"
-            [(ngModel)]="selectedItems[i]"
-            class="multiselect_dropdown"
-          ></ng-multiselect-dropdown>
+          <ng-multiselect-dropdown name="roomtype" [placeholder]="'Select Room'" [settings]="room.dropdownSettings"
+            [data]="dropDownData(room.rooms, i)" [(ngModel)]="selectedItems[i]"
+            class="multiselect_dropdown"></ng-multiselect-dropdown>
         </td>
       </tr>
     </tbody>
@@ -182,21 +122,15 @@
 </div>
 
 <div class="container text-center" *ngIf="roomsData.length > 0">
-  <button
-    class="btn btn-primary my-3"
-    (click)="onSubmit()"
-    [disabled]="
+  <button class="btn btn-primary my-3" (click)="onSubmit()" [disabled]="
       totalGuests?.adults + totalGuests?.childs <
       groupForm.get('adults')?.value + groupForm.get('childs')?.value
-    "
-  >
+    ">
     Next
-    <ng-container
-      *ngIf="
+    <ng-container *ngIf="
         totalGuests?.adults + totalGuests?.childs >=
         groupForm.get('adults')?.value + groupForm.get('childs')?.value
-      "
-    >
+      ">
       (Total Cost {{ groupForm.get("totalCost")?.value }})
     </ng-container>
   </button>
@@ -207,12 +141,7 @@
 <ng-template #extraGuests let-modal>
   <div class="modal-header">
     <h4 class="modal-title">Add Adults/Children</h4>
-    <button
-      type="button"
-      class="btn-close"
-      aria-label="Close"
-      (click)="modal.dismiss(false)"
-    ></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss(false)"></button>
   </div>
   <div class="modal-body">
     <table class="table">
@@ -228,10 +157,7 @@
           <th scope="row">Adults</th>
           <td>{{ extraGuestsData.adultRate }}</td>
           <td>
-            <select
-              class="form-control text-center select_reason"
-              [(ngModel)]="extraGuestsData.extraAdults"
-            >
+            <select class="form-control text-center select_reason" [(ngModel)]="extraGuestsData.extraAdults">
               <option value="0">0</option>
               <option value="1">1</option>
               <option value="2">2</option>
@@ -243,10 +169,7 @@
           <th scope="row">Children</th>
           <td>{{ extraGuestsData.childRate }}</td>
           <td>
-            <select
-              class="form-control text-center select_reason"
-              [(ngModel)]="extraGuestsData.extraChilds"
-            >
+            <select class="form-control text-center select_reason" [(ngModel)]="extraGuestsData.extraChilds">
               <option value="0">0</option>
               <option value="1">1</option>
               <option value="2">2</option>
@@ -258,11 +181,7 @@
     </table>
   </div>
   <div class="modal-footer">
-    <button
-      type="button"
-      class="btn btn-outline-secondary"
-      (click)="modal.close(true)"
-    >
+    <button type="button" class="btn btn-outline-secondary" (click)="modal.close(true)">
       Save
     </button>
   </div>

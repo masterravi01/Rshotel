@@ -196,6 +196,17 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
 
+      // booking management
+      {
+        path: 'reservation-list',
+        loadComponent: () =>
+          import(
+            './pages/booking-management/reservation-list/reservation-list.component'
+          ).then((m) => m.ReservationListComponent),
+        title: 'Reservation List',
+        canActivate: [authGuard],
+      },
+
       //room collection
 
       {

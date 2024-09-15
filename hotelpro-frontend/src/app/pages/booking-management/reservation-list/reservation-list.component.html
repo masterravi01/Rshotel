@@ -1,0 +1,39 @@
+<div class="container-fluid my-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    Reservation
+                </div>
+                <div class="card-body">
+                    <table class="table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col">No.</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Confirmation No.</th>
+                                <th scope="col">Room Type</th>
+                                <th scope="col">Room No.</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Check in</th>
+                                <th scope="col">Check out</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let reservation of reservationData; let i = index">
+                                <td>{{ i+1 }}</td>
+                                <td>{{ reservation.firstName }} {{ reservation.lastName }}</td>
+                                <td>{{ i+1 }}</td>
+                                <td>{{ reservation.roomType }}</td>
+                                <td>{{ reservation.roomNumber }}</td>
+                                <td>{{ reservation.status }}</td>
+                                <td>{{ reservation.checkInDate }}</td>
+                                <td>{{ reservation.checkOutDate }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
