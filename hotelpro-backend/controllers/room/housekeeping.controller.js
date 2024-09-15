@@ -104,7 +104,7 @@ const getHouseKeeper = asyncHandler(async (req, res) => {
     {
       $match: {
         propertyUnitId: new ObjectId(propertyUnitId),
-        userType: "housekeeper",
+        userType: UserTypesEnum.HOUSEKEEPER,
       },
     },
     {
@@ -241,7 +241,7 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
       {
         $match: {
           propertyUnitId: new ObjectId(propertyUnitId),
-          userType: "housekeeper",
+          userType: UserTypesEnum.HOUSEKEEPER,
         },
       },
       {
@@ -273,10 +273,13 @@ const getRoomsWithHouseKeeping = asyncHandler(async (req, res) => {
     ]),
   ]);
 
-  for (let hd of data.housekeeperDetail) { 
+  for (let hd of data.housekeeperDetail) {
     let assignRoomCount = 0;
-    for (let rd of data.RoomDetails) { 
-      if (rd.housekeeperId && hd._id.toString() == rd.housekeeperId.toString()) { 
+    for (let rd of data.RoomDetails) {
+      if (
+        rd.housekeeperId &&
+        hd._id.toString() == rd.housekeeperId.toString()
+      ) {
         assignRoomCount++;
       }
     }

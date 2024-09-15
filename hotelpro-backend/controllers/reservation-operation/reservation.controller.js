@@ -20,7 +20,11 @@ import {
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
 const ObjectId = mongoose.Types.ObjectId;
-import { UserTypesEnum } from "../../constants.js";
+import {
+  UserTypesEnum,
+  ReservationStatusEnum,
+  BalanceNameEnum,
+} from "../../constants.js";
 import {
   deleteFromCloudinary,
   uploadOnCloudinary,
@@ -108,8 +112,8 @@ const createReservation = asyncHandler(async (req, res) => {
                 { roomTypeId: { $in: reservationsRoomTypeIds } },
                 {
                   $or: [
-                    { reservationStatus: "inhouse" },
-                    { reservationStatus: "reserved" },
+                    { reservationStatus: ReservationStatusEnum.INHOUSE },
+                    { reservationStatus: ReservationStatusEnum.RESERVED },
                   ],
                 },
               ],
@@ -344,7 +348,7 @@ const createReservation = asyncHandler(async (req, res) => {
           let rbtax = new RoomBalance({
             balanceDate: rate.date,
             reservationId: reservationObj._id,
-            balanceName: "Tax",
+            balanceName: BalanceNameEnum.TAX,
             balance:
               (-(
                 rate.baseRate +

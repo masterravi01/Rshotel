@@ -9,7 +9,11 @@ import {
   RatePlanRoomType,
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
-import { AvailableRateTypeEnum } from "../../constants.js";
+import {
+  AvailableRateTypeEnum,
+  RoomConditionEnum,
+  RoomStatusEnum,
+} from "../../constants.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 // GET all room types
@@ -138,8 +142,8 @@ const createRoomTypeWithRooms = asyncHandler(async (req, res) => {
         roomName: `${prefix}${i}`,
         roomNumber: i.toString(),
         roomTypeId: newRoomType._id,
-        roomStatus: "vacant",
-        roomCondition: "clean",
+        roomStatus: RoomStatusEnum.VACANT,
+        roomCondition: RoomConditionEnum.CLEAN,
         dnd: false,
       });
       totalCount++;
