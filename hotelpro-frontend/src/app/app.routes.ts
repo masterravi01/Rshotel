@@ -199,7 +199,7 @@ export const routes: Routes = [
       //room collection
 
       {
-        path: 'room-maintenance/:propertyUnitId',
+        path: 'room-maintenance',
         loadComponent: () =>
           import(
             './pages/room-operation/room-maintenance/room-maintenance.component'
@@ -208,7 +208,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'house-keeping/:propertyUnitId',
+        path: 'house-keeping',
         loadComponent: () =>
           import(
             './pages/room-operation/house-keeping/house-keeping.component'

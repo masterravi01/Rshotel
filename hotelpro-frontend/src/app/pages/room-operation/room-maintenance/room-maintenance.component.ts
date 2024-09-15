@@ -9,6 +9,7 @@ import {
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
@@ -76,22 +77,22 @@ export class RoomMaintenanceComponent implements OnInit {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private modalService: NgbModal,
-  ) {}
+    private authService: AuthService,
+  ) { }
 
   ngOnInit() {
-    this.propertyUnitId =
-    this.activeRoute.snapshot.paramMap.get('propertyUnitId');
-    
+    this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
+
     this.ShowAdd = false;
-    
+
     this.Max = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
     this.Date = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
     this.Today = new DatePipe('en-US').transform(new Date(), 'yyyy-MM-dd');
-    
+
     this.Tomorrow = new Date(this.Today);
     this.Tomorrow.setDate(this.Tomorrow.getDate() + 1);
     this.Tomorrow = new DatePipe('en-US').transform(this.Tomorrow, 'yyyy-MM-dd');
-    
+
     this.dropdownListRoom = [];
 
     this.AddMaintenance = this.fb.group({
@@ -206,7 +207,7 @@ export class RoomMaintenanceComponent implements OnInit {
       }
       return 0;
     });
-    
+
     return data;
   }
 
@@ -233,7 +234,7 @@ export class RoomMaintenanceComponent implements OnInit {
     if (
       this.AddMaintenance.controls.startDate.value?.toString() >=
       this.AddMaintenance.controls.endDate.value?.toString()
-    ) { 
+    ) {
       this.AddMaintenance.patchValue({
         endDate: this.getTomorrow()
       });
@@ -319,7 +320,7 @@ export class RoomMaintenanceComponent implements OnInit {
     this.ShowEdit = false;
   }
 
-  getTomorrow() { 
+  getTomorrow() {
     this.Tomorrow = new Date(this.AddMaintenance.controls.startDate.value);
     this.Tomorrow.setDate(this.Tomorrow.getDate() + 1);
     this.Tomorrow = new DatePipe('en-US').transform(this.Tomorrow, 'yyyy-MM-dd');
@@ -443,7 +444,7 @@ export class RoomMaintenanceComponent implements OnInit {
       let today = new Date();
       today.setDate(today.getDate() + 1);
       today.setHours(0, 0, 0, 0);
-      
+
       let st = new Date(this.CurrentMaintainance.startDate);
       st.setHours(0, 0, 0, 0);
       let ed = new Date(this.CurrentMaintainance.endDate);
@@ -525,7 +526,7 @@ export class RoomMaintenanceComponent implements OnInit {
     if (allSelected) {
       for (const item of this.RoomData) {
         for (const m of item.RoomMaintainance) {
-            this.RangeMaintenance.push(m);
+          this.RangeMaintenance.push(m);
         }
       }
     } else {
