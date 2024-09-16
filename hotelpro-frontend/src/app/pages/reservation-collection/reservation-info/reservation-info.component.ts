@@ -76,13 +76,14 @@ export class ReservationInfoComponent implements OnInit {
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required]],
+      phone: [''],
       addressLine1: [''],
       addressLine2: [''],
-      country: ['', [Validators.required]],
-      city: ['', [Validators.required]],
-      state: ['', [Validators.required, Validators.pattern(/^[A-Za-z\s]+$/)]],
-      zipCode: ['', [Validators.required]],
+      country: [''],
+      city: [''],
+      state: ['', [Validators.pattern(/^[A-Za-z\s]+$/)]],
+      zipCode: [''],
+      documents: [],
     });
   }
 
@@ -147,14 +148,15 @@ export class ReservationInfoComponent implements OnInit {
       firstName: [guest?.firstName || '', Validators.required],
       lastName: [guest?.lastName || '', Validators.required],
       email: [guest?.email || '', [Validators.required, Validators.email]],
-      phone: [guest?.phone || '', Validators.required],
+      phone: [guest?.phone || ''],
       addressLine1: [guest?.addressLine1 || ''],
       addressLine2: [guest?.addressLine2 || ''],
       country: [guest?.country || ''],
-      city: [guest?.city || '', Validators.required],
-      state: [guest?.state || '', Validators.required],
-      zipCode: [guest?.zipCode || '', Validators.required],
+      city: [guest?.city || ''],
+      state: [guest?.state || ''],
+      zipCode: [guest?.zipCode || ''],
       isSameAsCustomer: [false],
+      documents: [],
     });
   }
 
@@ -290,50 +292,51 @@ export class ReservationInfoComponent implements OnInit {
 
   public files: NgxFileDropEntry[] = [];
 
-  dropped(files: NgxFileDropEntry[]) {
+  dropped(files: NgxFileDropEntry[], guestForm: AbstractControl) {
     this.files = files;
+
+    // Create a single FormData object for all files
+    const formData = new FormData();
+
     for (const droppedFile of files) {
       // Is it a file?
       if (droppedFile.fileEntry.isFile) {
         const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
+
         fileEntry.file((file: File) => {
-          // Here you can access the real file
-          console.log(droppedFile.relativePath, file);
-          const formData = new FormData();
+          // Append each file to the FormData
           formData.append('uploadedImages', file, droppedFile.relativePath);
 
-          this.crudService
-            .post(APIConstant.UPLOAD_RESERVATION_IMAGES, formData)
-            .then((response) => console.log(response))
-            .catch((error) => {
-              this.alertService.errorAlert(
-                error?.error?.message || 'An error occurred'
-              );
-              console.error(error);
-            });
-          /**
-          // You could upload it like this:
-          const formData = new FormData()
-          formData.append('logo', file, relativePath)
-
-          // Headers
-          const headers = new HttpHeaders({
-            'security-token': 'mytoken'
-          })
-
-          this.http.post('https://mybackend.com/api/upload/sanitize-and-save-logo', formData, { headers: headers, responseType: 'blob' })
-          .subscribe(data => {
-            // Sanitized logo returned from backend
-          })
-          **/
+          // After all files have been processed, send the request
+          if (files.indexOf(droppedFile) === files.length - 1) {
+            this.uploadPhotos(formData, guestForm);
+          }
         });
       } else {
-        // It was a directory (empty directories are added, otherwise only files)
+        // It was a directory (handle directories if necessary)
         const fileEntry = droppedFile.fileEntry as FileSystemDirectoryEntry;
         console.log(droppedFile.relativePath, fileEntry);
       }
     }
   }
+
+  uploadPhotos(formData: FormData, guestForm: AbstractControl) {
+    this.crudService
+      .post(APIConstant.UPLOAD_RESERVATION_IMAGES, formData)
+      .then((response) => {
+        console.log(response);
+        if (response?.data?.images?.length) {
+          guestForm.patchValue({ documents: response?.data?.images });
+        }
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred'
+        );
+        console.error(error);
+      });
+  }
+
   fileOver(event: any) {
     console.log(event);
   }

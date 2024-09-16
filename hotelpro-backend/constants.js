@@ -130,3 +130,4 @@ export const paypalBaseUrl = {
 
 export const CLOUD_AVATAR_FOLDER_NAME = "hotelproAvatar";
 export const CLOUD_COVERPIC_FOLDER_NAME = "hotelproImage";
+export const CLOUD_USER_DOC_FOLDER_NAME = "hotelproUserDoc";

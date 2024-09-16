@@ -82,6 +82,7 @@ const userSchema = new Schema(
         localPath: "",
       },
     },
+    documents: [String],
   },
   { timestamps: true }
 );

@@ -29,6 +29,7 @@ import { deleteLocalImage, prepareInternalError } from "../../utils/helpers.js";
 import {
   CLOUD_AVATAR_FOLDER_NAME,
   CLOUD_COVERPIC_FOLDER_NAME,
+  CLOUD_USER_DOC_FOLDER_NAME,
 } from "../../constants.js";
 
 import {
@@ -625,23 +626,42 @@ const readReservationRate = asyncHandler(async (req, res) => {
 
 const uploadReservationImages = asyncHandler(async (req, res) => {
   const { propertyUnitId } = req.params;
-  const avatarLocalPath = req.files[0]?.path;
 
-  // Check if avatar is provided
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Avatar is required!");
+  // Check if files are provided
+  if (!req.files || req.files.length === 0) {
+    throw new ApiError(400, "At least one image is required!");
   }
-  const avatar = await uploadOnCloudinary(
-    avatarLocalPath,
-    CLOUD_AVATAR_FOLDER_NAME
-  );
-  if (!avatar) {
-    throw new ApiError(400, "Avatar upload failed!");
+
+  // Array to hold the uploaded image URLs
+  const uploadedImages = [];
+
+  // Upload each file to Cloudinary
+  for (const file of req.files) {
+    const localFilePath = file.path;
+
+    const uploadedImage = await uploadOnCloudinary(
+      localFilePath,
+      CLOUD_USER_DOC_FOLDER_NAME
+    );
+
+    if (!uploadedImage) {
+      throw new ApiError(400, `Image upload failed for ${file.originalname}!`);
+    }
+
+    // Push the uploaded image URL to the array
+    uploadedImages.push(uploadedImage.url);
   }
-  console.log(avatar.url);
+
+  // Return the uploaded images URLs
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, "Reservation Rate get successfully!"));
+    .json(
+      new ApiResponse(
+        200,
+        { images: uploadedImages },
+        "Images uploaded successfully!"
+      )
+    );
 });
 
 const guestFolio = asyncHandler(async (req, res) => {

@@ -7,6 +7,8 @@
           type="date"
           class="form-control"
           formControlName="arrival"
+          [min]="Today"
+          (input)="setDeparture()"
           placeholder="Enter arrival"
           [ngClass]="{
             'is-invalid':
@@ -31,7 +33,9 @@
         <input
           type="date"
           class="form-control"
+          [min]="nextDate()"
           formControlName="departure"
+          (input)="resetGuestTotals()"
           placeholder="Enter departure"
           [ngClass]="{
             'is-invalid':
@@ -118,6 +122,7 @@
     <thead>
       <tr>
         <th>Room Type Name</th>
+        <th>Available Rooms</th>
         <th>Sleeps</th>
         <th>Rate</th>
         <th>Cost</th>
@@ -128,6 +133,7 @@
     <tbody>
       <tr *ngFor="let room of roomsData; let i = index; trackBy: trackByFn">
         <td>{{ room.roomtype }} {{ room.rateName }}</td>
+        <td>{{ room.totalRoom - room?.dropdownSettings?.limitSelection }}</td>
         <td>
           {{ room.adultOccupant }} Adults {{ room.childOccupant }} Childs
           <span
@@ -200,8 +206,6 @@
       (Total Cost {{ groupForm.get("totalCost")?.value }})
     </ng-container>
   </button>
-  <div>{{ totalGuests | json }}</div>
-  <div>{{ groupForm.value | json }}</div>
 </div>
 
 <ng-template #extraGuests let-modal>

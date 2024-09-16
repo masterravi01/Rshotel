@@ -3,7 +3,33 @@
     <form [formGroup]="groupForm" class="container_form p-3 m-2 rounded">
       <div class="row row-cols-1 row-cols-md-2">
         <div class="col-md-12">
-          <h5 class="form-label fw-semibold">Customer Details</h5>
+          <div class="d-flex justify-content-between">
+            <p class="form-label fs-3 fw-semibold">Customer Details</p>
+            <ngx-file-drop
+              dropZoneClassName="my-style"
+              contentClassName="my-style"
+              (onFileDrop)="dropped($event, groupForm)"
+            >
+              <ng-template
+                ngx-file-drop-content-tmp
+                let-openFileSelector="openFileSelector"
+              >
+                <a
+                  class="card-link"
+                  (click)="openFileSelector()"
+                  style="cursor: pointer"
+                  >Add
+                  <i
+                    class="material-symbols-rounded"
+                    style="vertical-align: middle; font-size: 20px"
+                  >
+                    file_present</i
+                  ></a
+                >
+              </ng-template>
+            </ngx-file-drop>
+          </div>
+
           <hr class="m-0" />
         </div>
         <div class="col mt-3">
@@ -240,6 +266,11 @@
             >Zip Code is required</small
           >
         </div>
+        <div class="col mt-3">
+          <div *ngFor="let s of groupForm.get('documents')?.value">
+            <img [src]="s" alt="img" style="height: 100px; width: 100px" />
+          </div>
+        </div>
       </div>
     </form>
   </div>
@@ -306,11 +337,6 @@
             groupForm.get("totalCost")?.value
           }}</span></label
         >
-      </div>
-
-      <div class="card-body">
-        <a href="#" class="card-link">Card link</a>
-        <a href="#" class="card-link">Another link</a>
       </div>
     </div>
   </div>
@@ -389,18 +415,43 @@
                 <div class="d-flex justify-content-between">
                   <div>
                     <label class="form-label fw-semibold"
-                      >Guest Information {{ k + 1 }}</label
-                    >
+                      >Guest Information {{ k + 1 }}
+                    </label>
                   </div>
                   <div>
-                    <div class="form-check">
-                      <input
-                        type="checkbox"
-                        class="form-check-input"
-                        formControlName="isSameAsCustomer"
-                        (click)="sameAsCustomer(guest, $event)"
-                      />
-                      <label class="form-check-label">Same as Customer</label>
+                    <div class="d-flex ms-2">
+                      <ngx-file-drop
+                        dropZoneClassName="my-style"
+                        contentClassName="my-style"
+                        (onFileDrop)="dropped($event, groupForm)"
+                      >
+                        <ng-template
+                          ngx-file-drop-content-tmp
+                          let-openFileSelector="openFileSelector"
+                        >
+                          <a
+                            class="card-link"
+                            (click)="openFileSelector()"
+                            style="cursor: pointer"
+                            >Add
+                            <i
+                              class="material-symbols-rounded"
+                              style="vertical-align: middle; font-size: 20px"
+                            >
+                              file_present</i
+                            ></a
+                          >
+                        </ng-template>
+                      </ngx-file-drop>
+                      <div class="form-check ms-2">
+                        <input
+                          type="checkbox"
+                          class="form-check-input"
+                          formControlName="isSameAsCustomer"
+                          (click)="sameAsCustomer(guest, $event)"
+                        />
+                        <label class="form-check-label">Same as Customer</label>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -666,6 +717,15 @@
                   >Zip Code is required</small
                 >
               </div>
+              <div class="col mt-3">
+                <div *ngFor="let s of guest.get('documents')?.value">
+                  <img
+                    [src]="s"
+                    alt="img"
+                    style="height: 100px; width: 100px"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -694,12 +754,13 @@
               <option value="assign">assign</option>
             </select>
 
-            <label class="form-label">
+            <label class="form-label mt-2">
               Room Price :
               <span class="fw-semibold"
                 >{{ reservation?.get("roomPrice")?.value }}
               </span>
             </label>
+            <br />
             <label class="form-label">
               Room Cost :
               <a
@@ -710,17 +771,13 @@
               </a></label
             >
           </div>
-
-          <div class="card-body">
-            <a href="#" class="card-link">Add Document</a>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </form>
 
-<div class="d-flex justify-content-center">
+<div class="d-flex justify-content-center mb-2">
   <button
     class="btn btn-primary mt-2 me-2"
     [disabled]="groupForm.invalid || reservationForm.invalid"
@@ -752,15 +809,13 @@
     <table class="table">
       <thead>
         <tr>
-          <th scope="col">DATE</th>
-          <th scope="col">Reason</th>
+          <th colspan="2">DATE</th>
           <th>ESTIMATED COST</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let rate of updateDateRateObj.dateRate; let i = index">
-          <th scope="row">{{ rate.date | date }}</th>
-          <td></td>
+          <th colspan="2">{{ rate.date | date }}</th>
 
           <td class="text-center">
             {{ rate.baseRate }}
@@ -819,37 +874,34 @@
             }}
           </td>
         </tr>
-        <tr>
-          <td>Total Summary</td>
-          <td class="text-center">Price {{ updateDateRateObj.roomPrice }}</td>
-          <!-- <td class="text-center">{{ TotalCostRoomCharges }}</td> -->
+        <tr style="vertical-align: middle">
           <td class="text-center">
-            <div class="d-flex justify-content-center">
-              Cost
-              <input
-                type="number"
-                [(ngModel)]="updateDateRateObj.roomCost"
-                class="form-control custom_input text_center rate_input"
-              />
-            </div>
+            Total Price {{ updateDateRateObj.roomPrice }}
+          </td>
+          <td>Total Cost</td>
+          <td class="text-center">
+            <input
+              type="number"
+              [(ngModel)]="updateDateRateObj.roomCost"
+              class="form-control custom_input text_center rate_input"
+            />
           </td>
         </tr>
       </tbody>
     </table>
+
     <div class="d-flex justify-content-end pb-3">
       <button class="btn btn-primary me-2" (click)="calculateRate()">
         Calculate
       </button>
-      <button class="btn btn-primary" (click)="modal.close(true)">
-        SAVE & CLOSE
-      </button>
+      <button class="btn btn-primary" (click)="modal.close(true)">Save</button>
       <button class="btn light_button button ml-2" (click)="modal.close(false)">
         cancel
       </button>
     </div>
   </div>
 </ng-template>
-<div class="center">
+<!-- <div class="center">
   <ngx-file-drop
     dropZoneClassName="my-style"
     contentClassName="my-style"
@@ -864,7 +916,7 @@
         class="btn btn-primary"
         (click)="openFileSelector()"
       >
-        Choose Files
+        Add Files
       </button>
     </ng-template>
   </ngx-file-drop>
@@ -884,7 +936,7 @@
       </tbody>
     </table>
   </div>
-</div>
+</div> -->
 <ng-template #confirmReservation let-modal>
   <div class="modal-body">
     <h6 class="modal-title">

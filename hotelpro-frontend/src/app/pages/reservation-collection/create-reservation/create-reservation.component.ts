@@ -42,6 +42,7 @@ export class CreateReservationComponent implements OnInit {
     childRate: 0,
     adultRate: 0,
   };
+  Today: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -62,6 +63,7 @@ export class CreateReservationComponent implements OnInit {
   private initForms(): void {
     const today = new Date();
     const arrivalDate = this.formatDate(today);
+    this.Today = arrivalDate;
     const departureDate = this.formatDate(
       new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)
     );
@@ -75,7 +77,23 @@ export class CreateReservationComponent implements OnInit {
       totalPrice: [0],
     });
   }
-
+  nextDate() {
+    let x = new Date(this.groupForm.get('arrival')?.value);
+    x.setDate(x.getDate() + 1);
+    return this.formatDate(x);
+  }
+  setDeparture() {
+    let date1 = new Date(this.groupForm.get('arrival')?.value);
+    let date2 = new Date(this.groupForm.get('departure')?.value);
+    if (date1 >= date2) {
+      let diff = (date2.getTime() - date1.getTime()) / (1000 * 3600 * 24);
+      diff = diff < 1 ? 1 : Math.round(diff);
+      date1.setDate(date1.getDate() + diff);
+      this.groupForm.controls.departure.setValue(this.formatDate(date1));
+    }
+    this.resetGuestTotals();
+    // return this.formatDate(this.groupForm.get('departure')?.value);
+  }
   private formatDate(date: Date): string {
     return new DatePipe('en-US').transform(date, 'yyyy-MM-dd') || '';
   }
@@ -95,7 +113,10 @@ export class CreateReservationComponent implements OnInit {
       });
   }
 
-  private resetGuestTotals(): void {
+  resetGuestTotals(): void {
+    this.roomsData = [];
+    this.selectedItems = [];
+    this.roomTypeRooms = {};
     this.totalGuests = { adults: 0, childs: 0 };
     this.groupForm.patchValue({
       totalCost: 0,
