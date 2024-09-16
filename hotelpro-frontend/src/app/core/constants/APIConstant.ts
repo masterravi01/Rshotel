@@ -7,14 +7,19 @@ export const APIConstant = {
   CHANGE_PASSWORD: 'user/change-password',
   RESET_PASSWORD: 'user/reset-password/', //reset-password/:resetToken
   REGISTER_USER: 'user/register',
+  CLIENT_LOGIN_BY_SUPERADMIN: 'user/client-login-by-superadmin',
 
   CREATE_PROPERTY: 'property/create-property',
   READ_CLIENT_DASHBOARD: 'property/read-client-dashboard',
+  READ_USER_BY_PROPERTY_UNIT: 'property/read-user-by-propertyunit/',
+  UPDATE_USER: 'property/update-user/',
   UPLOAD_PROFILE_PHOTO: 'property/upload-profile-photo',
   UPLOAD_ROOMS_PHOTOS: 'property/upload-rooms-photos',
   UPDATE_PROPERTY_UNIT: 'propertyunit/update-propertyunit/',
   CREATE_PROPERTY_UNIT: 'propertyunit/create-propertyunit',
   READ_PROPERTY_UNIT: 'propertyunit/read-propertyunit/',
+
+  GET_SUPERADMIN_DASHBOARD: 'admin/get-superadmin-dashboard/',
 
   READ_ROOMTYPES: 'room/read-roomtypes/',
   READ_ROOMTYPE_BY_ID: 'room/read-roomtypebyid/',

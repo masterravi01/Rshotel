@@ -10,6 +10,7 @@ import {
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -77,13 +78,14 @@ export class HouseKeepingComponent implements OnInit {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private modalService: NgbModal,
+    private authService: AuthService,
   ) { }
 
   ngOnInit() {
 
+    this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
     this.dropDownSettings();
-    this.propertyUnitId =
-      this.activeRoute.snapshot.paramMap.get('propertyUnitId');
+
     this.isEditable = false;
     this.HouseKeeperForm = this.fb.group({
       _id: [''],

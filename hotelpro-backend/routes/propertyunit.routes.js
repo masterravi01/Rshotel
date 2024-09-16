@@ -1,8 +1,7 @@
 import express from "express";
 import { upload } from "../middleware/multer.middleware.js";
-import propertyUnitController from "../controllers/property/propertyunit.controller.js";
-import taxController from "../controllers/property/tax.controller.js";
-
+import propertyUnitController from "../controllers/propertyunit/propertyunit.controller.js";
+import taxController from "../controllers/propertyunit/tax.controller.js";
 const router = express.Router();
 
 router.post("/create-propertyunit", propertyUnitController.createPropertyUnit);

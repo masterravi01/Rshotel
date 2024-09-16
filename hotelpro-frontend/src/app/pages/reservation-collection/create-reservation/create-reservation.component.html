@@ -151,7 +151,7 @@
         <td>{{ room.roomCost }}</td>
         <td>
           <button
-            class="btn btn-primary p-0"
+            class="btn btn-primary p-0 me-1"
             (click)="addRoomCount(i)"
             [disabled]="
               room?.dropdownSettings?.limitSelection >= room.totalRoom
@@ -163,7 +163,7 @@
           </button>
           <span class="mx-1">{{ room?.dropdownSettings?.limitSelection }}</span>
           <button
-            class="btn btn-primary p-0"
+            class="btn btn-primary p-0 ms-1"
             (click)="removeRoomCount(i)"
             [disabled]="room?.dropdownSettings?.limitSelection === 0"
           >

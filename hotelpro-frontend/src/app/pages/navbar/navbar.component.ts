@@ -1,6 +1,6 @@
 import { Component, TemplateRef } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CrudService } from '../../core/services/crud.service';
 import { APIConstant } from '../../core/constants/APIConstant';
@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, RouterModule],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
 })
@@ -25,7 +25,7 @@ export class NavbarComponent {
     private crudService: CrudService,
     private alertService: AlertService,
     private modalService: NgbModal
-  ) {}
+  ) { }
 
   async logOut() {
     try {

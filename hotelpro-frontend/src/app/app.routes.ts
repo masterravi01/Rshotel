@@ -65,12 +65,39 @@ export const routes: Routes = [
     component: LayoutComponent,
     children: [
       {
-        path: 'dashboard',
+        path: 'client-dashboard',
         loadComponent: () =>
           import(
-            './pages/dashboard/client-dashboard/client-dashboard.component'
+            './pages/client/client-dashboard/client-dashboard.component'
           ).then((m) => m.ClientDashboardComponent),
         title: 'Dashboard',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'frontdesk-dashboard',
+        loadComponent: () =>
+          import(
+            './pages/frontdesk/frontdesk-dashboard/frontdesk-dashboard.component'
+          ).then((m) => m.FrontdeskDashboardComponent),
+        title: 'Frontdesk',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'superadmin-dashboard',
+        loadComponent: () =>
+          import(
+            './pages/super-admin/superadmin-dashboard/superadmin-dashboard.component'
+          ).then((m) => m.SuperadminDashboardComponent),
+        title: 'Super Admin',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'manage-user/:propertyUnitId',
+        loadComponent: () =>
+          import(
+            './pages/client/manage-user/manage-user.component'
+          ).then((m) => m.ManageUserComponent),
+        title: 'Manage User',
         canActivate: [authGuard],
       },
 
@@ -169,10 +196,21 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
 
+      // booking management
+      {
+        path: 'reservation-list',
+        loadComponent: () =>
+          import(
+            './pages/booking-management/reservation-list/reservation-list.component'
+          ).then((m) => m.ReservationListComponent),
+        title: 'Reservation List',
+        canActivate: [authGuard],
+      },
+
       //room collection
 
       {
-        path: 'room-maintenance/:propertyUnitId',
+        path: 'room-maintenance',
         loadComponent: () =>
           import(
             './pages/room-operation/room-maintenance/room-maintenance.component'
@@ -181,7 +219,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'house-keeping/:propertyUnitId',
+        path: 'house-keeping',
         loadComponent: () =>
           import(
             './pages/room-operation/house-keeping/house-keeping.component'

@@ -163,12 +163,16 @@ const loginUser = asyncHandler(async (req, res) => {
     );
   }
 
+  if (!user.isLoginable) {
+    throw new ApiError(400, "Your account is not active, please contact admin");
+  }
+
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id
   );
 
   let loggedInUser;
-  if (user.userType == "client") {
+  if (user.userType == UserTypesEnum.CLIENT) {
     loggedInUser = await User.aggregate([
       {
         $match: {
@@ -188,19 +192,6 @@ const loginUser = asyncHandler(async (req, res) => {
           path: "$property",
         },
       },
-
-      {
-        $project: {
-          firstName: "$firstName",
-          lastName: "$lastName",
-          email: "$email",
-          userType: "$userType",
-          avatar: "$avatar",
-          isVIP: "$property.isVIP",
-          propertyId: "$property._id",
-          propertyName: "$property.propertyName",
-        },
-      },
       {
         $lookup: {
           from: "propertyunits",
@@ -210,7 +201,6 @@ const loginUser = asyncHandler(async (req, res) => {
           pipeline: [
             {
               $project: {
-                propertyUnitId: "$_id",
                 propertyUnitCode: 1,
                 propertyUnitName: 1,
               },
@@ -218,16 +208,175 @@ const loginUser = asyncHandler(async (req, res) => {
           ],
         },
       },
+      {
+        $unwind: {
+          path: "$propertyUnits",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          firstName: {
+            $first: "$firstName",
+          },
+          lastName: {
+            $first: "$lastName",
+          },
+          email: {
+            $first: "$email",
+          },
+          userType: {
+            $first: "$userType",
+          },
+          avatar: {
+            $first: "$avatar",
+          },
+          isVIP: {
+            $first: "$property.isVIP",
+          },
+          propertyId: {
+            $first: "$property._id",
+          },
+          propertyName: {
+            $first: "$property.propertyName",
+          },
+          propertyUnitId: {
+            $first: "$propertyUnits._id",
+          },
+          propertyUnitCode: {
+            $first: "$propertyUnits.propertyUnitCode",
+          },
+          propertyUnitName: {
+            $first: "$propertyUnits.propertyUnitName",
+          },
+          propertyUnits: {
+            $push: "$propertyUnits",
+          },
+        },
+      },
     ]);
-    if (loggedInUser[0]?.propertyUnits?.[0]) {
-      loggedInUser[0].propertyUnitId =
-        loggedInUser[0]?.propertyUnits[0]?.propertyUnitId;
-      loggedInUser[0].propertyUnitCode =
-        loggedInUser[0]?.propertyUnits[0]?.propertyUnitCode;
-      loggedInUser[0].propertyUnitName =
-        loggedInUser[0]?.propertyUnits[0]?.propertyUnitName;
-    }
+  } else if (user.userType == UserTypesEnum.SUPERADMIN) {
+    loggedInUser = await User.aggregate([
+      {
+        $match: {
+          _id: user._id,
+        },
+      },
+      {
+        $project: {
+          email: 1,
+          userType: 1,
+        },
+      },
+    ]);
   }
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options) // set the access token in the cookie
+    .cookie("refreshToken", refreshToken, options) // set the refresh token in the cookie
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser[0], accessToken, refreshToken }, // send access and refresh token in response if client decides to save them by themselves
+        "User logged in successfully"
+      )
+    );
+});
+
+const clientLoginBySuperadmin = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  let loggedInUser = await User.aggregate([
+    {
+      $match: {
+        email,
+      },
+    },
+    {
+      $lookup: {
+        from: "properties",
+        localField: "_id",
+        foreignField: "ownerId",
+        as: "property",
+      },
+    },
+    {
+      $unwind: {
+        path: "$property",
+      },
+    },
+    {
+      $lookup: {
+        from: "propertyunits",
+        localField: "propertyId",
+        foreignField: "propertyId",
+        as: "propertyUnits",
+        pipeline: [
+          {
+            $project: {
+              propertyUnitCode: 1,
+              propertyUnitName: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: "$propertyUnits",
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        firstName: {
+          $first: "$firstName",
+        },
+        lastName: {
+          $first: "$lastName",
+        },
+        email: {
+          $first: "$email",
+        },
+        userType: {
+          $first: "$userType",
+        },
+        avatar: {
+          $first: "$avatar",
+        },
+        isVIP: {
+          $first: "$property.isVIP",
+        },
+        propertyId: {
+          $first: "$property._id",
+        },
+        propertyName: {
+          $first: "$property.propertyName",
+        },
+        propertyUnitId: {
+          $first: "$propertyUnits._id",
+        },
+        propertyUnitCode: {
+          $first: "$propertyUnits.propertyUnitCode",
+        },
+        propertyUnitName: {
+          $first: "$propertyUnits.propertyUnitName",
+        },
+        propertyUnits: {
+          $push: "$propertyUnits",
+        },
+      },
+    },
+  ]);
+
+  if (loggedInUser.length == 0) {
+    throw new ApiError(400, "User not found");
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    loggedInUser[0]._id
+  );
 
   return res
     .status(200)
@@ -518,6 +667,7 @@ export default {
   forgotPasswordRequest,
   getCurrentUser,
   loginUser,
+  clientLoginBySuperadmin,
   logoutUser,
   refreshAccessToken,
   registerUser,

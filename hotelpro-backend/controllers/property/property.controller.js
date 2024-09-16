@@ -183,7 +183,7 @@ const uploadProfilePhoto = asyncHandler(async (req, res) => {
   return res.status(201).json(new ApiResponse(201, {}, "Upload  successfully"));
 });
 
-const readClientDashboard = asyncHandler(async (req, res) => {
+const getClientDashboard = asyncHandler(async (req, res) => {
   const { propertyId } = req.body;
   const response = {};
 
@@ -294,5 +294,5 @@ export default {
   deletePropertyById,
   uploadProfilePhoto,
   uploadRoomsPhotos,
-  readClientDashboard,
+  getClientDashboard,
 };

@@ -22,30 +22,34 @@ export class ClientDashboardComponent {
     private router: Router,
     private crudService: CrudService,
     private alertService: AlertService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.userInfo = this.authService.getUserInfo()?.user;
     console.log(this.userInfo);
-    
+
     this.crudService
-        .post(APIConstant.READ_CLIENT_DASHBOARD, {propertyId: this.userInfo.propertyId})
-        .then((response: any) => {
-          this.dashboardData = response.data;
-          console.log(this.dashboardData);
-        })
-        .catch((error) => {
-          this.alertService.errorAlert(error?.error?.message || error.message);
-        });
-    
+      .post(APIConstant.READ_CLIENT_DASHBOARD, { propertyId: this.userInfo.propertyId })
+      .then((response: any) => {
+        this.dashboardData = response.data;
+        console.log(this.dashboardData);
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(error?.error?.message || error.message);
+      });
+
   }
-  
+
   addPropertyUnit() {
     this.router.navigate(['/property-setup/ADD']);
   }
 
-  editPropertyUnit(propertyUnitId: any) { 
+  editPropertyUnit(propertyUnitId: any) {
     this.router.navigate(['/property-setup', propertyUnitId]);
+  }
+
+  manageUser(propertyUnitId: any) {
+    this.router.navigate(['/manage-user', propertyUnitId]);
   }
 
 }

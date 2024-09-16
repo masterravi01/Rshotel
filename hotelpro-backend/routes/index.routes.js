@@ -1,5 +1,6 @@
 import express from "express";
 import { verifyJWT } from "../middleware/auth.middlewares.js";
+import adminRouter from "./admin.routes.js";
 import userRouter from "./auth.routes.js";
 import propertyRouter from "./property.routes.js";
 import propertyUnitRouter from "./propertyunit.routes.js";
@@ -12,6 +13,7 @@ const router = express.Router();
 router.use("/user", userRouter);
 router.use("/property", propertyRouter);
 router.use(verifyJWT); // apply middleware on subsequent routes
+router.use("/admin", adminRouter);
 router.use("/propertyunit", propertyUnitRouter);
 router.use("/room", roomRouter);
 router.use("/ratemanagement", ratemanagementRouter);
