@@ -13,7 +13,10 @@ router.post(
   upload.array("uploadedImages", 10),
   reservationOperationIndex.uploadReservationImages
 );
-
 router.post("/guest-folio", reservationOperationIndex.guestFolio);
+router.post(
+  "/get-all-reservation",
+  reservationOperationIndex.getAllReservations
+);
 
 export default router;

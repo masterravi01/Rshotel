@@ -42,9 +42,9 @@ export class ReservationListComponent implements OnInit {
 
   fetchData() {
     this.crudService
-      .post(APIConstant.READ_USER_BY_PROPERTY_UNIT, { propertyUnitId: this.propertyUnitId })
+      .post(APIConstant.GET_ALL_RESERVATION, { propertyUnitId: this.propertyUnitId })
       .then((response) => {
-        this.reservationData = response.data.users;
+        this.reservationData = response.data;
       })
       .catch((error) => {
         this.alertService.errorAlert(
