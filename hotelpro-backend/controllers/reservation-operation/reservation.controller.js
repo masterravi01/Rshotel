@@ -48,7 +48,65 @@ import {
 
 // GET all reservations
 const getAllReservations = asyncHandler(async (req, res) => {
-  const reservations = await Reservation.find();
+  const { propertyUnitId } = req.body;
+  const reservations = await Reservation.aggregate([
+    {
+      $match: {
+        propertyUnitId: new ObjectId(propertyUnitId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "userDetail",
+      },
+    },
+    {
+      $unwind: {
+        path: "$userDetail",
+      },
+    },
+    {
+      $lookup: {
+        from: "roomtypes",
+        localField: "roomTypeId",
+        foreignField: "_id",
+        as: "roomTypeDetail",
+      },
+    },
+    {
+      $unwind: {
+        path: "$roomTypeDetail",
+      },
+    },
+    {
+      $lookup: {
+        from: "rooms",
+        localField: "roomId",
+        foreignField: "_id",
+        as: "roomDetail",
+      },
+    },
+    {
+      $unwind: {
+        path: "$roomDetail",
+      },
+    },
+    {
+      $project: {
+        firstName: "$userDetail.firstName",
+        lastName: "$userDetail.lastName",
+        roomType: "$roomTypeDetail.roomTypeName",
+        roomNumber: "$roomDetail.roomNumber",
+        roomName: "$roomDetail.roomName",
+        reservationStatus: 1,
+        arrival: 1,
+        departure: 1,
+      },
+    },
+  ]);
   return res
     .status(200)
     .json(

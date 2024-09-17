@@ -15,8 +15,8 @@
                                 <th scope="col">Room Type</th>
                                 <th scope="col">Room No.</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Check in</th>
-                                <th scope="col">Check out</th>
+                                <th scope="col">Arrival</th>
+                                <th scope="col">Departure</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -26,9 +26,9 @@
                                 <td>{{ i+1 }}</td>
                                 <td>{{ reservation.roomType }}</td>
                                 <td>{{ reservation.roomNumber }}</td>
-                                <td>{{ reservation.status }}</td>
-                                <td>{{ reservation.checkInDate }}</td>
-                                <td>{{ reservation.checkOutDate }}</td>
+                                <td>{{ reservation.reservationStatus }}</td>
+                                <td>{{ reservation.arrival | date : 'dd/MM/yyyy' }}</td>
+                                <td>{{ reservation.departure | date : 'dd/MM/yyyy' }}</td>
                             </tr>
                         </tbody>
                     </table>
