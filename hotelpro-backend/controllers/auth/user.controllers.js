@@ -195,7 +195,7 @@ const loginUser = asyncHandler(async (req, res) => {
       {
         $lookup: {
           from: "propertyunits",
-          localField: "propertyId",
+          localField: "property._id",
           foreignField: "propertyId",
           as: "propertyUnits",
           pipeline: [
