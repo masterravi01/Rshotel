@@ -29,7 +29,12 @@ import {
   deleteFromCloudinary,
   uploadOnCloudinary,
 } from "../../utils/cloudinary.js";
-import { deleteLocalImage, prepareInternalError } from "../../utils/helpers.js";
+import {
+  deleteLocalImage,
+  prepareInternalError,
+  generateConfirmationNumber,
+  generateGroupNumber,
+} from "../../utils/helpers.js";
 import {
   CLOUD_AVATAR_FOLDER_NAME,
   CLOUD_COVERPIC_FOLDER_NAME,
@@ -74,7 +79,8 @@ const getReservationById = asyncHandler(async (req, res) => {
 const createReservation = asyncHandler(async (req, res) => {
   let session = null;
   let AllInsertedRoomLockIds = [];
-
+  let transaction_retry_count = 0;
+  let data = {};
   try {
     session = await mongoose.startSession();
     console.log("Session started:", session.id);
@@ -84,6 +90,15 @@ const createReservation = asyncHandler(async (req, res) => {
 
       let { groupDetails, reservationsArray, paymentEntries, propertyUnitId } =
         req.body;
+
+      if (transaction_retry_count > 0) {
+        console.log("in retry");
+        // if we are retrying then, deallocate old rooms
+        await deallocateMultipleRooms(AllInsertedRoomLockIds);
+        AllInsertedRoomLockIds = [];
+      }
+
+      transaction_retry_count++;
       propertyUnitId = new ObjectId(propertyUnitId);
       let reservationsRoomTypeIds = [];
       let assigncheckindate = new Date(groupDetails.arrival);
@@ -268,7 +283,10 @@ const createReservation = asyncHandler(async (req, res) => {
       }
 
       // Save group reservation and related entries
-      const groupData = new GroupReservation(groupDetails);
+      const groupData = new GroupReservation({
+        ...groupDetails,
+        propertyUnitId,
+      });
       let customerDetails = new User({
         ...groupDetails,
         userType: UserTypesEnum.GUEST,
@@ -329,6 +347,9 @@ const createReservation = asyncHandler(async (req, res) => {
             }
           }
         }
+        reservationObj.confirmationNumber = await generateConfirmationNumber(
+          propertyUnitId
+        );
         ReservationEntries.push(reservationObj);
         ReservationDetailEntries.push(reservationDetailObj);
 
@@ -368,6 +389,7 @@ const createReservation = asyncHandler(async (req, res) => {
         billingAccountName: `${groupDetails.firstName} ${groupDetails.lastName}`,
         propertyUnitId,
         userId: customerDetails._id,
+        groupId: groupData._id,
       });
 
       // Handle payments
@@ -403,30 +425,108 @@ const createReservation = asyncHandler(async (req, res) => {
           }
         }
       }
+      groupData.groupNumber = await generateGroupNumber(propertyUnitId);
 
-      // Insert all entries
+      // // for live
+      // try {
+      //   console.log("Saving All data...");
+      //   await Promise.all([
+      //     groupData.save({ session }),
+      //     Reservation.insertMany(ReservationEntries, { session }),
+      //     ReservationDetail.insertMany(ReservationDetailEntries, { session }),
+      //     RoomBalance.insertMany(RoomBalanceEntries, { session }),
+      //     BillingAccount.insertMany([billing_account], { session }),
+      //     User.insertMany(UserEntries, { session }),
+      //     Address.insertMany(AddressEntries, { session }),
+      //     TransactionCode.insertMany(TransactionCodeEntries, { session }),
+      //     GuestTransaction.insertMany(GuestTransactionEntries, { session }),
+      //   ]);
+      // } catch (error) {
+      //   console.error("Error saving All data :", error);
+      //   throw error;
+      // }
+
+      //for debugging
       try {
-        console.log("Saving All data...");
-        await Promise.all([
-          groupData.save({ session }),
-          Reservation.insertMany(ReservationEntries, { session }),
-          ReservationDetail.insertMany(ReservationDetailEntries, { session }),
-          RoomBalance.insertMany(RoomBalanceEntries, { session }),
-          BillingAccount.insertMany([billing_account], { session }),
-          User.insertMany(UserEntries, { session }),
-          Address.insertMany(AddressEntries, { session }),
-          TransactionCode.insertMany(TransactionCodeEntries, { session }),
-          GuestTransaction.insertMany(GuestTransactionEntries, { session }),
-        ]);
+        console.log("Saving group data...");
+        await groupData.save({ session });
       } catch (error) {
-        console.error("Error saving All data :", error);
+        console.error("Error saving group data:", error);
         throw error;
       }
+
+      try {
+        console.log("Saving reservation entries...");
+        await Reservation.insertMany(ReservationEntries, { session });
+      } catch (error) {
+        console.error("Error saving reservation entries:", error);
+        throw error;
+      }
+
+      try {
+        console.log("Saving reservation detail entries...");
+        await ReservationDetail.insertMany(ReservationDetailEntries, {
+          session,
+        });
+      } catch (error) {
+        console.error("Error saving reservation detail entries:", error);
+        throw error;
+      }
+
+      try {
+        console.log("Saving room balance entries...");
+        await RoomBalance.insertMany(RoomBalanceEntries, { session });
+      } catch (error) {
+        console.error("Error saving room balance entries:", error);
+        throw error;
+      }
+
+      try {
+        console.log("Saving billing account...");
+        await BillingAccount.insertMany([billing_account], { session });
+      } catch (error) {
+        console.error("Error saving billing account:", error);
+        throw error;
+      }
+
+      try {
+        console.log("Saving user entries...");
+        await User.insertMany(UserEntries, { session });
+      } catch (error) {
+        console.error("Error saving user entries:", error);
+        throw error;
+      }
+
+      try {
+        console.log("Saving address entries...");
+        await Address.insertMany(AddressEntries, { session });
+      } catch (error) {
+        console.error("Error saving address entries:", error);
+        throw error;
+      }
+
+      try {
+        console.log("Saving transaction code entries...");
+        await TransactionCode.insertMany(TransactionCodeEntries, { session });
+      } catch (error) {
+        console.error("Error saving transaction code entries:", error);
+        throw error;
+      }
+
+      try {
+        console.log("Saving guest transaction entries...");
+        await GuestTransaction.insertMany(GuestTransactionEntries, { session });
+      } catch (error) {
+        console.error("Error saving guest transaction entries:", error);
+        throw error;
+      }
+
+      data = groupData;
     });
     console.log("Transaction committed successfully");
     return res
       .status(201)
-      .json(new ApiResponse(201, {}, "Reservation created successfully"));
+      .json(new ApiResponse(201, data, "Reservation created successfully"));
   } catch (error) {
     const DeallocatedRoomLocks = await deallocateMultipleRooms(
       AllInsertedRoomLockIds

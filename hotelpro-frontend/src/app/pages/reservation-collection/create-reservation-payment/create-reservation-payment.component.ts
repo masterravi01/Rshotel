@@ -89,7 +89,7 @@ export class CreateReservationPaymentComponent implements OnInit {
       .then((response) => {
         console.log(response);
         this.alertService.successAlert('Reservation created successfully');
-        this.router.navigate(['/success-page']);
+        this.router.navigate(['/guest-folio/' + response?.data?._id]);
       })
       .catch((error) => {
         this.alertService.errorAlert(

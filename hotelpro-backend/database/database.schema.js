@@ -642,6 +642,7 @@ const groupReservationSchema = new Schema(
     totalPayment: Number,
     totalDeposit: Number,
     totalBalance: Number,
+    groupNumber: String,
   },
   { timestamps: true }
 );

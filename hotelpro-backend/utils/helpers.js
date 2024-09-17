@@ -1,6 +1,6 @@
 import fs from "fs";
 import mongoose from "mongoose";
-
+import { propertyFolio } from "../database/database.schema.js";
 /**
  *
  * @param {string[]} fieldsArray
@@ -171,4 +171,58 @@ export const prepareInternalError = (message) => {
   error.name = "InternalError";
   error.message = message;
   return error;
+};
+
+export const generateTransactionReceiptNumber = async (propertyUnitId) => {
+  const PropertySetupFolioDetails = await propertyFolio.findOneAndUpdate(
+    {
+      propertyUnitId,
+    },
+    {
+      $inc: {
+        currentReceiptNumber: 1,
+      },
+    },
+    {
+      returnNewDocument: true,
+    }
+  );
+
+  return "RECP" + PropertySetupFolioDetails?.currentReceiptNumber;
+};
+
+export const generateGroupNumber = async (propertyUnitId) => {
+  const PropertySetupFolioDetails = await propertyFolio.findOneAndUpdate(
+    {
+      propertyUnitId,
+    },
+    {
+      $inc: {
+        currentFolioGroupNumber: 1,
+      },
+    },
+    {
+      returnNewDocument: true,
+    }
+  );
+
+  return "GRP" + PropertySetupFolioDetails?.currentFolioGroupNumber;
+};
+
+export const generateConfirmationNumber = async (propertyUnitId) => {
+  const PropertySetupFolioDetails = await propertyFolio.findOneAndUpdate(
+    {
+      propertyUnitId,
+    },
+    {
+      $inc: {
+        currentFolioNumber: 1,
+      },
+    },
+    {
+      returnNewDocument: true,
+    }
+  );
+
+  return "RES" + PropertySetupFolioDetails?.currentFolioNumber;
 };
