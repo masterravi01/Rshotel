@@ -126,7 +126,9 @@ export class AddUpdatePropertyComponent implements OnInit {
           .then((response: any) => {
             console.log(response);
             this.alertService.successAlert(response.message);
-            this.router.navigate(['/roomtype-setup', response?.data?._id]);
+            this.router.navigate([
+              '/roomtype-setup/' + response?.data?._id + '/ADD',
+            ]);
           })
           .catch((error) => {
             this.alertService.errorAlert(error.message);
