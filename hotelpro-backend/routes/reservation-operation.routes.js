@@ -14,6 +14,7 @@ router.post(
   reservationOperationIndex.uploadReservationImages
 );
 router.post("/guest-folio", reservationOperationIndex.guestFolio);
+router.post("/stay-update", reservationOperationIndex.stayUpdate);
 router.post(
   "/get-all-reservation",
   reservationOperationIndex.getAllReservations
