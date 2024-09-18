@@ -96,6 +96,13 @@ const getAllReservations = asyncHandler(async (req, res) => {
     },
     {
       $project: {
+        _id: 0,
+        reservationId: {
+          $toString: "$_id",
+        },
+        groupId: {
+          $toString: "$groupId",
+        },
         firstName: "$userDetail.firstName",
         lastName: "$userDetail.lastName",
         roomType: "$roomTypeDetail.roomTypeName",
@@ -106,6 +113,7 @@ const getAllReservations = asyncHandler(async (req, res) => {
         departure: 1,
       },
     },
+    { $addFields: { Show: true } },
   ]);
   return res
     .status(200)
