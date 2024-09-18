@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between">
       <div class="">
         <p class="form-label fs-5 fw-semibold">
-          Reservation Folio (#RES421)
+          Reservation Folio (#{{ groupDetails?.groupNumber }})
           {{ groupDetails?.arrival | date : "MMM d, y" }}
           <i class="material-symbols-rounded" style="vertical-align: middle">
             line_end_arrow_notch</i
@@ -128,10 +128,14 @@
       <div class="d-flex justify-content-between">
         <div class="">
           <p class="form-label fs-5 fw-semibold">
-            #Res141 ({{
-              reservation?.roomDetails?.roomTypeDetails?.roomTypeName
+            #{{ reservation.confirmationNumber }} ({{
+              reservation?.roomTypeDetails?.roomTypeName
             }}
-            -{{ reservation?.roomDetails?.roomName }})
+            -{{
+              reservation?.roomDetails?.roomName
+                ? reservation?.roomDetails?.roomName
+                : "unassign"
+            }})
             {{ reservation?.arrival | date }}
             <i class="material-symbols-rounded" style="vertical-align: middle">
               line_end_arrow_notch</i
@@ -237,7 +241,12 @@
           <div class="d-flex flex-column">
             <label class="form-label fw-semibold"> Add Guest </label>
             <label class="form-label fw-semibold mt-2"> Cancel Room </label>
-            <label class="form-label fw-semibold mt-2"> Update Stay </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="openUpdateStayModal(reservation, stayUpdateModal)"
+            >
+              Update Stay
+            </label>
             <label class="form-label fw-semibold mt-2"> Change Room </label>
             <label class="form-label fw-semibold mt-2"> Room Charges </label>
             <label class="form-label fw-semibold mt-2">Make Payment </label>
@@ -353,3 +362,41 @@
     </div>
   </div>
 </div>
+<ng-template #stayUpdateModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Stay Update</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <label class="form-label">Arrival Date</label>
+    <input
+      type="date"
+      class="form-control"
+      name="updateStayArrival"
+      [(ngModel)]="updateStayArrival"
+      placeholder="Enter arrival"
+    />
+    <label class="form-label">Departure Date</label>
+    <input
+      type="date"
+      class="form-control"
+      name="updateStayDeparture"
+      [(ngModel)]="updateStayDeparture"
+      placeholder="Enter departure"
+    />
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="modal.close(true)"
+    >
+      Save
+    </button>
+  </div>
+</ng-template>

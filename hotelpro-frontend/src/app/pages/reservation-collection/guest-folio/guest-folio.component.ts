@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
@@ -11,6 +11,8 @@ import {
   JsonPipe,
 } from '@angular/common';
 import { NgImageSliderModule } from 'ng-image-slider-v17';
+import { AuthService } from '../../../core/services/auth.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-guest-folio',
@@ -21,6 +23,7 @@ import { NgImageSliderModule } from 'ng-image-slider-v17';
     CurrencyPipe,
     CommonModule,
     NgImageSliderModule,
+    FormsModule,
   ],
   templateUrl: './guest-folio.component.html',
   styleUrl: './guest-folio.component.css',
@@ -29,6 +32,8 @@ export class GuestFolioComponent implements OnInit {
   groupDetails: any;
   propertyUnitId: string | null = '';
   groupId: string | null = '';
+  updateStayArrival: string = '';
+  updateStayDeparture: string = '';
   imageObject = [
     {
       image:
@@ -55,9 +60,12 @@ export class GuestFolioComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private alertService: AlertService,
-    private crudService: CrudService
+    private authService: AuthService,
+    private crudService: CrudService,
+    private modalService: NgbModal
   ) {}
   ngOnInit(): void {
+    this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
     this.groupId = this.route.snapshot.paramMap.get('groupId');
     if (this.groupId) {
       this.crudService
@@ -74,5 +82,39 @@ export class GuestFolioComponent implements OnInit {
           console.error(error);
         });
     }
+  }
+
+  updateStay(reservationId: any) {
+    this.crudService
+      .post(APIConstant.STAY_UPDATE, {
+        reservationId: reservationId,
+        propertyUnitId: this.propertyUnitId,
+        groupId: this.groupId,
+        assigncheckindate: new Date(this.updateStayArrival),
+        assigncheckoutdate: new Date(this.updateStayDeparture),
+      })
+      .then((response) => {
+        console.log(response);
+        this.alertService.successAlert(response.message);
+        this.ngOnInit();
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred while processing payment'
+        );
+        console.error(error);
+      });
+  }
+  private formatDate(date: Date): string {
+    return new DatePipe('en-US').transform(date, 'yyyy-MM-dd') || '';
+  }
+  openUpdateStayModal(reservation: any, content: any): void {
+    this.updateStayArrival = this.formatDate(new Date(reservation.arrival));
+    this.updateStayDeparture = this.formatDate(new Date(reservation.departure));
+    this.modalService.open(content).result.then((result) => {
+      if (result) {
+        this.updateStay(reservation._id);
+      }
+    });
   }
 }

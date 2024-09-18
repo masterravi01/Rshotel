@@ -44,6 +44,7 @@ import {
 import {
   checkAndAllocateRoom,
   deallocateMultipleRooms,
+  deallocateRoom,
 } from "./room-reservation-concurrency.js";
 
 // GET all reservations
@@ -615,6 +616,640 @@ const createReservation = asyncHandler(async (req, res) => {
   }
 });
 
+const stayUpdate = asyncHandler(async (req, res) => {
+  let session = null;
+  let AllInsertedRoomLockIds = [];
+  let transaction_retry_count = 0;
+  let data = {};
+  try {
+    session = await mongoose.startSession();
+    console.log("Session started:", session.id);
+
+    await session.withTransaction(async () => {
+      let {
+        assigncheckindate,
+        assigncheckoutdate,
+        reservationId,
+        groupId,
+        propertyUnitId,
+      } = req.body;
+      assigncheckindate = new Date(assigncheckindate);
+      assigncheckoutdate = new Date(assigncheckoutdate);
+      reservationId = new ObjectId(reservationId);
+      groupId = new ObjectId(groupId);
+      propertyUnitId = new ObjectId(propertyUnitId);
+      let [groupDetails, OldReservationDetails, roomBalanceDetails] =
+        await Promise.all([
+          GroupReservation.findOne({
+            _id: groupId,
+          }),
+          Reservation.aggregate([
+            {
+              $match: {
+                _id: reservationId,
+              },
+            },
+            {
+              $lookup: {
+                from: "reservationdetails",
+                localField: "_id",
+                foreignField: "reservationId",
+                as: "reservationDetails",
+              },
+            },
+            {
+              $unwind: {
+                path: "$reservationDetails",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            {
+              $lookup: {
+                from: "roomtypes",
+                localField: "roomTypeId",
+                foreignField: "_id",
+                as: "roomTypeDetails",
+              },
+            },
+            {
+              $unwind: {
+                path: "$roomTypeDetails",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            {
+              $lookup: {
+                from: "rateplansetups",
+                localField: "rateplanId",
+                foreignField: "_id",
+                as: "rateDetails",
+              },
+            },
+            {
+              $unwind: {
+                path: "$rateDetails",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ]),
+          RoomBalance.find({ reservationId: reservationId }),
+        ]);
+      OldReservationDetails = OldReservationDetails[0];
+
+      if (OldReservationDetails.roomId) {
+        console.log("for Assigned Room");
+        let [
+          OldReservations,
+          TotalRooms,
+          RoomMaintainanceDetails,
+          BookingControlDetails,
+        ] = await Promise.all([
+          Reservation.aggregate([
+            {
+              $match: {
+                $and: [
+                  { departure: { $gt: assigncheckindate } },
+                  { arrival: { $lt: assigncheckoutdate } },
+                  { propertyUnitId },
+                  { roomTypeId: OldReservationDetails.roomTypeId },
+                  {
+                    $or: [
+                      { reservationStatus: ReservationStatusEnum.INHOUSE },
+                      { reservationStatus: ReservationStatusEnum.RESERVED },
+                    ],
+                  },
+                  { _id: { $ne: reservationId } },
+                ],
+              },
+            },
+            { $project: { roomId: 1, tantative: 1, roomTypeId: 1 } },
+          ]),
+          RoomType.aggregate([
+            {
+              $match: {
+                propertyUnitId,
+                _id: OldReservationDetails.roomTypeId,
+              },
+            },
+            {
+              $lookup: {
+                from: "rooms",
+                localField: "_id",
+                foreignField: "roomTypeId",
+                as: "TotalRoomDetails",
+              },
+            },
+            { $unwind: "$TotalRoomDetails" },
+            {
+              $group: {
+                _id: "$_id",
+                rooms: { $push: "$TotalRoomDetails" },
+                roomId: { $push: { $toString: "$TotalRoomDetails._id" } },
+              },
+            },
+          ]),
+          RoomMaintenance.aggregate([
+            {
+              $match: {
+                $and: [
+                  { endDate: { $gt: assigncheckindate } },
+                  { startDate: { $lt: assigncheckoutdate } },
+                  { isCompleted: { $ne: true } },
+                  { propertyUnitId },
+                  { roomId: OldReservationDetails.roomId },
+                ],
+              },
+            },
+            {
+              $lookup: {
+                from: "rooms",
+                localField: "roomId",
+                foreignField: "_id",
+                as: "RoomMaintainanceDetails",
+              },
+            },
+            { $unwind: "$RoomMaintainanceDetails" },
+            {
+              $group: {
+                _id: null,
+                MaintainanceRoomId: {
+                  $push: { $toString: "$RoomMaintainanceDetails._id" },
+                },
+              },
+            },
+          ]),
+          BookingControl.find({
+            propertyUnitId,
+            date: { $gte: assigncheckindate, $lt: assigncheckoutdate },
+            roomId: OldReservationDetails.roomId,
+          }).lean(),
+        ]);
+
+        RoomMaintainanceDetails = RoomMaintainanceDetails[0];
+        if (
+          BookingControlDetails.length > 0 ||
+          RoomMaintainanceDetails?.MaintainanceRoomId.length > 0
+        ) {
+          throw prepareInternalError("Selected room is not available");
+        }
+        TotalRooms.forEach((r) => {
+          r.TotalRoom = r.rooms.length;
+        });
+
+        for (let i = 0; i < TotalRooms.length; i++) {
+          if (OldReservations.length > 0) {
+            OldReservations.forEach((r) => {
+              if (!r.tantative && r.roomId == OldReservationDetails.roomId) {
+                throw prepareInternalError(
+                  "Room is Overlap with another reservation !"
+                );
+              } else if (
+                r.tantative &&
+                r.roomTypeId.equals(TotalRooms[i]._id)
+              ) {
+                TotalRooms[i].TotalRoom -= 1;
+              } else {
+                const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
+                if (index > -1 && !r.tantative) {
+                  TotalRooms[i].rooms.splice(index, 1);
+                  TotalRooms[i].roomId.splice(index, 1);
+                  TotalRooms[i].TotalRoom -= 1;
+                }
+              }
+            });
+          }
+        }
+        if (TotalRooms[0].TotalRoom <= 0) {
+          throw prepareInternalError("Room is not available !");
+        }
+        const DeallocatedRoomLock = await deallocateRoom(
+          OldReservationDetails.roomLockId
+        );
+        if (!DeallocatedRoomLock) {
+          throw prepareInternalError("error while deallocated room !");
+        }
+        const AllocatedRoomLockResponse = await checkAndAllocateRoom(
+          propertyUnitId,
+          OldReservationDetails.roomId,
+          assigncheckindate,
+          assigncheckoutdate
+        );
+        if (!AllocatedRoomLockResponse.isRoomAvailable) {
+          throw prepareInternalError("The selected room is not available!");
+        }
+        OldReservationDetails.roomLockId = AllocatedRoomLockResponse.roomLockId;
+        AllInsertedRoomLockIds.push(OldReservationDetails.roomLockId);
+
+        let newRoomCost = 0;
+        let newRoomPrice = 0;
+        let newRoomTax = 0;
+        let NewRoomBalanceEntries = [];
+
+        let DeleteRoomBalanceEntries = [];
+        for (let r of roomBalanceDetails) {
+          if (
+            r.balanceDate < assigncheckindate ||
+            r.balanceDate >= assigncheckoutdate
+          ) {
+            DeleteRoomBalanceEntries.push(r._id);
+          } else {
+            if (r.balanceName == "Tax") {
+              newRoomTax += r.balance;
+            } else {
+              newRoomPrice += r.balance;
+            }
+            newRoomCost += r.balance;
+          }
+        }
+        let newRates = await readRateFunc(
+          propertyUnitId,
+          OldReservationDetails.roomTypeId,
+          OldReservationDetails.rateplanId,
+          assigncheckindate,
+          assigncheckoutdate
+        );
+        newRates = newRates[0];
+        newRates.dateRate.forEach((rate) => {
+          if (
+            new Date(rate.date) < OldReservationDetails.arrival ||
+            new Date(rate.date) >= OldReservationDetails.departure
+          ) {
+            let rb = new RoomBalance({
+              balanceDate: rate.date,
+              reservationId: OldReservationDetails._id,
+              balance: -rate.baseRate,
+              roomId: OldReservationDetails.roomId,
+            });
+            newRoomCost += rb.balance;
+            newRoomPrice += rb.balance;
+            NewRoomBalanceEntries.push(rb);
+
+            let rbtax = new RoomBalance({
+              balanceDate: rate.date,
+              reservationId: OldReservationDetails._id,
+              balanceName: BalanceNameEnum.TAX,
+              balance:
+                (-rate.baseRate * Number(OldReservationDetails.taxPercentage)) /
+                100,
+              roomId: OldReservationDetails.roomId,
+            });
+            newRoomCost += rbtax.balance;
+            newRoomTax += rbtax.balance;
+            NewRoomBalanceEntries.push(rbtax);
+          }
+        });
+        newRoomCost = -newRoomCost;
+        newRoomPrice = -newRoomPrice;
+        newRoomTax = -newRoomTax;
+
+        let gb =
+          groupDetails.totalBalance -
+          (newRoomCost - OldReservationDetails.reservationDetails.roomCost);
+        let gt =
+          groupDetails.totalCost +
+          newRoomCost -
+          OldReservationDetails.reservationDetails.roomCost;
+        let gp =
+          groupDetails.totalPrice +
+          newRoomPrice -
+          OldReservationDetails.reservationDetails.roomCost /
+            (1 + Number(OldReservationDetails.taxPercentage) / 100);
+        let gtax = (gp * Number(OldReservationDetails.taxPercentage)) / 100;
+
+        try {
+          console.log("Saving  entries...");
+          await Promise.all([
+            GroupReservation.updateOne(
+              {
+                _id: groupDetails._id,
+              },
+              {
+                $set: {
+                  totalCost: gt,
+                  totalPrice: gp,
+                  totalTax: gtax,
+                  totalBalance: gb,
+                },
+              },
+              session
+            ),
+            Reservation.updateOne(
+              { _id: OldReservationDetails._id },
+              {
+                $set: {
+                  arrival: assigncheckindate,
+                  departure: assigncheckoutdate,
+                  roomLockId: OldReservationDetails.roomLockId,
+                },
+              },
+              session
+            ),
+            ReservationDetail.updateOne(
+              { reservationId: OldReservationDetails._id },
+              {
+                $set: {
+                  roomCost: newRoomCost,
+                },
+              },
+              session
+            ),
+            RoomBalance.insertMany(NewRoomBalanceEntries, { session }),
+            RoomBalance.deleteMany(
+              { _id: { $in: DeleteRoomBalanceEntries } },
+              { session }
+            ),
+          ]);
+        } catch (error) {
+          console.error("Error saving entries:", error);
+          throw error;
+        }
+      } else if (OldReservationDetails.tantative) {
+        console.log("for not assign room !");
+        let [
+          OldReservations,
+          TotalRooms,
+          RoomMaintainanceDetails,
+          BookingControlDetails,
+        ] = await Promise.all([
+          Reservation.aggregate([
+            {
+              $match: {
+                $and: [
+                  { departure: { $gt: assigncheckindate } },
+                  { arrival: { $lt: assigncheckoutdate } },
+                  { propertyUnitId },
+                  { roomTypeId: OldReservationDetails.roomTypeId },
+                  {
+                    $or: [
+                      { reservationStatus: ReservationStatusEnum.INHOUSE },
+                      { reservationStatus: ReservationStatusEnum.RESERVED },
+                    ],
+                  },
+                  { _id: { $ne: reservationId } },
+                ],
+              },
+            },
+            { $project: { roomId: 1, tantative: 1, roomTypeId: 1 } },
+          ]),
+          RoomType.aggregate([
+            {
+              $match: {
+                propertyUnitId,
+                _id: OldReservationDetails.roomTypeId,
+              },
+            },
+            {
+              $lookup: {
+                from: "rooms",
+                localField: "_id",
+                foreignField: "roomTypeId",
+                as: "TotalRoomDetails",
+              },
+            },
+            { $unwind: "$TotalRoomDetails" },
+            {
+              $group: {
+                _id: "$_id",
+                rooms: { $push: "$TotalRoomDetails" },
+                roomId: { $push: { $toString: "$TotalRoomDetails._id" } },
+              },
+            },
+          ]),
+          RoomMaintenance.aggregate([
+            {
+              $match: {
+                $and: [
+                  { endDate: { $gt: assigncheckindate } },
+                  { startDate: { $lt: assigncheckoutdate } },
+                  { isCompleted: { $ne: true } },
+                  { propertyUnitId },
+                ],
+              },
+            },
+            {
+              $lookup: {
+                from: "rooms",
+                localField: "roomId",
+                foreignField: "_id",
+                as: "RoomMaintainanceDetails",
+              },
+            },
+            { $unwind: "$RoomMaintainanceDetails" },
+            {
+              $group: {
+                _id: null,
+                MaintainanceRoomId: {
+                  $push: { $toString: "$RoomMaintainanceDetails._id" },
+                },
+              },
+            },
+          ]),
+          BookingControl.find({
+            propertyUnitId,
+            date: { $gte: assigncheckindate, $lt: assigncheckoutdate },
+          }).lean(),
+        ]);
+        RoomMaintainanceDetails = RoomMaintainanceDetails[0];
+        BookingControlDetails.forEach((b) => {
+          if (
+            b.soldOut &&
+            b.date >= assigncheckindate &&
+            b.date < assigncheckoutdate
+          ) {
+            TotalRooms.forEach((r) => {
+              r.rooms = r.rooms.filter(
+                (room) => room._id.toString() !== b.roomId.toString()
+              );
+              r.roomId = r.roomId.filter((id) => id !== b.roomId);
+            });
+          }
+        });
+
+        TotalRooms.forEach((r) => {
+          r.TotalRoom = r.rooms.length;
+        });
+
+        // Adjust room availability based on old reservations and maintenance
+        for (let i = 0; i < TotalRooms.length; i++) {
+          if (OldReservations.length > 0) {
+            OldReservations.forEach((r) => {
+              if (r.tantative && r.roomTypeId.equals(TotalRooms[i]._id)) {
+                TotalRooms[i].TotalRoom -= 1;
+              } else {
+                const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
+                if (index > -1 && !r.tantative) {
+                  TotalRooms[i].rooms.splice(index, 1);
+                  TotalRooms[i].roomId.splice(index, 1);
+                  TotalRooms[i].TotalRoom -= 1;
+                }
+              }
+            });
+          }
+
+          if (RoomMaintainanceDetails?.MaintainanceRoomId.length > 0) {
+            RoomMaintainanceDetails.MaintainanceRoomId.forEach((id) => {
+              const index = TotalRooms[i].roomId.indexOf(id);
+              if (index > -1) {
+                TotalRooms[i].rooms.splice(index, 1);
+                TotalRooms[i].roomId.splice(index, 1);
+                TotalRooms[i].TotalRoom -= 1;
+              }
+            });
+          }
+        }
+        if (TotalRooms[0].TotalRoom <= 0) {
+          throw prepareInternalError("Room is not available !");
+        }
+        let newRoomCost = 0;
+        let newRoomPrice = 0;
+        let newRoomTax = 0;
+        let NewRoomBalanceEntries = [];
+
+        let DeleteRoomBalanceEntries = [];
+        for (let r of roomBalanceDetails) {
+          if (
+            r.balanceDate < assigncheckindate ||
+            r.balanceDate >= assigncheckoutdate
+          ) {
+            DeleteRoomBalanceEntries.push(r._id);
+          } else {
+            if (r.balanceName == "Tax") {
+              newRoomTax += r.balance;
+            } else {
+              newRoomPrice += r.balance;
+            }
+            newRoomCost += r.balance;
+          }
+        }
+        let newRates = await readRateFunc(
+          propertyUnitId,
+          OldReservationDetails.roomTypeId,
+          OldReservationDetails.rateplanId,
+          assigncheckindate,
+          assigncheckoutdate
+        );
+        newRates = newRates[0];
+        newRates.dateRate.forEach((rate) => {
+          if (
+            new Date(rate.date) < OldReservationDetails.arrival ||
+            new Date(rate.date) >= OldReservationDetails.departure
+          ) {
+            let rb = new RoomBalance({
+              balanceDate: rate.date,
+              reservationId: OldReservationDetails._id,
+              balance: -rate.baseRate,
+              roomId: OldReservationDetails.roomId,
+            });
+            newRoomCost += rb.balance;
+            newRoomPrice += rb.balance;
+            NewRoomBalanceEntries.push(rb);
+
+            let rbtax = new RoomBalance({
+              balanceDate: rate.date,
+              reservationId: OldReservationDetails._id,
+              balanceName: BalanceNameEnum.TAX,
+              balance:
+                (-rate.baseRate * Number(OldReservationDetails.taxPercentage)) /
+                100,
+              roomId: OldReservationDetails.roomId,
+            });
+            newRoomCost += rbtax.balance;
+            newRoomTax += rbtax.balance;
+            NewRoomBalanceEntries.push(rbtax);
+          }
+        });
+        newRoomCost = -newRoomCost;
+        newRoomPrice = -newRoomPrice;
+        newRoomTax = -newRoomTax;
+
+        let gb =
+          groupDetails.totalBalance -
+          (newRoomCost - OldReservationDetails.reservationDetails.roomCost);
+        let gt =
+          groupDetails.totalCost +
+          newRoomCost -
+          OldReservationDetails.reservationDetails.roomCost;
+        let gp =
+          groupDetails.totalPrice +
+          newRoomPrice -
+          OldReservationDetails.reservationDetails.roomCost /
+            (1 + Number(OldReservationDetails.taxPercentage) / 100);
+        let gtax = (gp * Number(OldReservationDetails.taxPercentage)) / 100;
+
+        try {
+          console.log("Saving  entries...");
+          await Promise.all([
+            GroupReservation.updateOne(
+              {
+                _id: groupDetails._id,
+              },
+              {
+                $set: {
+                  totalCost: gt,
+                  totalPrice: gp,
+                  totalTax: gtax,
+                  totalBalance: gb,
+                },
+              },
+              session
+            ),
+            Reservation.updateOne(
+              { _id: OldReservationDetails._id },
+              {
+                $set: {
+                  arrival: assigncheckindate,
+                  departure: assigncheckoutdate,
+                },
+              },
+              session
+            ),
+            ReservationDetail.updateOne(
+              { reservationId: OldReservationDetails._id },
+              {
+                $set: {
+                  roomCost: newRoomCost,
+                },
+              },
+              session
+            ),
+            RoomBalance.insertMany(NewRoomBalanceEntries, { session }),
+            RoomBalance.deleteMany(
+              { _id: { $in: DeleteRoomBalanceEntries } },
+              { session }
+            ),
+          ]);
+        } catch (error) {
+          console.error("Error saving entries:", error);
+          throw error;
+        }
+      }
+    });
+    console.log("Transaction committed successfully");
+    return res
+      .status(201)
+      .json(new ApiResponse(201, data, "Reservation Updated successfully"));
+  } catch (error) {
+    const DeallocatedRoomLocks = await deallocateMultipleRooms(
+      AllInsertedRoomLockIds
+    );
+    console.log("Error in transaction:", error);
+    return res
+      .status(500)
+      .json(
+        new ApiResponse(
+          500,
+          {},
+          "An error occurred while updating the reservation"
+        )
+      );
+  } finally {
+    if (session) {
+      console.log("Ending session");
+      session.endSession();
+    }
+  }
+});
+
 // PUT update a reservation by ID
 const updateReservationById = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -794,6 +1429,148 @@ const readReservationRate = asyncHandler(async (req, res) => {
     );
 });
 
+const readRateFunc = async (
+  propertyUnitId,
+  roomTypeId,
+  rateplanId,
+  arrival,
+  departure
+) => {
+  try {
+    let nextDate = new Date(arrival);
+    let matchquerry = {
+      propertyUnitId: propertyUnitId,
+    };
+
+    if (roomTypeId) {
+      matchquerry._id = roomTypeId;
+    }
+    let ratesData = await RoomType.aggregate([
+      {
+        $match: matchquerry,
+      },
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_id",
+          foreignField: "roomTypeId",
+          as: "rooms",
+        },
+      },
+      {
+        $lookup: {
+          from: "taxes",
+          localField: "propertyUnitId",
+          foreignField: "propertyUnitId",
+          as: "taxes",
+        },
+      },
+      {
+        $lookup: {
+          from: "rateplanroomtypes",
+          localField: "_id",
+          foreignField: "roomTypeId",
+          as: "rateRoomTypes",
+          pipeline: [
+            {
+              $lookup: {
+                from: "rateplansetups",
+                localField: "ratePlanSetupId",
+                foreignField: "_id",
+                as: "rateSetup",
+              },
+            },
+            {
+              $unwind: {
+                path: "$rateSetup",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            {
+              $match: {
+                "rateSetup._id": rateplanId,
+              },
+            },
+            {
+              $addFields: {
+                ratePlanName: "$rateSetup.ratePlanName",
+              },
+            },
+            {
+              $unset: "rateSetup",
+            },
+            {
+              $lookup: {
+                from: "rateplanroomrates",
+                localField: "_id",
+                foreignField: "ratePlanRoomDetailId",
+                as: "roomTypeRates",
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$rateRoomTypes",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          roomTypeId: "$_id",
+          rooms: {
+            $map: {
+              input: "$rooms",
+              as: "room",
+              in: {
+                id: "$$room._id",
+                roomStatus: "$$room.roomStatus",
+                roomCondition: "$$room.roomCondition",
+                roomNumber: "$$room.roomNumber",
+                roomName: "$$room.roomName",
+              },
+            },
+          },
+          roomAmenities: [], // Assuming roomAmenities is an empty array for now
+          rateplanId: "$rateRoomTypes.ratePlanSetupId",
+          rateName: "$rateRoomTypes.ratePlanName",
+          adultOccupant: "$adultOccupancy",
+          childOccupant: "$childOccupancy",
+          images: "$images",
+          rates: "$rateRoomTypes.roomTypeRates",
+          roomtype: "$roomTypeName",
+          totalRoom: { $size: "$rooms" },
+          roomPrice: { $literal: 0 },
+          roomCost: { $literal: 0 },
+          taxPercentage: { $sum: "$taxes.taxPercentage" },
+        },
+      },
+    ]);
+    for (let roomtype of ratesData) {
+      roomtype["rateType"] = {};
+      roomtype["dateRate"] = [];
+      for (let rate of roomtype.rates) {
+        roomtype.rateType[rate.rateType] = rate.baseRate;
+      }
+      delete roomtype.rates;
+    }
+    for (let j = 0; nextDate < departure; j++) {
+      for (let roomtype of ratesData) {
+        roomtype.rateType.date = nextDate;
+        let obj = JSON.parse(JSON.stringify(roomtype.rateType));
+        roomtype.dateRate.push(obj);
+      }
+      nextDate.setDate(nextDate.getDate() + 1);
+    }
+    return ratesData;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+
 const uploadReservationImages = asyncHandler(async (req, res) => {
   const { propertyUnitId } = req.params;
 
@@ -887,27 +1664,25 @@ const guestFolio = asyncHandler(async (req, res) => {
               localField: "roomId",
               foreignField: "_id",
               as: "roomDetails",
-              pipeline: [
-                {
-                  $lookup: {
-                    from: "roomtypes",
-                    localField: "roomTypeId",
-                    foreignField: "_id",
-                    as: "roomTypeDetails",
-                  },
-                },
-                {
-                  $unwind: {
-                    path: "$roomTypeDetails",
-                    preserveNullAndEmptyArrays: true,
-                  },
-                },
-              ],
             },
           },
           {
             $unwind: {
               path: "$roomDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "roomtypes",
+              localField: "roomTypeId",
+              foreignField: "_id",
+              as: "roomTypeDetails",
+            },
+          },
+          {
+            $unwind: {
+              path: "$roomTypeDetails",
               preserveNullAndEmptyArrays: true,
             },
           },
@@ -1050,4 +1825,5 @@ export default {
   readReservationRate,
   uploadReservationImages,
   guestFolio,
+  stayUpdate,
 };

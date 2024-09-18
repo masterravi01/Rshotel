@@ -691,6 +691,10 @@ const reservationSchema = new Schema(
       type: String,
       default: 0,
     },
+    roomLockId: {
+      type: Schema.Types.ObjectId,
+      ref: "roomLockId",
+    },
     ratePlanSetupId: {
       type: Schema.Types.ObjectId,
       ref: "RatePlanSetup",
@@ -720,7 +724,6 @@ const reservationDetailSchema = new Schema(
     checkOutDate: Date,
     noShowDate: Date,
     cancellationDate: Date,
-    confirmationNumber: String,
     adults: {
       type: Number,
       default: 2,
