@@ -120,7 +120,7 @@
                                 </td>
                                 <td>
                                     <textarea type="text" class="form-control field" rows="2"
-                                        formControlName="notes"></textarea>
+                                        formControlName="notes" placeholder="Write a note"></textarea>
                                 </td>
                             </tr>
                         </table>
@@ -335,7 +335,7 @@
         <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss(false)"></button>
     </div>
     <form [formGroup]="HouseKeeperForm" class="px-2 mt-2 fix_height">
-        <table class="table table-sm table-borderless add_table add_table1">
+        <table class="table table-sm table-borderless add_table1">
             <tr>
                 <td class="custom_label">
                     <div>Name*:</div>
@@ -366,7 +366,7 @@
             </tr>
             <tr>
                 <td class="custom_label">
-                    <div class="mt-2">Schedule:</div>
+                    <div>Schedule:</div>
                 </td>
                 <td>
                     <div class="select1" (click)="show_Schedule()" style="cursor: pointer">
@@ -407,7 +407,7 @@
             </ng-container>
             <tr>
                 <td class="custom_label">
-                    <div class="mt-2">Email*:</div>
+                    <div>Email*:</div>
                 </td>
                 <td>
                     <input type="email" formControlName="email" class="form-control field" [ngClass]="{

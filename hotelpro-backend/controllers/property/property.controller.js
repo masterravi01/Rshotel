@@ -67,6 +67,7 @@ const createProperty = asyncHandler(async (req, res) => {
     isEmailVerified: false,
     userType: UserTypesEnum.CLIENT,
     addressId: address._id,
+    isLoginable: true,
   });
 
   /**
