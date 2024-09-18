@@ -1,5 +1,17 @@
 <div class="container-fluid my-4">
-    <div class="row mb-4">
+    <div class="d-flex">
+        <div class="input_container">
+            <input type="text" class="form-control field search" (input)="search($event)" placeholder="Search" />
+            <div class="input_img">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" class="bi bi-search"
+                    viewBox="0 0 16 16">
+                    <path
+                        d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+                </svg>
+            </div>
+        </div>
+    </div>
+    <div class="row my-3">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
@@ -20,16 +32,19 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let reservation of reservationData; let i = index">
-                                <td>{{ i+1 }}</td>
-                                <td>{{ reservation.firstName }} {{ reservation.lastName }}</td>
-                                <td>{{ i+1 }}</td>
-                                <td>{{ reservation.roomType }}</td>
-                                <td>{{ reservation.roomNumber }}</td>
-                                <td>{{ reservation.reservationStatus }}</td>
-                                <td>{{ reservation.arrival | date : 'dd/MM/yyyy' }}</td>
-                                <td>{{ reservation.departure | date : 'dd/MM/yyyy' }}</td>
-                            </tr>
+                            <ng-container *ngFor="let reservation of reservationData; let i = index">
+                                <tr *ngIf="reservation.Show" style="cursor: pointer;"
+                                    [routerLink]="'/guest-folio/' + reservation.groupId">
+                                    <td>{{ i+1 }}</td>
+                                    <td>{{ reservation.firstName }} {{ reservation.lastName }}</td>
+                                    <td>{{ i+1 }}</td>
+                                    <td>{{ reservation.roomType }}</td>
+                                    <td>{{ reservation.roomName }}</td>
+                                    <td>{{ reservation.reservationStatus }}</td>
+                                    <td>{{ reservation.arrival | date : 'dd/MM/yyyy' }}</td>
+                                    <td>{{ reservation.departure | date : 'dd/MM/yyyy' }}</td>
+                                </tr>
+                            </ng-container>
                         </tbody>
                     </table>
                 </div>

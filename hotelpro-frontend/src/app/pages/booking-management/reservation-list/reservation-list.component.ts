@@ -15,6 +15,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { CustomValidators } from '../../../core/shared/validators/custom-validators';
 
+
 @Component({
   selector: 'app-reservation-list',
   standalone: true,
@@ -53,6 +54,18 @@ export class ReservationListComponent implements OnInit {
         );
         console.error(error);
       });
+  }
+
+  search(event: any) {
+    this.reservationData.forEach((element: any) => {
+      if (
+        JSON.stringify(element)?.toLowerCase()?.includes(event.target.value.toLowerCase())
+      ) {
+        element.Show = true;
+      } else {
+        element.Show = false;
+      }
+    });
   }
 
 }
