@@ -41,6 +41,7 @@ export class GuestFolioComponent implements OnInit {
   roomTypeRooms: Record<string, any[]> = {};
   currentRoomCount = 0;
   currentReservation: any;
+  documentsImages: any[] = [];
   imageObject = [
     {
       image:
@@ -332,5 +333,25 @@ export class GuestFolioComponent implements OnInit {
         );
         console.error(error);
       });
+  }
+  showRoomCharges(reservation: any) {
+    reservation.showCharges =
+      reservation.showCharges == undefined || reservation.showCharges == false
+        ? true
+        : false;
+  }
+  openReservationDoc(content: any, docs: any) {
+    this.documentsImages = [];
+    if (docs?.length > 0) {
+      docs.forEach((d: any) => {
+        this.documentsImages.push({
+          image: d,
+          thumbImage: d,
+        });
+      });
+      this.modalService.open(content);
+    } else {
+      this.alertService.errorAlert('No Documents found for this Reservation!');
+    }
   }
 }

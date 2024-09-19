@@ -36,6 +36,12 @@
               <i
                 class="material-symbols-rounded"
                 style="vertical-align: middle; font-size: 20px"
+                (click)="
+                  openReservationDoc(
+                    docModal,
+                    groupDetails?.customerDetails?.documents
+                  )
+                "
               >
                 file_present</i
               ></label
@@ -191,6 +197,12 @@
             <i
               class="material-symbols-rounded"
               style="vertical-align: middle; font-size: 20px"
+              (click)="
+                openReservationDoc(
+                  docModal,
+                  reservation?.guestDetails?.documents
+                )
+              "
             >
               file_present</i
             >
@@ -258,9 +270,32 @@
             >
               Change Room
             </label>
-            <label class="form-label fw-semibold mt-2"> Room Charges </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="showRoomCharges(reservation)"
+            >
+              Show Charges
+            </label>
             <label class="form-label fw-semibold mt-2">Make Payment </label>
           </div>
+        </div>
+        <div class="col-12" *ngIf="reservation.showCharges">
+          <table class="table pb-0 pay-table mt-3 mb-2">
+            <thead>
+              <tr>
+                <th scope="col">Charges</th>
+                <th scope="col">Date</th>
+                <th scope="col">Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of reservation?.roomBalances">
+                <td>{{ r.balance }}</td>
+                <td>{{ r.balanceDate | date }}</td>
+                <td>{{ r.balanceName }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -543,5 +578,47 @@
         </tbody>
       </table>
     </div>
+  </div>
+</ng-template>
+<ng-template #docModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">View Documents</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <div class="d-flex justify-content-center">
+      <div
+        style="
+          height: 200px;
+          width: 300px;
+          text-align: center;
+          margin: 0;
+          padding: 0;
+        "
+      >
+        <ng-image-slider
+          #nav
+          [images]="documentsImages"
+          [infinite]="false"
+          [autoSlide]="1"
+          [imageSize]="{ width: 300, height: 200 }"
+          slideImage="1"
+        ></ng-image-slider>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="modal.close(true)"
+    >
+      Save
+    </button>
   </div>
 </ng-template>
