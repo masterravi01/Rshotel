@@ -8,34 +8,35 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { CommonModule } from '@angular/common';
 import { CustomValidators } from '../../../core/shared/validators/custom-validators';
 
-
 @Component({
   selector: 'app-manage-user',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './manage-user.component.html',
-  styleUrl: './manage-user.component.css'
+  styleUrl: './manage-user.component.css',
 })
-
 export class ManageUserComponent implements OnInit {
   propertyUnitId: string | null = '';
   userForm!: FormGroup;
   userData: any[] = [];
   selectedUserIndex = 0;
+  createUserForm!: FormGroup;
 
   constructor(
     private crudService: CrudService,
     private fb: FormBuilder,
     private alertService: AlertService,
     private activeRoute: ActivatedRoute,
-    private router: Router
-  ) { }
+    private router: Router,
+    private modalService: NgbModal
+  ) {}
 
   ngOnInit(): void {
     this.propertyUnitId =
@@ -66,11 +67,29 @@ export class ManageUserComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       active: [true, [Validators.required]],
     });
+
+    this.createUserForm = this.fb.group({
+      propertyUnitId: [this.propertyUnitId],
+      firstName: [
+        '',
+        [Validators.required, Validators.pattern("^[a-zA-Z.'\\s]*$")],
+      ],
+      lastName: [
+        '',
+        [Validators.required, Validators.pattern("^[a-zA-Z.'\\s]*$")],
+      ],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required]],
+      userType: ['frontdesk', [Validators.required]],
+      password: ['', [Validators.required, Validators.minLength(4)]],
+    });
   }
 
   fetchData() {
     this.crudService
-      .post(APIConstant.READ_USER_BY_PROPERTY_UNIT, { propertyUnitId: this.propertyUnitId })
+      .post(APIConstant.READ_USER_BY_PROPERTY_UNIT, {
+        propertyUnitId: this.propertyUnitId,
+      })
       .then((response) => {
         this.userData = response.data.users;
         if (this.userData?.length > 0) {
@@ -79,8 +98,7 @@ export class ManageUserComponent implements OnInit {
       })
       .catch((error) => {
         this.alertService.errorAlert(
-          error?.error?.message ||
-          'An error occurred while fetching users'
+          error?.error?.message || 'An error occurred while fetching users'
         );
         console.error(error);
       });
@@ -93,7 +111,7 @@ export class ManageUserComponent implements OnInit {
       lastName: user.lastName,
       phone: user.phone,
       email: user.email,
-      active: user.isLoginable
+      active: user.isLoginable,
     });
   }
 
@@ -107,16 +125,40 @@ export class ManageUserComponent implements OnInit {
         .post(APIConstant.UPDATE_USER, updatedUser)
         .then(() => {
           this.alertService.successAlert('User updated successfully');
-          this.fetchData();
+          this.ngOnInit();
         })
         .catch((error) => {
           this.alertService.errorAlert(
-            error?.error?.message ||
-            'An error occurred while updating the user'
+            error?.error?.message || 'An error occurred while updating the user'
           );
           console.error(error);
         });
     }
   }
-}
 
+  addUser(): void {
+    if (this.createUserForm.valid) {
+      const addUser = {
+        ...this.createUserForm.value,
+      };
+      this.crudService
+        .post(APIConstant.CREATE_USER, addUser)
+        .then(() => {
+          this.alertService.successAlert('User created successfully');
+          this.ngOnInit();
+        })
+        .catch((error) => {
+          this.alertService.errorAlert(
+            error?.error?.message || 'An error occurred while create the user'
+          );
+        })
+        .finally(() => {
+          this.modalService.dismissAll();
+        });
+    }
+  }
+
+  openModalAddUser(content: any) {
+    this.modalService.open(content, { centered: true });
+  }
+}

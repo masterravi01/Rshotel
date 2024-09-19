@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { Property, User, Address } from "../../database/database.schema.js";
+import { SALT_WORK_FACTOR } from "../../constants.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 const readClientDashboard = asyncHandler(async (req, res) => {
@@ -167,8 +169,48 @@ const updateUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, response, "Users retrieved successfully"));
 });
 
+const createUser = asyncHandler(async (req, res) => {
+  const {
+    firstName,
+    lastName,
+    userType,
+    email,
+    phone,
+    password,
+    propertyUnitId,
+  } = req.body;
+  const response = {};
+
+  const existedUser = await User.findOne({
+    email,
+  });
+
+  if (existedUser) {
+    throw new ApiError(409, "User with email id is already exists", []);
+  }
+
+  const EncryptedPassword = await bcrypt.hash(password, SALT_WORK_FACTOR);
+  const user = new User({
+    email,
+    password: EncryptedPassword,
+    firstName,
+    lastName,
+    phone,
+    userType,
+    propertyUnitId,
+    isLoginable: true,
+    isEmailVerified: true,
+  });
+  await user.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, response, "Users retrieved successfully"));
+});
+
 export default {
   readClientDashboard,
   readUserByPropertyUnit,
   updateUser,
+  createUser,
 };

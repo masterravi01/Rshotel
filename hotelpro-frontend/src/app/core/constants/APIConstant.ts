@@ -13,6 +13,7 @@ export const APIConstant = {
   READ_CLIENT_DASHBOARD: 'property/read-client-dashboard',
   READ_USER_BY_PROPERTY_UNIT: 'property/read-user-by-propertyunit/',
   UPDATE_USER: 'property/update-user/',
+  CREATE_USER: 'property/create-user/',
   UPLOAD_PROFILE_PHOTO: 'property/upload-profile-photo',
   UPLOAD_ROOMS_PHOTOS: 'property/upload-rooms-photos',
   UPDATE_PROPERTY_UNIT: 'propertyunit/update-propertyunit/',

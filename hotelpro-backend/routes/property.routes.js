@@ -29,5 +29,6 @@ router.post(
   dashboardController.readUserByPropertyUnit
 );
 router.post("/update-user", verifyJWT, dashboardController.updateUser);
+router.post("/create-user", verifyJWT, dashboardController.createUser);
 
 export default router;

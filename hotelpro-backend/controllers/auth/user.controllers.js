@@ -255,6 +255,64 @@ const loginUser = asyncHandler(async (req, res) => {
         },
       },
     ]);
+  } else if (user.userType == UserTypesEnum.FRONTDESK) {
+    loggedInUser = await User.aggregate([
+      {
+        $match: {
+          _id: user._id,
+        },
+      },
+      {
+        $lookup: {
+          from: "propertyunits",
+          localField: "propertyUnitId",
+          foreignField: "_id",
+          as: "propertyUnits",
+          pipeline: [
+            {
+              $project: {
+                propertyUnitCode: 1,
+                propertyUnitName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$propertyUnits",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          firstName: {
+            $first: "$firstName",
+          },
+          lastName: {
+            $first: "$lastName",
+          },
+          email: {
+            $first: "$email",
+          },
+          userType: {
+            $first: "$userType",
+          },
+          avatar: {
+            $first: "$avatar",
+          },
+          propertyUnitId: {
+            $first: "$propertyUnits._id",
+          },
+          propertyUnitCode: {
+            $first: "$propertyUnits.propertyUnitCode",
+          },
+          propertyUnitName: {
+            $first: "$propertyUnits.propertyUnitName",
+          },
+        },
+      },
+    ]);
   } else if (user.userType == UserTypesEnum.SUPERADMIN) {
     loggedInUser = await User.aggregate([
       {
@@ -309,7 +367,7 @@ const clientLoginBySuperadmin = asyncHandler(async (req, res) => {
     {
       $lookup: {
         from: "propertyunits",
-        localField: "propertyId",
+        localField: "property._id",
         foreignField: "propertyId",
         as: "propertyUnits",
         pipeline: [

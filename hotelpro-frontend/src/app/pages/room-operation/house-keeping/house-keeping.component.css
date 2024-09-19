@@ -117,29 +117,14 @@ input[type="checkbox"]:checked {
   border-bottom-left-radius: 5px;
 }
 
-.add_table td:nth-child(2) {
-  padding-right: 4px;
-  padding-left: 8px;
-}
-
 .add_table td:first-child {
   width: 41.5%;
 }
 
-.add_table tr:first-child td:first-child,
-.add_table tr:first-child td:last-child {
-  padding-top: 8px;
+.add_table1 td:first-child {
+  width: 35%;
 }
 
-.add_table tr:last-child td:first-child,
-.add_table tr:last-child td:last-child {
-  padding-bottom: 8px;
-}
-
-.add_table tr:first-child td:nth-child(2) {
-  border-top-right-radius: 5px;
-  border-top-left-radius: 5px;
-}
 
 @media only screen and (max-width: 990px) {
   .inline2 {
