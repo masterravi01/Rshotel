@@ -8,6 +8,7 @@ import roomRouter from "./room.routes.js";
 import ratemanagementRouter from "./ratemanagement.routes.js";
 import reservationOperationRouter from "./reservation-operation.routes.js";
 import paymentRouter from "./payment.routes.js";
+import futureAvailabilityRouter from "./future-availability.routes.js";
 const router = express.Router();
 
 router.use("/user", userRouter);
@@ -19,5 +20,6 @@ router.use("/room", roomRouter);
 router.use("/ratemanagement", ratemanagementRouter);
 router.use("/reservation", reservationOperationRouter);
 router.use("/razor", paymentRouter);
+router.use("/availability", futureAvailabilityRouter);
 
 export default router;

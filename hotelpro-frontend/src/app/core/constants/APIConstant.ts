@@ -82,4 +82,6 @@ export const APIConstant = {
 
   CREATE_PAYMENT_ORDER: 'razor/create-payment-order',
   VALIDATE_PAYMENT: 'razor/validate-payment',
+
+  READ_FUTURE_AVAILABILITY: 'availability/read-future-availability',
 };
