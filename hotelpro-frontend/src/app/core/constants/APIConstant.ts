@@ -78,6 +78,8 @@ export const APIConstant = {
   UPLOAD_RESERVATION_IMAGES: 'reservation/upload-reservation-images',
   GUEST_FOLIO: 'reservation/guest-folio',
   STAY_UPDATE: 'reservation/stay-update',
+  ADD_ROOM: 'reservation/add-room',
+  CHANGE_ROOM: 'reservation/change-room',
   GET_ALL_RESERVATION: 'reservation/get-all-reservation',
 
   CREATE_PAYMENT_ORDER: 'razor/create-payment-order',
