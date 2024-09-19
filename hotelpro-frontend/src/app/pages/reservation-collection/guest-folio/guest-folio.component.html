@@ -80,7 +80,12 @@
             <label class="form-label fw-semibold mt-2">
               Cancel Reservations</label
             >
-            <label class="form-label fw-semibold mt-2"> Add Room </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="openAddRoomModal(addRoomModal)"
+            >
+              Add Room
+            </label>
           </div>
         </div>
       </div>
@@ -247,7 +252,12 @@
             >
               Update Stay
             </label>
-            <label class="form-label fw-semibold mt-2"> Change Room </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="openChangeRoomModal(reservation, changeRoomModal)"
+            >
+              Change Room
+            </label>
             <label class="form-label fw-semibold mt-2"> Room Charges </label>
             <label class="form-label fw-semibold mt-2">Make Payment </label>
           </div>
@@ -308,7 +318,7 @@
   }
   <div class="col-md-9 col-12">
     <div class="container_form p-3 m-2 rounded">
-      <label class="form-label fw-semibold">Payment Details"</label>
+      <label class="form-label fw-semibold">Payment Details</label>
       <table class="table pb-0 pay-table mt-2">
         <thead>
           <tr>
@@ -398,5 +408,140 @@
     >
       Save
     </button>
+  </div>
+</ng-template>
+<ng-template #addRoomModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Select Room</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <div class="container-fluid text-center" *ngIf="roomsData.length > 0">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Room Type Name</th>
+            <th>Sleeps</th>
+            <th>Rate</th>
+            <th>Cost</th>
+            <th>No. of Rooms</th>
+            <th>Room</th>
+            <th>Selected</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let room of roomsData; let i = index">
+            <td>{{ room.roomtype }} {{ room.rateName }}</td>
+            <td>
+              {{ room.adultOccupant }} Adults {{ room.childOccupant }} Childs
+            </td>
+            <td>{{ room.roomPrice }}</td>
+            <td>{{ room.roomCost }}</td>
+            <td>
+              <button
+                class="btn btn-primary p-0 me-1"
+                (click)="addRoomCount(i)"
+                [disabled]="
+                  room?.dropdownSettings?.limitSelection > 0 ||
+                  room?.dropdownSettings?.limitSelection >= room.totalRoom ||
+                  currentRoomCount > 0
+                "
+              >
+                <i
+                  class="material-symbols-rounded"
+                  style="vertical-align: middle"
+                  >add</i
+                >
+              </button>
+              <span class="mx-1">{{
+                room?.dropdownSettings?.limitSelection
+              }}</span>
+              <button
+                class="btn btn-primary p-0 ms-1"
+                (click)="removeRoomCount(i)"
+                [disabled]="room?.dropdownSettings?.limitSelection === 0"
+              >
+                <i
+                  class="material-symbols-rounded"
+                  style="vertical-align: middle"
+                  >remove</i
+                >
+              </button>
+            </td>
+            <td>
+              <ng-multiselect-dropdown
+                name="roomtype"
+                [placeholder]="'Select Room'"
+                [settings]="room.dropdownSettings"
+                [data]="dropDownData(room.rooms, i)"
+                [(ngModel)]="selectedItems[i]"
+                class="multiselect_dropdown"
+              ></ng-multiselect-dropdown>
+            </td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-outline-primary"
+                [disabled]="room?.dropdownSettings?.limitSelection === 0"
+                (click)="modal.close(true)"
+              >
+                Countinue
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #changeRoomModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Change Room</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <div class="container-fluid text-center" *ngIf="roomsData.length > 0">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Room Name</th>
+            <th>Room Status</th>
+            <th>Rate</th>
+            <th>Cost</th>
+            <th>Selected</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let roomtype of roomsData; let i = index">
+            <tr *ngFor="let room of roomtype.rooms; let j = index">
+              <td>{{ roomtype.roomtype }} {{ room.roomName }}</td>
+              <td>{{ room.roomStatus }}</td>
+              <td>{{ roomtype.roomPrice }}</td>
+              <td>{{ roomtype.roomCost }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  (click)="callChangeRoom(roomtype, room)"
+                >
+                  Countinue
+                </button>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
   </div>
 </ng-template>
