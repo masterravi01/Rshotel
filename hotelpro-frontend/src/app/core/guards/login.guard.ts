@@ -16,8 +16,10 @@ export const loginGuard: CanActivateFn = (
   const authService = inject(AuthService);
   const router = inject(Router);
   const isAuth = authService.isAuthenticated() as boolean;
+  let userData = authService.getUserInfo()?.user;
+
   if (isAuth) {
-    router.navigate(['/client-dashboard']);
+    router.navigate([`/${userData?.userType}-dashboard`]);
     return false;
   }
 
