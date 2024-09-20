@@ -80,77 +80,37 @@
                         <thead>
                             <tr>
                                 <th scope="col">Room Type</th>
-                                <th scope="col">Day 1</th>
-                                <th scope="col">Day 2</th>
-                                <th scope="col">Day 3</th>
-                                <th scope="col">Day 4</th>
-                                <th scope="col">Day 5</th>
-                                <th scope="col">Day 6</th>
-                                <th scope="col">Day 7</th>
-                                <th scope="col">Day 8</th>
-                                <th scope="col">Day 9</th>
-                                <th scope="col">Day 10</th>
+                                @for (data of availabilityData; track data; let i =
+                                $index) {
+                                    <th scope="row">{{data.date}}</th>
+                                }
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <th scope="row">Single Room</th>
-                                <td>2</td>
-                                <td>3</td>
-                                <td>0</td>
-                                <td>1</td>
-                                <td>4</td>
-                                <td>2</td>
-                                <td>1</td>
-                                <td>3</td>
-                                <td>2</td>
-                                <td>1</td>
+                                @for (roomType of availabilityData[0]?.availabilityByRoomType; track roomType; let i =
+                                $index) {
+                                        <th scope="row">{{ roomType.roomTypeName}}</th>
+                                    @for (data of availabilityData; track data; let j = $index) {
+                                        <!-- <td>
+                                            {{
+                                                availabilityData.availabilityByRoomType
+                                                ?.find(
+                                                (rt) => rt.roomTypeName === roomType.roomTypeName
+                                                )?.totalAvailableRoom
+                                            }}
+                                        </td> -->
+                                    }
+                                }
                             </tr>
-                            <tr>
-                                <th scope="row">Double Room</th>
-                                <td>1</td>
-                                <td>0</td>
-                                <td>2</td>
-                                <td>1</td>
-                                <td>2</td>
-                                <td>3</td>
-                                <td>0</td>
-                                <td>2</td>
-                                <td>1</td>
-                                <td>3</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Suite</th>
-                                <td>3</td>
-                                <td>1</td>
-                                <td>2</td>
-                                <td>0</td>
-                                <td>2</td>
-                                <td>1</td>
-                                <td>3</td>
-                                <td>2</td>
-                                <td>1</td>
-                                <td>2</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Deluxe Room</th>
-                                <td>0</td>
-                                <td>1</td>
-                                <td>2</td>
-                                <td>3</td>
-                                <td>1</td>
-                                <td>2</td>
-                                <td>0</td>
-                                <td>2</td>
-                                <td>3</td>
-                                <td>1</td>
-                            </tr>
+                            
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
+    
         <div class="col-lg-4 mb-4">
             <div class="card shadow">
                 <div class="card-header">
