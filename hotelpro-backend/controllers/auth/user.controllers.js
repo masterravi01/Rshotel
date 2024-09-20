@@ -208,9 +208,11 @@ const loginUser = asyncHandler(async (req, res) => {
           ],
         },
       },
+
       {
         $unwind: {
           path: "$propertyUnits",
+          preserveNullAndEmptyArrays: true,
         },
       },
       {

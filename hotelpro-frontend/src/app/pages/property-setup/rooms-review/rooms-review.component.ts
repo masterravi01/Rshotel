@@ -188,7 +188,7 @@ export class RoomsReviewComponent implements OnInit {
   isRowExpanded(index: number): boolean {
     return this.expandedRowIndices.has(index);
   }
-  next() { 
-    this.router.navigate(['/rateplan-setup', this.propertyUnitId]);
+  next() {
+    this.router.navigate(['/baserate-setup']);
   }
 }

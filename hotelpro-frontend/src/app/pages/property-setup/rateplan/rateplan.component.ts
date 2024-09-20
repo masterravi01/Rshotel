@@ -16,6 +16,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { GeneralModalService } from '../../../core/services/general-modal.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-rateplan',
@@ -31,12 +32,13 @@ export class RateplanComponent implements OnInit {
   noshowPolicyForm!: FormGroup;
   cancellationPolicyList: any[] = [];
   noshowPolicyList: any[] = [];
-
+  ratePlanId: string | null = 'Add';
   constructor(
     private crudService: CrudService,
     private fb: FormBuilder,
     private alertService: AlertService,
     private activeRoute: ActivatedRoute,
+    private authService: AuthService,
     private router: Router,
     private generalModal: GeneralModalService,
     private modalService: NgbModal
@@ -47,8 +49,8 @@ export class RateplanComponent implements OnInit {
   // read,update,create cancel &  no show
 
   ngOnInit() {
-    this.propertyUnitId =
-      this.activeRoute.snapshot.paramMap.get('propertyUnitId');
+    this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
+    this.ratePlanId = this.activeRoute.snapshot.paramMap.get('ratePlanId');
     this.noshowPolicyForm = this.fb.group({
       _id: [''],
       noShowPolicyName: ['', Validators.required],
@@ -72,7 +74,7 @@ export class RateplanComponent implements OnInit {
       ratePlanName: ['', Validators.required],
       ratePlanShortName: ['', Validators.required],
       ratePlanDescription: ['', Validators.required],
-      isBaseRate: [true],
+      isBaseRate: [false],
       active: [true],
       cancellationPolicyId: ['', Validators.required],
       noShowPolicyId: ['', Validators.required],
@@ -80,26 +82,30 @@ export class RateplanComponent implements OnInit {
       isRefundable: [false],
       roomTypeRates: this.fb.array([]),
     });
-    this.readRoomTypes();
-    this.readRate();
+    if (this.ratePlanId == 'Add') {
+      this.readRoomTypes();
+    } else {
+      this.readRate();
+    }
+
     this.readAllCancelationPolicies();
     this.readAllNoShowPolicies();
   }
   readRoomTypes() {
-    // this.crudService
-    //   .post(APIConstant.READ_ROOMTYPES + this.propertyUnitId)
-    //   .then((response: any) => {
-    //     console.log(response);
-    //     for (let r of response.data) {
-    //       this.addRoomType(r);
-    //     }
-    //     console.log(this.ratePlanForm.value);
-    //     this.alertService.successAlert(response.message);
-    //   })
-    //   .catch((error: any) => {
-    //     console.log(error);
-    //     this.alertService.errorAlert(error.message);
-    //   });
+    this.crudService
+      .post(APIConstant.READ_ROOMTYPES + this.propertyUnitId)
+      .then((response: any) => {
+        console.log(response);
+        for (let r of response.data) {
+          this.addRoomType(r);
+        }
+        console.log(this.ratePlanForm.value);
+        this.alertService.successAlert(response.message);
+      })
+      .catch((error: any) => {
+        console.log(error);
+        this.alertService.errorAlert(error.message);
+      });
   }
 
   createRoomTypeRate(r?: any): FormGroup {
@@ -185,8 +191,6 @@ export class RateplanComponent implements OnInit {
   onSubmit() {
     console.log(this.ratePlanForm.value);
 
-    if (this.ratePlanForm.get('_id')?.value) {
-    }
     const callApiUrl = this.ratePlanForm.get('_id')?.value
       ? APIConstant.UPDATE_RATEPLAN
       : APIConstant.CREATE_RATEPLAN;
@@ -215,8 +219,23 @@ export class RateplanComponent implements OnInit {
   }
 
   readRate() {
+    let obj = {};
+    if (this.router.url == '/baserate-setup') {
+      obj = {
+        isBaseRate: true,
+        propertyUnitId: this.propertyUnitId,
+      };
+    } else if (this.ratePlanId) {
+      obj = {
+        ratePlanId: this.ratePlanId,
+        propertyUnitId: this.propertyUnitId,
+      };
+    } else {
+      this.alertService.errorAlert('No Rate Plan Found !');
+      window.history.back();
+    }
     this.crudService
-      .post(APIConstant.READ_RATEPLAN, { propertyUnitId: this.propertyUnitId })
+      .post(APIConstant.READ_RATEPLAN, obj)
       .then((response: any) => {
         console.log(response);
         this.ratePlanForm.reset(response.data);
@@ -314,7 +333,7 @@ export class RateplanComponent implements OnInit {
       });
   }
 
-  next() { 
+  next() {
     this.router.navigate(['/tax-setup', this.propertyUnitId]);
   }
 }

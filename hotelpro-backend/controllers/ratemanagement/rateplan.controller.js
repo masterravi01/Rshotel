@@ -33,14 +33,19 @@ const getRatePlanById = asyncHandler(async (req, res) => {
 });
 
 const readRatePlan = asyncHandler(async (req, res) => {
-  const { ratePlanId, propertyUnitId, isBaseRate } = req.body;
-
+  const { ratePlanId, propertyUnitId, isBaseRate, fromList } = req.body;
+  let matchquerry = {
+    propertyUnitId: new ObjectId(propertyUnitId),
+  };
+  if (isBaseRate) {
+    matchquerry.isBaseRate = isBaseRate;
+  }
+  if (ratePlanId) {
+    matchquerry._id = new ObjectId(ratePlanId);
+  }
   let ratePlanDetails = await RatePlanSetup.aggregate([
     {
-      $match: {
-        propertyUnitId: new ObjectId(propertyUnitId),
-        isBaseRate: true,
-      },
+      $match: matchquerry,
     },
     {
       $lookup: {
@@ -91,6 +96,17 @@ const readRatePlan = asyncHandler(async (req, res) => {
       },
     },
   ]);
+  if (fromList) {
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { ratePlanList: ratePlanDetails },
+          "Rate plan retrieved successfully"
+        )
+      );
+  }
   if (ratePlanDetails.length == 0) {
     throw new ApiError(404, "Rate plan not found");
   }
