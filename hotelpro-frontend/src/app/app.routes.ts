@@ -94,9 +94,9 @@ export const routes: Routes = [
       {
         path: 'manage-user/:propertyUnitId',
         loadComponent: () =>
-          import(
-            './pages/client/manage-user/manage-user.component'
-          ).then((m) => m.ManageUserComponent),
+          import('./pages/client/manage-user/manage-user.component').then(
+            (m) => m.ManageUserComponent
+          ),
         title: 'Manage User',
         canActivate: [authGuard],
       },
@@ -141,7 +141,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'rateplan-setup/:propertyUnitId',
+        path: 'rateplan-setup/:ratePlanId',
         loadComponent: () =>
           import('./pages/property-setup/rateplan/rateplan.component').then(
             (m) => m.RateplanComponent
@@ -149,7 +149,24 @@ export const routes: Routes = [
         title: 'RatePlan Setup',
         canActivate: [authGuard],
       },
-
+      {
+        path: 'baserate-setup',
+        loadComponent: () =>
+          import('./pages/property-setup/rateplan/rateplan.component').then(
+            (m) => m.RateplanComponent
+          ),
+        title: 'RatePlan Setup',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'rateplan-list',
+        loadComponent: () =>
+          import(
+            './pages/property-setup/rateplan-list/rateplan-list.component'
+          ).then((m) => m.RateplanListComponent),
+        title: 'RatePlan List',
+        canActivate: [authGuard],
+      },
       {
         path: 'profile',
         component: UserProfileComponent,
