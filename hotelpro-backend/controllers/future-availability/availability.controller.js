@@ -21,7 +21,7 @@ const getDatesInRange = (startDate, endDate) => {
   const currentDate = new Date(startDate);
 
   while (currentDate <= new Date(endDate)) {
-    dates.push(new Date(currentDate).toISOString().split("T")[0]);
+    dates.push(new Date(currentDate).toISOString());
     currentDate.setDate(currentDate.getDate() + 1);
   }
   return dates;
@@ -38,7 +38,32 @@ const checkDateWiseRoomAvailability = async (
     const [roomTypes, rooms, maintenanceRooms, reservedRooms] =
       await Promise.all([
         RoomType.find({ propertyUnitId }).select("_id roomTypeName"),
-        Room.find({ propertyUnitId }).select("_id roomTypeId roomStatus"),
+        RoomType.aggregate([
+          {
+            $match: {
+              propertyUnitId: new ObjectId(propertyUnitId),
+            },
+          },
+          {
+            $lookup: {
+              from: "rooms",
+              localField: "_id",
+              foreignField: "roomTypeId",
+              as: "roomDetail",
+            },
+          },
+          {
+            $unwind: {
+              path: "$roomDetail",
+            },
+          },
+          {
+            $project: {
+              roomId: "$roomDetail._id",
+              roomTypeId: "$_id",
+            },
+          },
+        ]),
         RoomMaintenance.find({
           propertyUnitId,
           $or: [
@@ -59,45 +84,46 @@ const checkDateWiseRoomAvailability = async (
         }).select("roomId arrival departure"),
       ]);
 
-    const availabilityData = [];
+    const availabilityByRoomType = roomTypes.map((roomType) => {
+      const totalRoomsForType = rooms.filter((room) =>
+        room.roomTypeId.equals(roomType._id)
+      ).length;
 
-    for (const date of dates) {
-      let dayStart = new Date(date);
-      let dayEnd = new Date(date);
-      dayEnd.setDate(dayEnd.getDate() + 1);
+      const occupancy = dates.map((date) => {
+        let dayStart = new Date(date);
+        let dayEnd = new Date(date);
+        dayEnd.setDate(dayEnd.getDate() + 1);
 
-      const maintenanceRoomIds = maintenanceRooms
-        .filter((m) => m.startDate <= dayEnd && m.endDate > dayStart)
-        .map((m) => m.roomId);
+        const maintenanceRoomIds = maintenanceRooms
+          .filter((m) => m.startDate <= dayEnd && m.endDate > dayStart)
+          .map((m) => m.roomId);
 
-      const reservedRoomIds = reservedRooms
-        .filter((r) => r.arrival <= dayEnd && r.departure > dayStart)
-        .map((r) => r.roomId);
+        const reservedRoomIds = reservedRooms
+          .filter((r) => r.arrival <= dayEnd && r.departure > dayStart)
+          .map((r) => r.roomId);
 
-      const availabilityByRoomType = roomTypes.map((roomType) => {
-        const totalRoomsForType = rooms.filter((room) =>
-          room.roomTypeId.equals(roomType._id)
-        ).length;
         const unavailableRoomsForType = rooms.filter(
           (room) =>
             room.roomTypeId.equals(roomType._id) &&
-            (maintenanceRoomIds.includes(room._id) ||
-              reservedRoomIds.includes(room._id))
+            (maintenanceRoomIds.includes(room.roomId) ||
+              reservedRoomIds.includes(room.roomId))
         ).length;
 
         return {
-          roomTypeName: roomType.roomTypeName,
-          totalAvailableRoom: totalRoomsForType - unavailableRoomsForType,
+          Date: date,
+          Available: totalRoomsForType - unavailableRoomsForType,
         };
       });
 
-      availabilityData.push({
-        date: date,
-        availabilityByRoomType,
-      });
-    }
+      return {
+        _id: roomType._id,
+        RoomTypeName: roomType.roomTypeName,
+        TotalRoom: totalRoomsForType,
+        Occupancy: occupancy,
+      };
+    });
 
-    return availabilityData;
+    return availabilityByRoomType;
   } catch (error) {
     console.error("Error fetching date-wise room availability:", error);
     throw error;
@@ -106,20 +132,26 @@ const checkDateWiseRoomAvailability = async (
 
 const readFutureAvailability = asyncHandler(async (req, res) => {
   let { startDate, endDate, propertyUnitId } = req.body;
-  let data = {};
   startDate = new Date(startDate);
   startDate.setUTCHours(0, 0, 0, 0);
   endDate = new Date(endDate);
   endDate.setUTCHours(0, 0, 0, 0);
 
-  data.availabilityData = await checkDateWiseRoomAvailability(
+  const availabilityData = await checkDateWiseRoomAvailability(
     startDate,
     endDate,
     propertyUnitId
   );
+
   return res
     .status(200)
-    .json(new ApiResponse(200, data, "Room maintenance fetch successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        availabilityData,
+        "Room availability fetched successfully"
+      )
+    );
 });
 
 export default {

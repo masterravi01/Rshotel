@@ -198,7 +198,6 @@ const createUser = asyncHandler(async (req, res) => {
     phone,
     userType,
     propertyUnitId,
-    isLoginable: true,
     isEmailVerified: true,
   });
   await user.save();

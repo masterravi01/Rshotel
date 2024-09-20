@@ -37,7 +37,7 @@ const userSchema = new Schema(
     dob: String,
     isLoginable: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     phone: String,
     addressId: {

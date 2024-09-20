@@ -5,6 +5,7 @@ import { Property } from "../../database/database.schema.js";
 import { PropertyUnit, User, Address } from "../../database/database.schema.js";
 import { getRandomNumber } from "../../utils/helpers.js";
 import mongoose from "mongoose";
+import { UserTypesEnum } from "../../constants.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 // GET all property units
@@ -88,9 +89,19 @@ const createPropertyUnit = asyncHandler(async (req, res) => {
     socialMediaLinks,
     active,
   } = req.body;
+
+  const existedUser = await User.findOne({
+    email: managerDetails.email,
+  });
+
+  if (existedUser) {
+    throw new ApiError(409, "Manager email is already exists", []);
+  }
+
   const propertyUnitCode = getRandomNumber(1000000);
 
   const manager = new User(managerDetails);
+  manager.userType = UserTypesEnum.MANAGER;
 
   const propertyUnit = new PropertyUnit({
     propertyId,

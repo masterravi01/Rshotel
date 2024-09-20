@@ -131,7 +131,7 @@ export class AddUpdatePropertyComponent implements OnInit {
             ]);
           })
           .catch((error) => {
-            this.alertService.errorAlert(error.message);
+            this.alertService.errorAlert(error?.error?.message);
           });
       } else {
         this.crudService

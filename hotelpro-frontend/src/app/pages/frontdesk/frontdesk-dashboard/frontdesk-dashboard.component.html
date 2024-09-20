@@ -76,41 +76,32 @@
                     <h5 class="card-title">Future Availability</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table table-hover">
+                    <table class="table table-hover future-table">
                         <thead>
                             <tr>
-                                <th scope="col">Room Type</th>
-                                @for (data of availabilityData; track data; let i =
-                                $index) {
-                                    <th scope="row">{{data.date}}</th>
+                                <th scope="col" class="text-left">Room Type</th>
+                                @for (data of availabilityData?.[0]?.Occupancy; track data; let i = $index) {
+                                <th scope="col" class="text-center">{{ data.Date | date: "dd MMM" }}</th>
                                 }
                             </tr>
                         </thead>
                         <tbody>
+                            @for (roomType of availabilityData; track roomType; let i = $index) {
                             <tr>
-                                @for (roomType of availabilityData[0]?.availabilityByRoomType; track roomType; let i =
-                                $index) {
-                                        <th scope="row">{{ roomType.roomTypeName}}</th>
-                                    @for (data of availabilityData; track data; let j = $index) {
-                                        <!-- <td>
-                                            {{
-                                                availabilityData.availabilityByRoomType
-                                                ?.find(
-                                                (rt) => rt.roomTypeName === roomType.roomTypeName
-                                                )?.totalAvailableRoom
-                                            }}
-                                        </td> -->
-                                    }
+                                <th scope="row" class="text-left">{{ roomType.RoomTypeName }}</th>
+                                @for (occupancy of availabilityData?.[i]?.Occupancy; track occupancy; let j = $index) {
+                                <td scope="row" class="text-center">{{ occupancy.Available }}</td>
                                 }
                             </tr>
-                            
+                            }
                         </tbody>
                     </table>
+
                 </div>
             </div>
         </div>
 
-    
+
         <div class="col-lg-4 mb-4">
             <div class="card shadow">
                 <div class="card-header">

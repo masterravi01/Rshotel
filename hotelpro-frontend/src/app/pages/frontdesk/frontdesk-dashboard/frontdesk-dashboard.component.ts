@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { CommonModule, DatePipe } from '@angular/common';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { CrudService } from '../../../core/services/crud.service';
@@ -9,7 +10,7 @@ import { AlertService } from '../../../core/services/alert.service';
 @Component({
   selector: 'app-frontdesk-dashboard',
   standalone: true,
-  imports: [],
+  imports: [DatePipe],
   templateUrl: './frontdesk-dashboard.component.html',
   styleUrl: './frontdesk-dashboard.component.css',
 })
@@ -33,7 +34,7 @@ export class FrontdeskDashboardComponent {
   fetchData() {
     let startDate = new Date();
     let endDate = new Date();
-    endDate.setDate(endDate.getDate() + 10);
+    endDate.setDate(endDate.getDate() + 6);
     this.crudService
       .post(APIConstant.READ_FUTURE_AVAILABILITY, {
         propertyUnitId: this.userInfo.propertyUnitId,
@@ -41,7 +42,7 @@ export class FrontdeskDashboardComponent {
         endDate,
       })
       .then((response: any) => {
-        this.availabilityData = response.data.availabilityData;
+        this.availabilityData = response.data;
         console.log(this.availabilityData);
       })
       .catch((error) => {
