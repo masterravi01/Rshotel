@@ -81,6 +81,8 @@ export const APIConstant = {
   ADD_ROOM: 'reservation/add-room',
   CHANGE_ROOM: 'reservation/change-room',
   GET_ALL_RESERVATION: 'reservation/get-all-reservation',
+  POST_RESERVATION_PAYMENT: 'reservation/post-reservation-payment',
+  ADD_RESERVATION_CHARGE: 'reservation/add-reservation-charge',
 
   CREATE_PAYMENT_ORDER: 'razor/create-payment-order',
   VALIDATE_PAYMENT: 'razor/validate-payment',

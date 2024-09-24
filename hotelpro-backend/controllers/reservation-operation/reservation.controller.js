@@ -2622,6 +2622,112 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
   }
 });
 
+const postReservationPayment = asyncHandler(async (req, res) => {
+  let data = {};
+  let transactionCode;
+  let guestTransaction;
+  let { propertyUnitId, groupId, userId, payment } = req.body;
+  groupId = new ObjectId(groupId);
+  userId = new ObjectId(userId);
+  propertyUnitId = new ObjectId(propertyUnitId);
+
+  let [billing_account, userDetails] = await Promise.all([
+    BillingAccount.findOne({
+      groupId,
+    }),
+    User.findById(userId),
+  ]);
+  if (!billing_account) {
+    billing_account = new BillingAccount({
+      billingAccountName: `${userDetails.firstName} ${userDetails.lastName}`,
+      propertyUnitId,
+      userId: userId,
+      groupId: groupId,
+    });
+    await billing_account.save();
+  }
+  if (payment.paymentType === "cash") {
+    transactionCode = new TransactionCode({
+      transactionCode: String(new ObjectId()),
+      transactionType: "Reservation",
+      transactionRate: payment.amount,
+      transactionDetail: payment.remark,
+      receipt: Math.floor(100000 + Math.random() * 900000),
+      date: Date.now(),
+    });
+
+    guestTransaction = new GuestTransaction({
+      transactionCodeId: transactionCode._id,
+      isDeposit: payment.deposit,
+      transactionDate: Date.now(),
+      userId: userId,
+      groupId: groupId,
+      billingAccountId: billing_account._id,
+    });
+  }
+  await Promise.all([
+    GroupReservation.updateOne(
+      {
+        _id: groupId,
+      },
+      {
+        $inc: {
+          totalBalance: payment.deposit ? 0 : payment.amount,
+          totalPayment: payment.deposit ? 0 : payment.amount,
+          totalDeposit: payment.deposit ? payment.amount : 0,
+        },
+      }
+    ),
+    transactionCode.save(),
+    guestTransaction.save(),
+  ]);
+  return res
+    .status(201)
+    .json(new ApiResponse(201, data, "Payment made successfully!"));
+});
+
+const addReservationCharge = asyncHandler(async (req, res) => {
+  let data = {};
+  let { propertyUnitId, groupId, charges } = req.body;
+  groupId = new ObjectId(groupId);
+  let reservationId = new ObjectId(charges.reservationId);
+  propertyUnitId = new ObjectId(propertyUnitId);
+
+  let roomBalance = new RoomBalance(charges);
+  roomBalance.balance = -charges.charge;
+  roomBalance.balanceDate = Date.now();
+  roomBalance.balanceName = BalanceNameEnum.ROOMSERVICES;
+
+  await Promise.all([
+    GroupReservation.updateOne(
+      {
+        _id: groupId,
+      },
+      {
+        $inc: {
+          totalBalance: roomBalance.balance,
+          totalCost: charges.charge,
+          totalPrice: charges.charge,
+        },
+      }
+    ),
+    roomBalance.save(),
+    ReservationDetail.updateOne(
+      {
+        reservationId: reservationId,
+      },
+      {
+        $inc: {
+          roomCost: charges.charge,
+        },
+      }
+    ),
+  ]);
+  return res
+    .status(201)
+    .json(new ApiResponse(201, data, "Payment made successfully!"));
+});
+
 export default {
   getAllReservations,
   getReservationById,
@@ -2634,4 +2740,6 @@ export default {
   stayUpdate,
   addRoomReservation,
   changeRoomReservation,
+  postReservationPayment,
+  addReservationCharge,
 };

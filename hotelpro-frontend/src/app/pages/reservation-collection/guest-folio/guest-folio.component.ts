@@ -1,5 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertService } from '../../../core/services/alert.service';
 import { CrudService } from '../../../core/services/crud.service';
@@ -26,6 +32,7 @@ import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
     NgImageSliderModule,
     FormsModule,
     NgMultiSelectDropDownModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './guest-folio.component.html',
   styleUrl: './guest-folio.component.css',
@@ -42,6 +49,8 @@ export class GuestFolioComponent implements OnInit {
   currentRoomCount = 0;
   currentReservation: any;
   documentsImages: any[] = [];
+  paymentForm!: FormGroup;
+  postChargeForm!: FormGroup;
   imageObject = [
     {
       image:
@@ -90,6 +99,25 @@ export class GuestFolioComponent implements OnInit {
           console.error(error);
         });
     }
+    this.paymentForm = this.fb.group({
+      groupId: ['', [Validators.required]],
+      reservationId: ['', [Validators.required]],
+      paymentType: ['cash', [Validators.required]],
+      amount: [10, [Validators.required, Validators.min(0)]],
+    });
+    this.paymentForm = this.fb.group({
+      groupId: ['', [Validators.required]],
+      paymentType: ['cash', [Validators.required]],
+      deposit: [false],
+      amount: [10, [Validators.required, Validators.min(0)]],
+      remark: [''],
+    });
+    this.postChargeForm = this.fb.group({
+      groupId: ['', [Validators.required]],
+      reservationId: ['', [Validators.required]],
+      reason: ['penalty', [Validators.required]],
+      charge: [10, [Validators.required, Validators.min(0)]],
+    });
   }
 
   updateStay(reservationId: any) {
@@ -354,4 +382,86 @@ export class GuestFolioComponent implements OnInit {
       this.alertService.errorAlert('No Documents found for this Reservation!');
     }
   }
+  openAddChargeModal(content: any, reservation: any) {
+    this.postChargeForm.patchValue({
+      groupId: reservation.groupId,
+      reservationId: reservation._id,
+      charge: 10,
+      description: '',
+    });
+
+    this.modalService
+      .open(content, {
+        size: 'lg',
+        centered: true,
+        backdrop: 'static',
+        keyboard: false,
+      })
+      .result.then((result) => {
+        if (result) {
+          this.crudService
+            .post(APIConstant.ADD_RESERVATION_CHARGE, {
+              propertyUnitId: this.propertyUnitId,
+              groupId: this.groupId,
+              charges: this.postChargeForm.value,
+            })
+            .then((response) => {
+              console.log(response);
+              this.alertService.successAlert(response.message);
+              this.ngOnInit();
+            })
+            .catch((error) => {
+              this.alertService.errorAlert(
+                error?.error?.message ||
+                  'An error occurred while processing payment'
+              );
+              console.error(error);
+            });
+        }
+      });
+  }
+  addCharge() {}
+  openPaymentModal(content: any) {
+    let amount = this.groupDetails.totalBalance
+      ? -this.groupDetails.totalBalance
+      : 10;
+    this.paymentForm.patchValue({
+      groupId: this.groupId,
+      paymentType: 'cash',
+      amount: amount,
+      deposit: false,
+      remark: '',
+    });
+    this.modalService
+      .open(content, {
+        size: 'lg',
+        centered: true,
+        backdrop: 'static',
+        keyboard: false,
+      })
+      .result.then((result) => {
+        if (result) {
+          this.crudService
+            .post(APIConstant.POST_RESERVATION_PAYMENT, {
+              payment: this.paymentForm.value,
+              userId: this.groupDetails.customerId,
+              propertyUnitId: this.propertyUnitId,
+              groupId: this.groupId,
+            })
+            .then((response) => {
+              console.log(response);
+              this.alertService.successAlert(response.message);
+              this.ngOnInit();
+            })
+            .catch((error) => {
+              this.alertService.errorAlert(
+                error?.error?.message ||
+                  'An error occurred while processing payment'
+              );
+              console.error(error);
+            });
+        }
+      });
+  }
+  makePayment() {}
 }

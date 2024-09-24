@@ -81,7 +81,12 @@
         </div>
         <div class="col-4 text-end">
           <div class="d-flex flex-column">
-            <label class="form-label fw-semibold mt-2"> Make Payment </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="openPaymentModal(paymentModal)"
+            >
+              Make Payment
+            </label>
             <label class="form-label fw-semibold mt-2"> View Logs </label>
             <label class="form-label fw-semibold mt-2">
               Cancel Reservations</label
@@ -275,6 +280,12 @@
               (click)="showRoomCharges(reservation)"
             >
               Show Charges
+            </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="openAddChargeModal(postChargeModal, reservation)"
+            >
+              Add Charges
             </label>
             <label class="form-label fw-semibold mt-2">Make Payment </label>
           </div>
@@ -620,5 +631,169 @@
     >
       Save
     </button>
+  </div>
+</ng-template>
+<ng-template #paymentModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Make Payment</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body" [formGroup]="paymentForm">
+    <div class="row">
+      <div class="col-md-3 mt-3">
+        <label class="form-label">Payment Type </label>
+        <select
+          class="form-control text-center select_reason"
+          formControlName="paymentType"
+        >
+          <option value="cash">cash</option>
+          <option value="card">card</option>
+          <option value="cheque">cheque</option>
+        </select>
+      </div>
+      <div class="col-md-2 mt-3">
+        <label class="form-label">Amount </label>
+        <input
+          type="number"
+          class="form-control"
+          formControlName="amount"
+          placeholder="Enter amount"
+          [ngClass]="{
+            'is-invalid':
+              paymentForm.get('amount')?.invalid &&
+              (paymentForm.get('amount')?.dirty ||
+                paymentForm.get('amount')?.touched)
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            paymentForm.get('amount')?.invalid &&
+            (paymentForm.get('amount')?.dirty ||
+              paymentForm.get('amount')?.touched)
+          "
+        >
+          amount is required
+        </small>
+      </div>
+      <div class="col-md-2 mt-3">
+        <div class="mt-4">
+          <label class="form-label me-2">Deposit </label>
+          <input
+            type="checkbox"
+            class="form-check-input"
+            formControlName="deposit"
+          />
+        </div>
+      </div>
+      <div class="col-md-3 mt-3">
+        <label class="form-label">Remark </label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="remark"
+          placeholder="Enter remark"
+          [ngClass]="{
+            'is-invalid':
+              paymentForm.get('remark')?.invalid &&
+              (paymentForm.get('remark')?.dirty ||
+                paymentForm.get('remark')?.touched)
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            paymentForm.get('remark')?.invalid &&
+            (paymentForm.get('remark')?.dirty ||
+              paymentForm.get('remark')?.touched)
+          "
+        >
+          remark is required
+        </small>
+      </div>
+      <div class="col-md-2 mt-3">
+        <div class="d-flex justify-content-center">
+          <button
+            class="btn btn-primary mt-4"
+            type="button"
+            [disabled]="paymentForm.invalid"
+            (click)="modal.close(true)"
+          >
+            Pay
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+<ng-template #postChargeModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Post Charge</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body" [formGroup]="postChargeForm">
+    <div class="row">
+      <div class="col-md-3 mt-3">
+        <label class="form-label">Charge </label>
+        <input
+          type="number"
+          class="form-control"
+          formControlName="charge"
+          placeholder="Enter charge"
+          [ngClass]="{
+            'is-invalid':
+              postChargeForm.get('charge')?.invalid &&
+              (postChargeForm.get('charge')?.dirty ||
+                postChargeForm.get('charge')?.touched)
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            postChargeForm.get('charge')?.invalid &&
+            (postChargeForm.get('charge')?.dirty ||
+              postChargeForm.get('charge')?.touched)
+          "
+        >
+          charge is required
+        </small>
+      </div>
+
+      <div class="col-md-3 mt-3">
+        <label class="form-label">reason </label>
+        <select
+          class="form-control text-center select_reason"
+          formControlName="reason"
+        >
+          <option value="damage">damage</option>
+          <option value="cancellation">cancellation</option>
+          <option value="extracharge">extracharge</option>
+          <option value="penalty">penalty</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 mt-3">
+        <div class="d-flex justify-content-center">
+          <button
+            class="btn btn-primary mt-4"
+            type="button"
+            [disabled]="postChargeForm.invalid"
+            (click)="modal.close(true)"
+          >
+            Pay
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </ng-template>

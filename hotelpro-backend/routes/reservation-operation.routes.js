@@ -21,5 +21,12 @@ router.post(
   "/get-all-reservation",
   reservationOperationIndex.getAllReservations
 );
-
+router.post(
+  "/post-reservation-payment",
+  reservationOperationIndex.postReservationPayment
+);
+router.post(
+  "/add-reservation-charge",
+  reservationOperationIndex.addReservationCharge
+);
 export default router;
