@@ -32,6 +32,10 @@ const checkDateWiseRoomAvailability = async (
   endDate,
   propertyUnitId
 ) => {
+  startDate = new Date(startDate);
+  startDate.setUTCHours(0, 0, 0, 0);
+  endDate = new Date(endDate);
+  endDate.setUTCHours(0, 0, 0, 0);
   const dates = getDatesInRange(startDate, endDate);
 
   try {
@@ -64,24 +68,53 @@ const checkDateWiseRoomAvailability = async (
             },
           },
         ]),
-        RoomMaintenance.find({
-          propertyUnitId,
-          $or: [
-            {
+        RoomMaintenance.aggregate([
+          {
+            $match: {
+              propertyUnitId: new ObjectId(propertyUnitId),
               startDate: { $lte: new Date(endDate) },
               endDate: { $gte: new Date(startDate) },
             },
-          ],
-        }).select("roomId startDate endDate"),
-        Reservation.find({
-          propertyUnitId,
-          $or: [
-            {
-              arrival: { $lte: new Date(endDate) },
-              departure: { $gte: new Date(startDate) },
+          },
+          {
+            $project: {
+              roomId: { $toString: "$roomId" },
+              startDate: 1,
+              endDate: 1,
             },
-          ],
-        }).select("roomId arrival departure"),
+          },
+        ]),
+        Reservation.aggregate([
+          {
+            $match: {
+              $and: [
+                {
+                  propertyUnitId: new ObjectId(propertyUnitId),
+                },
+                {
+                  arrival: { $lte: new Date(endDate) },
+                },
+                {
+                  departure: { $gte: new Date(startDate) },
+                },
+                {
+                  $or: [
+                    { reservationStatus: ReservationStatusEnum.RESERVED },
+                    { reservationStatus: ReservationStatusEnum.INHOUSE },
+                    { reservationStatus: ReservationStatusEnum.CHECKEDOUT },
+                  ],
+                },
+              ],
+            },
+          },
+          {
+            $project: {
+              roomId: { $toString: "$roomId" },
+              arrival: 1,
+              departure: 1,
+            },
+          },
+        ]),
       ]);
 
     const availabilityByRoomType = roomTypes.map((roomType) => {
@@ -91,23 +124,21 @@ const checkDateWiseRoomAvailability = async (
 
       const occupancy = dates.map((date) => {
         let dayStart = new Date(date);
-        let dayEnd = new Date(date);
-        dayEnd.setDate(dayEnd.getDate() + 1);
 
         const maintenanceRoomIds = maintenanceRooms
-          .filter((m) => m.startDate <= dayEnd && m.endDate > dayStart)
+          .filter((m) => m.startDate <= dayStart && dayStart < m.endDate)
           .map((m) => m.roomId);
 
         const reservedRoomIds = reservedRooms
-          .filter((r) => r.arrival <= dayEnd && r.departure > dayStart)
+          .filter((r) => r.arrival <= dayStart && dayStart < r.departure)
           .map((r) => r.roomId);
 
-        const unavailableRoomsForType = rooms.filter(
-          (room) =>
-            room.roomTypeId.equals(roomType._id) &&
-            (maintenanceRoomIds.includes(room.roomId) ||
-              reservedRoomIds.includes(room.roomId))
-        ).length;
+        const unavailableRoomsForType = rooms.filter((room) => {
+          return (
+            maintenanceRoomIds.includes(room.roomId.toString()) ||
+            reservedRoomIds.includes(room.roomId.toString())
+          );
+        }).length;
 
         return {
           Date: date,
