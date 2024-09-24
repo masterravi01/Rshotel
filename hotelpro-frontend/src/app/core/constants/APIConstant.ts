@@ -84,6 +84,13 @@ export const APIConstant = {
   POST_RESERVATION_PAYMENT: 'reservation/post-reservation-payment',
   ADD_RESERVATION_CHARGE: 'reservation/add-reservation-charge',
 
+  CHECKIN_RESERVATION: 'reservation/checkin-reservation',
+
+  READ_NOSHOW_CHARGE: 'reservation/read-noshow-charge',
+  NOSHOW_RESERVATION: 'reservation/noshow-reservation',
+  READ_CANCEL_RESERVATION_CHARGE: 'reservation/read-cancel-reservation-charge',
+  CANCEL_RESERVATION: 'reservation/cancel-reservation',
+
   CREATE_PAYMENT_ORDER: 'razor/create-payment-order',
   VALIDATE_PAYMENT: 'razor/validate-payment',
 

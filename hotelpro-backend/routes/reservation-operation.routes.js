@@ -29,4 +29,17 @@ router.post(
   "/add-reservation-charge",
   reservationOperationIndex.addReservationCharge
 );
+
+router.post(
+  "/checkin-reservation",
+  reservationOperationIndex.checkInReservation
+);
+router.post("/read-noshow-charge", reservationOperationIndex.readNoshowCharge);
+router.post("/noshow-reservation", reservationOperationIndex.noShowReservation);
+router.post(
+  "/read-cancel-reservation-charge",
+  reservationOperationIndex.readCancelReservationCharge
+);
+router.post("/cancel-reservation", reservationOperationIndex.cancelReservation);
+
 export default router;

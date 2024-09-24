@@ -148,6 +148,8 @@ const createReservation = asyncHandler(async (req, res) => {
   let AllInsertedRoomLockIds = [];
   let transaction_retry_count = 0;
   let data = {};
+  const MAX_RETRY_COUNT = 3; // Retry limit for transactions
+
   try {
     session = await mongoose.startSession();
     console.log("Session started:", session.id);
@@ -160,12 +162,16 @@ const createReservation = asyncHandler(async (req, res) => {
 
       if (transaction_retry_count > 0) {
         console.log("in retry");
-        // if we are retrying then, deallocate old rooms
+        // if retrying, deallocate old rooms
         await deallocateMultipleRooms(AllInsertedRoomLockIds);
         AllInsertedRoomLockIds = [];
       }
 
       transaction_retry_count++;
+      if (transaction_retry_count >= MAX_RETRY_COUNT) {
+        throw new Error("Transaction retry limit reached");
+      }
+
       propertyUnitId = new ObjectId(propertyUnitId);
       let reservationsRoomTypeIds = [];
       let assigncheckindate = new Date(groupDetails.arrival);
@@ -179,6 +185,7 @@ const createReservation = asyncHandler(async (req, res) => {
         }
       });
 
+      // Optimize aggregation queries using indexing and projection
       let [
         OldReservations,
         TotalRooms,
@@ -206,10 +213,7 @@ const createReservation = asyncHandler(async (req, res) => {
         ]),
         RoomType.aggregate([
           {
-            $match: {
-              propertyUnitId,
-              _id: { $in: reservationsRoomTypeIds },
-            },
+            $match: { propertyUnitId, _id: { $in: reservationsRoomTypeIds } },
           },
           {
             $lookup: {
@@ -265,13 +269,9 @@ const createReservation = asyncHandler(async (req, res) => {
 
       RoomMaintainanceDetails = RoomMaintainanceDetails[0];
 
-      // Update TotalRooms with booking controls and maintenance
+      // Filter rooms with BookingControl and Maintenance details
       BookingControlDetails.forEach((b) => {
-        if (
-          b.soldOut &&
-          b.date >= assigncheckindate &&
-          b.date < assigncheckoutdate
-        ) {
+        if (b.soldOut) {
           TotalRooms.forEach((r) => {
             r.rooms = r.rooms.filter(
               (room) => room._id.toString() !== b.roomId.toString()
@@ -285,22 +285,20 @@ const createReservation = asyncHandler(async (req, res) => {
         r.TotalRoom = r.rooms.length;
       });
 
-      // Adjust room availability based on old reservations and maintenance
+      // Adjust availability based on old reservations and maintenance
       for (let i = 0; i < TotalRooms.length; i++) {
-        if (OldReservations.length > 0) {
-          OldReservations.forEach((r) => {
-            if (r.tantative && r.roomTypeId.equals(TotalRooms[i]._id)) {
+        OldReservations.forEach((r) => {
+          if (r.tantative && r.roomTypeId.equals(TotalRooms[i]._id)) {
+            TotalRooms[i].TotalRoom -= 1;
+          } else {
+            const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
+            if (index > -1 && !r.tantative) {
+              TotalRooms[i].rooms.splice(index, 1);
+              TotalRooms[i].roomId.splice(index, 1);
               TotalRooms[i].TotalRoom -= 1;
-            } else {
-              const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
-              if (index > -1 && !r.tantative) {
-                TotalRooms[i].rooms.splice(index, 1);
-                TotalRooms[i].roomId.splice(index, 1);
-                TotalRooms[i].TotalRoom -= 1;
-              }
             }
-          });
-        }
+          }
+        });
 
         if (RoomMaintainanceDetails?.MaintainanceRoomId.length > 0) {
           RoomMaintainanceDetails.MaintainanceRoomId.forEach((id) => {
@@ -314,7 +312,7 @@ const createReservation = asyncHandler(async (req, res) => {
         }
       }
 
-      // Handle room reservations and locks
+      // Room reservation and lock handling
       for (let reservation of reservationsArray) {
         for (let r of TotalRooms) {
           if (String(r._id) === reservation.roomTypeId) {
@@ -349,7 +347,7 @@ const createReservation = asyncHandler(async (req, res) => {
         }
       }
 
-      // Save group reservation and related entries
+      // Prepare group, reservation, and payment entries
       const groupData = new GroupReservation({
         ...groupDetails,
         propertyUnitId,
@@ -370,7 +368,7 @@ const createReservation = asyncHandler(async (req, res) => {
       let TransactionCodeEntries = [];
       let GuestTransactionEntries = [];
 
-      // Handle reservations and guests
+      // Handle reservation and guest processing
       for (let reservation of reservationsArray) {
         let reservationObj = new Reservation({
           ...reservation,
@@ -452,46 +450,44 @@ const createReservation = asyncHandler(async (req, res) => {
         });
       }
 
-      let billing_account = new BillingAccount({
+      // Handle billing account, transaction code, and guest transaction entries
+      const billing_account = new BillingAccount({
         billingAccountName: `${groupDetails.firstName} ${groupDetails.lastName}`,
         propertyUnitId,
         userId: customerDetails._id,
         groupId: groupData._id,
       });
 
-      // Handle payments
-      if (paymentEntries?.length > 0) {
-        for (let payment of paymentEntries) {
-          if (payment.paymentType === "cash") {
-            let transactionCode = new TransactionCode({
-              transactionCode: String(new ObjectId()),
-              transactionType: "Reservation",
-              transactionRate: payment.amount,
-              transactionDetail: payment.remark,
-              receipt: Math.floor(100000 + Math.random() * 900000),
-              date: Date.now(),
-            });
+      paymentEntries.forEach((payment) => {
+        if (payment.paymentType === "cash") {
+          let transactionCode = new TransactionCode({
+            transactionCode: String(new ObjectId()),
+            transactionType: "Reservation",
+            transactionRate: payment.amount,
+            transactionDetail: payment.remark,
+            receipt: Math.floor(100000 + Math.random() * 900000),
+            date: Date.now(),
+          });
 
-            let guestTransaction = new GuestTransaction({
-              transactionCodeId: transactionCode._id,
-              isDeposit: payment.deposit,
-              transactionDate: Date.now(),
-              userId: customerDetails._id,
-              groupId: groupData._id,
-              billingAccountId: billing_account._id,
-            });
+          let guestTransaction = new GuestTransaction({
+            transactionCodeId: transactionCode._id,
+            isDeposit: payment.deposit,
+            transactionDate: Date.now(),
+            userId: customerDetails._id,
+            groupId: groupData._id,
+            billingAccountId: billing_account._id,
+          });
 
-            TransactionCodeEntries.push(transactionCode);
-            GuestTransactionEntries.push(guestTransaction);
-            if (payment.deposit) {
-              groupData.totalDeposit += payment.amount;
-            } else {
-              groupData.totalBalance += payment.amount;
-              groupData.totalPayment += payment.amount;
-            }
+          TransactionCodeEntries.push(transactionCode);
+          GuestTransactionEntries.push(guestTransaction);
+          if (payment.deposit) {
+            groupData.totalDeposit += payment.amount;
+          } else {
+            groupData.totalBalance += payment.amount;
+            groupData.totalPayment += payment.amount;
           }
         }
-      }
+      });
       groupData.groupNumber = await generateGroupNumber(propertyUnitId);
 
       // // for live

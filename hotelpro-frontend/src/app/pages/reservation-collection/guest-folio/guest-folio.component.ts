@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -51,6 +51,8 @@ export class GuestFolioComponent implements OnInit {
   documentsImages: any[] = [];
   paymentForm!: FormGroup;
   postChargeForm!: FormGroup;
+  noshowDetails: any = {};
+  cancelDetails: any = {};
   imageObject = [
     {
       image:
@@ -72,6 +74,10 @@ export class GuestFolioComponent implements OnInit {
       title: 'Example with title.',
     },
   ];
+  @ViewChild('noshowReservationModal', { static: true })
+  noshowReservationModal!: ElementRef;
+  @ViewChild('cancelReservationModal', { static: true })
+  cancelReservationModal!: ElementRef;
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -461,6 +467,101 @@ export class GuestFolioComponent implements OnInit {
               console.error(error);
             });
         }
+      });
+  }
+  readNoshowCharge(reservation: any) {
+    this.crudService
+      .post(APIConstant.READ_NOSHOW_CHARGE, {
+        propertyUnitId: this.propertyUnitId,
+        reservationId: reservation._id,
+      })
+      .then((response) => {
+        console.log(response);
+        this.noshowDetails = response.data;
+        this.modalService
+          .open(this.noshowReservationModal, {
+            size: 'lg',
+            centered: true,
+            backdrop: 'static',
+            keyboard: false,
+          })
+          .result.then((result) => {
+            if (result) {
+              this.crudService
+                .post(APIConstant.NOSHOW_RESERVATION, {
+                  noshowDetails: this.noshowDetails,
+                  reservation: reservation,
+                  propertyUnitId: this.propertyUnitId,
+                })
+                .then((response) => {
+                  console.log(response);
+                  this.alertService.successAlert(response.message);
+                  this.ngOnInit();
+                })
+                .catch((error) => {
+                  this.alertService.errorAlert(
+                    error?.error?.message ||
+                      'An error occurred while processing payment'
+                  );
+                  console.error(error);
+                });
+            }
+          });
+        this.alertService.successAlert(response.message);
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred while processing payment'
+        );
+        console.error(error);
+      });
+  }
+
+  readCancelCharge(reservation: any) {
+    this.crudService
+      .post(APIConstant.READ_CANCEL_RESERVATION_CHARGE, {
+        propertyUnitId: this.propertyUnitId,
+        reservationId: reservation._id,
+      })
+      .then((response) => {
+        console.log(response);
+        this.cancelDetails = response.data;
+        this.modalService
+          .open(this.cancelReservationModal, {
+            size: 'lg',
+            centered: true,
+            backdrop: 'static',
+            keyboard: false,
+          })
+          .result.then((result) => {
+            if (result) {
+              this.crudService
+                .post(APIConstant.CANCEL_RESERVATION, {
+                  cancelDetails: this.cancelDetails,
+                  reservation: reservation,
+                  propertyUnitId: this.propertyUnitId,
+                })
+                .then((response) => {
+                  console.log(response);
+                  this.alertService.successAlert(response.message);
+                  this.ngOnInit();
+                })
+                .catch((error) => {
+                  this.alertService.errorAlert(
+                    error?.error?.message ||
+                      'An error occurred while processing payment'
+                  );
+                  console.error(error);
+                });
+            }
+          });
+        this.alertService.successAlert(response.message);
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred while processing payment'
+        );
+        console.error(error);
       });
   }
   makePayment() {}

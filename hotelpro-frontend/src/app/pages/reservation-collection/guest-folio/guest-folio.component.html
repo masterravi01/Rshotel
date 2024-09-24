@@ -262,7 +262,18 @@
         <div class="col-md-3 col-4 text-end">
           <div class="d-flex flex-column">
             <label class="form-label fw-semibold"> Add Guest </label>
-            <label class="form-label fw-semibold mt-2"> Cancel Room </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="readCancelCharge(reservation)"
+            >
+              Cancel Room
+            </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="readNoshowCharge(reservation)"
+            >
+              No Show
+            </label>
             <label
               class="form-label fw-semibold mt-2"
               (click)="openUpdateStayModal(reservation, stayUpdateModal)"
@@ -794,6 +805,96 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #noshowReservationModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Noshow Reservation</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body" *ngIf="noshowDetails">
+    <p>
+      According To {{ noshowDetails.noShowPolicyName }} Policy ({{
+        noshowDetails.chargeValue
+      }}-{{ noshowDetails.chargeType }}) ,you charge for <br />
+      <input
+        type="number"
+        class="form-control"
+        [(ngModel)]="noshowDetails.penalty"
+        placeholder="Enter charge"
+      />
+      <br />
+      press yes to Countinue
+    </p>
+    <div class="d-flex justify-content-center">
+      <button
+        class="btn btn-primary mt-4"
+        type="button"
+        (click)="modal.close(true)"
+      >
+        YES
+      </button>
+      <button
+        class="btn btn-outline-primary mt-4"
+        type="button"
+        (click)="modal.close(false)"
+      >
+        NO
+      </button>
+    </div>
+  </div>
+</ng-template>
+<ng-template #cancelReservationModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Cancel Reservation</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+
+  <div class="modal-body" *ngIf="cancelDetails">
+    <p>
+      According To {{ cancelDetails.cancelPolicyName }} Policy & window Range({{
+        cancelDetails.windowRange
+      }}) ({{
+        cancelDetails.isInsideRange
+          ? cancelDetails.insideWindowCharge
+          : cancelDetails.outsideWindowCharge
+      }}-{{ cancelDetails.windowType }}) ,you charge for <br />
+      <input
+        type="number"
+        class="form-control"
+        [(ngModel)]="cancelDetails.penalty"
+        placeholder="Enter charge"
+      />
+      <br />
+      press yes to Countinue
+    </p>
+    <div class="d-flex justify-content-center">
+      <button
+        class="btn btn-primary mt-4"
+        type="button"
+        (click)="modal.close(true)"
+      >
+        YES
+      </button>
+      <button
+        class="btn btn-outline-primary mt-4"
+        type="button"
+        (click)="modal.close(false)"
+      >
+        NO
+      </button>
     </div>
   </div>
 </ng-template>
