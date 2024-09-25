@@ -51,8 +51,8 @@ router.post("/cancel-reservation", reservationOperationIndex.cancelReservation);
 router.post("/refund-payment", reservationOperationIndex.refundPayment);
 
 router.post(
-  "/add-guest-reservation",
-  reservationOperationIndex.addGuestToReservation
+  "/add-shared-guest-reservation",
+  reservationOperationIndex.addSharedGuestToReservation
 );
 
 router.post(

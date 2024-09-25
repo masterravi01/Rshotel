@@ -47,9 +47,10 @@ import {
   deallocateRoom,
 } from "./room-reservation-concurrency.js";
 
-const addGuestToReservation = asyncHandler(async (req, res) => {
+const addSharedGuestToReservation = asyncHandler(async (req, res) => {
   let data = {};
   let { reservationId, userDetails } = req.body;
+  delete userDetails._id;
   reservationId = new ObjectId(reservationId);
   let guestObj = new User({ ...userDetails, userType: UserTypesEnum.GUEST });
   let guestAddress = new Address(userDetails);
@@ -71,22 +72,27 @@ const addGuestToReservation = asyncHandler(async (req, res) => {
 
 const updateGuestToReservation = asyncHandler(async (req, res) => {
   let data = {};
-  let { reservationId, userDetails } = req.body;
-  reservationId = new ObjectId(reservationId);
-  let guestObj = new User({ ...userDetails, userType: UserTypesEnum.GUEST });
-  let guestAddress = new Address(userDetails);
-  guestObj.addressId = guestAddress._id;
+  let { userDetails } = req.body;
+  let userId = new ObjectId(userDetails._id);
+  delete userDetails._id;
+  let userData = await User.findById(userId);
+
   await Promise.all([
-    guestObj.save(),
-    guestAddress.save(),
-    Reservation.updateOne(
+    User.updateOne(
+      { _id: userId },
       {
-        _id: reservationId,
-      },
-      { $push: { secondaryUserIds: guestObj._id } }
+        $set: userDetails,
+      }
+    ),
+    Address.updateOne(
+      { _id: userData.addressId },
+      {
+        $set: userDetails,
+      }
     ),
   ]);
   return res
+
     .status(201)
     .json(new ApiResponse(201, data, "Refund Payment  successfully!"));
 });
@@ -94,27 +100,34 @@ const updateGuestToReservation = asyncHandler(async (req, res) => {
 const deleteSharedGuest = asyncHandler(async (req, res) => {
   let data = {};
   let { reservationId, userDetails } = req.body;
-  reservationId = new ObjectId(reservationId);
-  let guestObj = new User({ ...userDetails, userType: UserTypesEnum.GUEST });
-  let guestAddress = new Address(userDetails);
-  guestObj.addressId = guestAddress._id;
+  let userId = new ObjectId(userDetails._id);
+  let userData = await User.findById(userId);
+  for (let imageUrl of userDetails.documents) {
+    const isDelete = await deleteFromCloudinary(imageUrl);
+    if (!isDelete) {
+      throw new ApiError(400, `Image Delete failed for !`);
+    }
+  }
+
   await Promise.all([
-    guestObj.save(),
-    guestAddress.save(),
-    Reservation.updateOne(
-      {
-        _id: reservationId,
-      },
-      { $push: { secondaryUserIds: guestObj._id } }
-    ),
+    User.deleteOne({ _id: userId }),
+    Address.deleteOne({ _id: userData.addressId }),
   ]);
+  if (reservationId) {
+    await Reservation.updateOne(
+      {
+        _id: new ObjectId(reservationId),
+      },
+      { $pull: { secondaryUserIds: userId } }
+    );
+  }
   return res
     .status(201)
     .json(new ApiResponse(201, data, "Refund Payment  successfully!"));
 });
 
 export default {
-  addGuestToReservation,
+  addSharedGuestToReservation,
   updateGuestToReservation,
   deleteSharedGuest,
 };

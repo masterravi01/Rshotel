@@ -32,9 +32,11 @@
                 style="vertical-align: middle; font-size: 20px"
                 (click)="
                   openGuestForm(
+                    guestModal,
+                    null,
+                    false,
                     groupDetails?.customerDetails,
-                    groupDetails?.customerDetails?.customerAddress,
-                    guestModal
+                    groupDetails?.customerDetails?.customerAddress
                   )
                 "
               >
@@ -205,10 +207,11 @@
               style="vertical-align: middle; font-size: 20px"
               (click)="
                 openGuestForm(
-                  groupDetails?.customerDetails,
-                  groupDetails?.customerDetails?.customerAddress,
                   guestModal,
-                  reservation._id
+                  reservation._id,
+                  false,
+                  reservation?.guestDetails,
+                  reservation?.guestDetails?.guestAddress
                 )
               "
             >
@@ -257,6 +260,41 @@
               {{ reservation?.guestDetails?.guestAddress?.zipCode }}
             </span></label
           >
+          <br />
+          <label
+            class="form-label"
+            *ngIf="reservation?.secondaryGuests?.length > 0"
+          >
+            Shared Guests :
+          </label>
+          <br />
+          <label
+            class="form-label"
+            *ngIf="reservation?.secondaryGuests?.length > 0"
+          >
+            <span
+              class="fw-semibold"
+              *ngFor="let s of reservation.secondaryGuests"
+            >
+              {{ s?.firstName }} {{ s?.lastName
+              }}<i
+                class="material-symbols-rounded ms-1"
+                style="vertical-align: middle; font-size: 20px"
+                (click)="
+                  openGuestForm(
+                    guestModal,
+                    reservation._id,
+                    true,
+                    s,
+                    s?.guestAddress
+                  )
+                "
+              >
+                edit</i
+              >
+              <br />
+            </span>
+          </label>
           <!-- <table class="table">
             <thead>
               <tr>
@@ -276,7 +314,12 @@
         </div>
         <div class="col-md-3 col-4 text-end">
           <div class="d-flex flex-column">
-            <label class="form-label fw-semibold"> Add Guest </label>
+            <label
+              class="form-label fw-semibold"
+              (click)="openGuestForm(guestModal, reservation._id, false)"
+            >
+              Add Guest
+            </label>
             <label
               class="form-label fw-semibold mt-2"
               (click)="readCancelCharge(reservation)"
@@ -915,7 +958,9 @@
 </ng-template>
 <ng-template #guestModal let-modal>
   <div class="modal-header">
-    <h4 class="modal-title">Guest Details</h4>
+    <h4 class="modal-title">
+      {{ guestForm.get("_id")?.value ? "Update" : "Add" }} Guest Details
+    </h4>
     <button
       type="button"
       class="btn-close"
@@ -1193,24 +1238,40 @@
         <div class="col mt-3">
           <div *ngFor="let s of guestForm.get('documents')?.value">
             <img [src]="s" alt="img" style="height: 100px; width: 100px" />
+
+            <i
+              class="material-symbols-rounded text-danger pt-2"
+              style="vertical-align: middle; cursor: pointer"
+              (click)="deletePhotos(s)"
+            >
+              delete
+            </i>
           </div>
         </div>
       </div>
     </form>
     <div class="d-flex justify-content-center">
       <button
-        class="btn btn-primary mt-4"
+        class="btn btn-primary mt-4 me-2"
         type="button"
         (click)="modal.close(true)"
       >
-        YES
+        {{ guestForm.get("_id")?.value ? "Update" : "Add" }}
       </button>
       <button
         class="btn btn-outline-primary mt-4"
         type="button"
         (click)="modal.close(false)"
       >
-        NO
+        Cancel
+      </button>
+      <button
+        class="btn btn-outline-danger mt-4 ms-2"
+        type="button"
+        *ngIf="guestForm.get('isCustomer')?.value"
+        (click)="modal.close('delete')"
+      >
+        Delete
       </button>
     </div>
   </div>

@@ -574,7 +574,13 @@ export class GuestFolioComponent implements OnInit {
         console.error(error);
       });
   }
-  openGuestForm(guest: any, address: any, content: any, reservationId?: any) {
+  openGuestForm(
+    content: any,
+    reservationId: any,
+    isDeleteAble = false,
+    guest?: any,
+    address?: any
+  ) {
     this.guestForm = this.fb.group({
       _id: [guest?._id || ''],
       firstName: [
@@ -593,7 +599,8 @@ export class GuestFolioComponent implements OnInit {
       city: [address?.city || ''],
       state: [address?.state || '', [Validators.pattern(/^[A-Za-z\s]+$/)]],
       zipCode: [address?.zipCode || ''],
-      documents: [guest?.documents],
+      documents: [guest?.documents || []],
+      isCustomer: [isDeleteAble],
     });
     this.modalService
       .open(content, {
@@ -603,9 +610,32 @@ export class GuestFolioComponent implements OnInit {
         keyboard: false,
       })
       .result.then((result) => {
-        if (result) {
+        if (result == 'delete') {
           this.crudService
-            .post(APIConstant.CANCEL_RESERVATION, {
+            .post(APIConstant.DELETE_SHARED_GUEST, {
+              reservationId: reservationId,
+              groupId: this.groupId,
+              userDetails: this.guestForm.value,
+              propertyUnitId: this.propertyUnitId,
+            })
+            .then((response) => {
+              console.log(response);
+              this.alertService.successAlert(response.message);
+              this.ngOnInit();
+            })
+            .catch((error) => {
+              this.alertService.errorAlert(
+                error?.error?.message ||
+                  'An error occurred while processing payment'
+              );
+              console.error(error);
+            });
+        } else if (result) {
+          const callUrl = this.guestForm.get('_id')?.value
+            ? APIConstant.UPDATE_GUEST_RESERVATION
+            : APIConstant.ADD_SHARED_GUEST_RESERVATION;
+          this.crudService
+            .post(callUrl, {
               reservationId: reservationId,
               groupId: this.groupId,
               userDetails: this.guestForm.value,
@@ -643,6 +673,8 @@ export class GuestFolioComponent implements OnInit {
 
           // After all files have been processed, send the request
           if (files.indexOf(droppedFile) === files.length - 1) {
+            formData.append('userId', guestForm.get('_id')?.value);
+
             this.uploadPhotos(formData, guestForm);
           }
         });
@@ -660,8 +692,36 @@ export class GuestFolioComponent implements OnInit {
       .then((response) => {
         console.log(response);
         if (response?.data?.images?.length) {
-          guestForm.patchValue({ documents: response?.data?.images });
+          guestForm.patchValue({
+            documents: [
+              ...guestForm.get('documents')?.value,
+              ...response?.data?.images,
+            ],
+          });
         }
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred'
+        );
+        console.error(error);
+      });
+  }
+  deletePhotos(imageUrl: any) {
+    this.crudService
+      .post(APIConstant.DELETE_RESERVATION_IMAGES, {
+        imageUrl,
+        userId: this.guestForm?.get('_id')?.value,
+      })
+      .then((response) => {
+        console.log(response);
+        let originalArray = this.guestForm?.get('documents')?.value;
+        const indexToRemove = originalArray.indexOf(imageUrl);
+
+        if (indexToRemove !== -1) {
+          originalArray.splice(indexToRemove, 1);
+        }
+        this.guestForm.patchValue({ documents: originalArray });
       })
       .catch((error) => {
         this.alertService.errorAlert(

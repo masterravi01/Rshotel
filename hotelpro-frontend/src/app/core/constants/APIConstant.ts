@@ -97,7 +97,7 @@ export const APIConstant = {
   READ_CANCEL_RESERVATION_CHARGE: 'reservation/read-cancel-reservation-charge',
   CANCEL_RESERVATION: 'reservation/cancel-reservation',
 
-  ADD_GUEST_RESERVATION: 'reservation/add-guest-reservation',
+  ADD_SHARED_GUEST_RESERVATION: 'reservation/add-shared-guest-reservation',
   UPDATE_GUEST_RESERVATION: 'reservation/update-guest-reservation',
   DELETE_SHARED_GUEST: 'reservation/delete-shared-guest',
 

@@ -99,15 +99,17 @@ const deleteReservationImages = asyncHandler(async (req, res) => {
   const { userId, imageUrl } = req.body;
 
   const isDelete = await deleteFromCloudinary(imageUrl);
+  if (userId) {
+    await User.updateOne(
+      {
+        _id: new ObjectId(userId),
+      },
+      {
+        $pull: { documents: imageUrl },
+      }
+    );
+  }
 
-  await User.updateOne(
-    {
-      _id: new ObjectId(userId),
-    },
-    {
-      $pull: { documents: imageUrl },
-    }
-  );
   if (!isDelete) {
     throw new ApiError(400, `Image Delete failed for !`);
   }
