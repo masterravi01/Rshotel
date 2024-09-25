@@ -52,8 +52,9 @@ import {
 const uploadReservationImages = asyncHandler(async (req, res) => {
   const { propertyUnitId } = req.params;
   const { userId } = req.body;
+
   // Check if files are provided
-  if (!req.files || req.files.length === 0) {
+  if (!Array.isArray(req.files) || req.files.length === 0) {
     throw new ApiError(400, "At least one image is required!");
   }
 
@@ -76,14 +77,19 @@ const uploadReservationImages = asyncHandler(async (req, res) => {
     // Push the uploaded image URL to the array
     uploadedImages.push(uploadedImage.url);
   }
+
   if (userId) {
+    // Validate userId
+    if (!ObjectId.isValid(userId)) {
+      throw new ApiError(400, "Invalid user ID provided!");
+    }
+
     await User.updateOne(
-      {
-        _id: new ObjectId(userId),
-      },
+      { _id: new ObjectId(userId) },
       { $push: { documents: { $each: uploadedImages } } }
     );
   }
+
   // Return the uploaded images URLs
   return res
     .status(200)
@@ -95,30 +101,38 @@ const uploadReservationImages = asyncHandler(async (req, res) => {
       )
     );
 });
+
 const deleteReservationImages = asyncHandler(async (req, res) => {
   const { userId, imageUrl } = req.body;
 
+  // Check if imageUrl is provided
+  if (!imageUrl) {
+    throw new ApiError(400, "Image URL is required!");
+  }
+
   const isDelete = await deleteFromCloudinary(imageUrl);
+  if (!isDelete) {
+    throw new ApiError(400, `Image delete failed for ${imageUrl}!`);
+  }
+
   if (userId) {
+    // Validate userId
+    if (!ObjectId.isValid(userId)) {
+      throw new ApiError(400, "Invalid user ID provided!");
+    }
+
     await User.updateOne(
-      {
-        _id: new ObjectId(userId),
-      },
-      {
-        $pull: { documents: imageUrl },
-      }
+      { _id: new ObjectId(userId) },
+      { $pull: { documents: imageUrl } }
     );
   }
 
-  if (!isDelete) {
-    throw new ApiError(400, `Image Delete failed for !`);
-  }
-
-  // Return the uploaded images URLs
+  // Return success response
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, "Images Deleted successfully!"));
+    .json(new ApiResponse(200, {}, "Image deleted successfully!"));
 });
+
 export default {
   uploadReservationImages,
   deleteReservationImages,

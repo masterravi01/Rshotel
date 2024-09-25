@@ -50,7 +50,7 @@ import {
 const addSharedGuestToReservation = asyncHandler(async (req, res) => {
   let data = {};
   let { reservationId, userDetails } = req.body;
-  delete userDetails._id;
+  delete userDetails._id; // Removing _id to avoid conflicts if it exists
   reservationId = new ObjectId(reservationId);
   let guestObj = new User({ ...userDetails, userType: UserTypesEnum.GUEST });
   let guestAddress = new Address(userDetails);
@@ -65,9 +65,12 @@ const addSharedGuestToReservation = asyncHandler(async (req, res) => {
       { $push: { secondaryUserIds: guestObj._id } }
     ),
   ]);
+
   return res
     .status(201)
-    .json(new ApiResponse(201, data, "Refund Payment  successfully!"));
+    .json(
+      new ApiResponse(201, data, "Guest added to reservation successfully!")
+    );
 });
 
 const updateGuestToReservation = asyncHandler(async (req, res) => {
@@ -75,37 +78,41 @@ const updateGuestToReservation = asyncHandler(async (req, res) => {
   let { userDetails } = req.body;
   let userId = new ObjectId(userDetails._id);
   delete userDetails._id;
-  let userData = await User.findById(userId);
+
+  const userData = await User.findById(userId);
+  if (!userData) {
+    throw new ApiError(404, "User not found.");
+  }
 
   await Promise.all([
-    User.updateOne(
-      { _id: userId },
-      {
-        $set: userDetails,
-      }
-    ),
-    Address.updateOne(
-      { _id: userData.addressId },
-      {
-        $set: userDetails,
-      }
-    ),
+    User.updateOne({ _id: userId }, { $set: userDetails }),
+    Address.updateOne({ _id: userData.addressId }, { $set: userDetails }),
   ]);
-  return res
 
-    .status(201)
-    .json(new ApiResponse(201, data, "Refund Payment  successfully!"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, data, "Guest updated successfully!"));
 });
 
 const deleteSharedGuest = asyncHandler(async (req, res) => {
   let data = {};
   let { reservationId, userDetails } = req.body;
   let userId = new ObjectId(userDetails._id);
-  let userData = await User.findById(userId);
-  for (let imageUrl of userDetails.documents) {
-    const isDelete = await deleteFromCloudinary(imageUrl);
-    if (!isDelete) {
-      throw new ApiError(400, `Image Delete failed for !`);
+  const userData = await User.findById(userId);
+
+  if (!userData) {
+    throw new ApiError(404, "User not found.");
+  }
+
+  if (
+    Array.isArray(userDetails.documents) &&
+    userDetails.documents.length > 0
+  ) {
+    for (let imageUrl of userDetails.documents) {
+      const isDelete = await deleteFromCloudinary(imageUrl);
+      if (!isDelete) {
+        throw new ApiError(400, `Image Delete failed for ${imageUrl}`);
+      }
     }
   }
 
@@ -113,17 +120,17 @@ const deleteSharedGuest = asyncHandler(async (req, res) => {
     User.deleteOne({ _id: userId }),
     Address.deleteOne({ _id: userData.addressId }),
   ]);
+
   if (reservationId) {
     await Reservation.updateOne(
-      {
-        _id: new ObjectId(reservationId),
-      },
+      { _id: new ObjectId(reservationId) },
       { $pull: { secondaryUserIds: userId } }
     );
   }
+
   return res
-    .status(201)
-    .json(new ApiResponse(201, data, "Refund Payment  successfully!"));
+    .status(204)
+    .json(new ApiResponse(204, data, "Guest deleted successfully!"));
 });
 
 export default {

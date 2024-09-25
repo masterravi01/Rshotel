@@ -1,32 +1,36 @@
 <div class="m-3 row g-0">
   <div class="container_form p-3 m-2 rounded">
     <div class="d-flex justify-content-between">
-      <div class="">
+      <div>
         <p class="form-label fs-5 fw-semibold">
           Reservation Folio (#{{ groupDetails?.groupNumber }})
           {{ groupDetails?.arrival | date : "MMM d, y" }}
           <i class="material-symbols-rounded" style="vertical-align: middle">
-            line_end_arrow_notch</i
-          >{{ groupDetails?.departure | date : "MMM d, y" }} Rooms:{{
-            groupDetails?.reservations?.length
-          }}
+            line_end_arrow_notch
+          </i>
+          {{ groupDetails?.departure | date : "MMM d, y" }} Rooms:
+          {{ groupDetails?.reservations?.length }}
         </p>
       </div>
-
-      <div class="">
-        <i class="material-symbols-rounded mt-2" style="vertical-align: middle">
-          print</i
+      <div>
+        <i
+          class="material-symbols-rounded mt-2"
+          style="vertical-align: middle"
+          aria-label="Print"
         >
+          print
+        </i>
       </div>
     </div>
   </div>
+
   <div class="col-md-9 col-12">
     <div class="container_form p-3 m-2 rounded">
       <div class="row">
         <div class="col-8">
           <div class="d-flex flex-column">
-            <label class="form-label fw-semibold mb-2"
-              >Customer Details:
+            <label class="form-label fw-semibold mb-2">
+              Customer Details:
               <i
                 class="material-symbols-rounded"
                 style="vertical-align: middle; font-size: 20px"
@@ -39,53 +43,41 @@
                     groupDetails?.customerDetails?.customerAddress
                   )
                 "
+                aria-label="Edit customer details"
               >
-                edit</i
-              >
-              <i
-                class="material-symbols-rounded"
-                style="vertical-align: middle; font-size: 20px"
-                (click)="
-                  openReservationDoc(
-                    docModal,
-                    groupDetails?.customerDetails?.documents
-                  )
-                "
-              >
-                file_present</i
-              ></label
-            >
-            <label class="form-label">
-              Name :
-              <span class="fw-semibold"
-                >{{ groupDetails?.customerDetails?.firstName }}
-                {{ groupDetails?.customerDetails?.lastName }}</span
-              >
+                edit
+              </i>
             </label>
             <label class="form-label">
-              Phone :
-              <span class="fw-semibold"
-                >{{ groupDetails?.customerDetails?.phone }}
-              </span></label
-            >
+              Name:
+              <span class="fw-semibold">
+                {{ groupDetails?.customerDetails?.firstName }}
+                {{ groupDetails?.customerDetails?.lastName }}
+              </span>
+            </label>
             <label class="form-label">
-              Email :
-              <span class="fw-semibold"
-                >{{ groupDetails?.customerDetails?.email }}
-              </span></label
-            >
+              Phone:
+              <span class="fw-semibold">
+                {{ groupDetails?.customerDetails?.phone }}
+              </span>
+            </label>
             <label class="form-label">
-              Address :
-              <span class="fw-semibold"
-                >{{
+              Email:
+              <span class="fw-semibold">
+                {{ groupDetails?.customerDetails?.email }}
+              </span>
+            </label>
+            <label class="form-label">
+              Address:
+              <span class="fw-semibold">
+                {{
                   groupDetails?.customerDetails?.customerAddress?.addressLine1
-                }},{{ groupDetails?.customerDetails?.customerAddress?.city }},{{
-                  groupDetails?.customerDetails?.customerAddress?.state
-                }},
+                }}, {{ groupDetails?.customerDetails?.customerAddress?.city }},
+                {{ groupDetails?.customerDetails?.customerAddress?.state }},
                 {{ groupDetails?.customerDetails?.customerAddress?.country }},
                 {{ groupDetails?.customerDetails?.customerAddress?.zipCode }}
-              </span></label
-            >
+              </span>
+            </label>
           </div>
         </div>
         <div class="col-4 text-end">
@@ -96,9 +88,9 @@
             >
               Make Payment
             </label>
-            <label class="form-label fw-semibold mt-2"> View Logs </label>
-            <label class="form-label fw-semibold mt-2">
-              Cancel Reservations</label
+            <label class="form-label fw-semibold mt-2">View Logs</label>
+            <label class="form-label fw-semibold mt-2"
+              >Cancel Reservations</label
             >
             <label
               class="form-label fw-semibold mt-2"
@@ -111,6 +103,7 @@
       </div>
     </div>
   </div>
+
   <div class="col-md-3 col-12">
     <div class="card container_form p-3 m-2 rounded">
       <label class="form-label fw-semibold">Reservation Summary</label>
@@ -118,30 +111,30 @@
         <label class="form-label">
           Adults/Children:
           <span class="fw-semibold"
-            >{{ groupDetails?.adults }} /{{ groupDetails?.childs }}</span
-          ></label
-        >
+            >{{ groupDetails?.adults }} / {{ groupDetails?.childs }}</span
+          >
+        </label>
         <br />
         <label class="form-label">
           Total Cost:
-          <span class="fw-semibold"
-            >{{ groupDetails?.totalCost | currency }}
-          </span></label
-        >
+          <span class="fw-semibold">{{
+            groupDetails?.totalCost | currency
+          }}</span>
+        </label>
         <br />
         <label class="form-label">
           Total Price:
-          <span class="fw-semibold"
-            >{{ groupDetails?.totalPrice | currency }}
-          </span></label
-        >
+          <span class="fw-semibold">{{
+            groupDetails?.totalPrice | currency
+          }}</span>
+        </label>
         <br />
         <label class="form-label">
           Total Tax:
-          <span class="fw-semibold"
-            >{{ groupDetails?.totalTax | currency }}
-          </span></label
-        >
+          <span class="fw-semibold">{{
+            groupDetails?.totalTax | currency
+          }}</span>
+        </label>
       </div>
     </div>
   </div>
@@ -151,37 +144,39 @@
   <div class="col-md-12">
     <div class="container_form p-3 m-2 rounded">
       <div class="d-flex justify-content-between">
-        <div class="">
+        <div>
           <p class="form-label fs-5 fw-semibold">
             #{{ reservation.confirmationNumber }} ({{
               reservation?.roomTypeDetails?.roomTypeName
             }}
-            -{{
+            -
+            {{
               reservation?.roomDetails?.roomName
                 ? reservation?.roomDetails?.roomName
                 : "unassign"
             }})
             {{ reservation?.arrival | date }}
             <i class="material-symbols-rounded" style="vertical-align: middle">
-              line_end_arrow_notch</i
-            >{{ reservation?.departure | date }}
+              line_end_arrow_notch
+            </i>
+            {{ reservation?.departure | date }}
           </p>
         </div>
-
-        <div class="">
+        <div>
           <i
             class="material-symbols-rounded mt-2"
             style="vertical-align: middle"
+            aria-label="Print"
           >
-            print</i
-          >
+            print
+          </i>
         </div>
       </div>
     </div>
   </div>
+
   <div class="col-md-9 col-12">
     <div class="container_form p-3 m-2 rounded">
-      <!-- <label class="form-label fw-semibold">Guest Details</label> -->
       <div class="row">
         <div class="col-md-4 col-12">
           <div style="height: 200px; text-align: center; margin: 0; padding: 0">
@@ -197,11 +192,11 @@
         </div>
         <div class="col-md-5 col-8">
           <label class="form-label">
-            Name :
-            <span class="fw-semibold"
-              >{{ reservation?.guestDetails?.firstName }}
-              {{ reservation?.guestDetails?.lastName }}</span
-            >
+            Name:
+            <span class="fw-semibold">
+              {{ reservation?.guestDetails?.firstName }}
+              {{ reservation?.guestDetails?.lastName }}
+            </span>
             <i
               class="material-symbols-rounded ms-1"
               style="vertical-align: middle; font-size: 20px"
@@ -214,59 +209,47 @@
                   reservation?.guestDetails?.guestAddress
                 )
               "
+              aria-label="Edit guest details"
             >
-              edit</i
-            >
-            <i
-              class="material-symbols-rounded"
-              style="vertical-align: middle; font-size: 20px"
-              (click)="
-                openReservationDoc(
-                  docModal,
-                  reservation?.guestDetails?.documents
-                )
-              "
-            >
-              file_present</i
-            >
+              edit
+            </i>
             <i
               class="material-symbols-rounded"
               style="vertical-align: middle; font-size: 20px"
             >
-              group</i
-            >
+              group
+            </i>
           </label>
           <br />
           <label class="form-label">
-            Phone :
-            <span class="fw-semibold"
-              >{{ reservation?.guestDetails?.phone }}
-            </span></label
-          >
+            Phone:
+            <span class="fw-semibold">{{
+              reservation?.guestDetails?.phone
+            }}</span>
+          </label>
           <br />
           <label class="form-label">
-            Email :
-            <span class="fw-semibold"
-              >{{ reservation?.guestDetails?.email }}
-            </span></label
-          >
+            Email:
+            <span class="fw-semibold">{{
+              reservation?.guestDetails?.email
+            }}</span>
+          </label>
           <label class="form-label">
-            Address :
-            <span class="fw-semibold"
-              >{{ reservation?.guestDetails?.guestAddress?.addressLine1 }},{{
-                reservation?.guestDetails?.guestAddress?.city
-              }},{{ reservation?.guestDetails?.guestAddress?.state }},
+            Address:
+            <span class="fw-semibold">
+              {{ reservation?.guestDetails?.guestAddress?.addressLine1 }},
+              {{ reservation?.guestDetails?.guestAddress?.city }},
+              {{ reservation?.guestDetails?.guestAddress?.state }},
               {{ reservation?.guestDetails?.guestAddress?.country }},
               {{ reservation?.guestDetails?.guestAddress?.zipCode }}
-            </span></label
-          >
+            </span>
+          </label>
           <br />
           <label
             class="form-label"
             *ngIf="reservation?.secondaryGuests?.length > 0"
+            >Shared Guests:</label
           >
-            Shared Guests :
-          </label>
           <br />
           <label
             class="form-label"
@@ -276,8 +259,8 @@
               class="fw-semibold"
               *ngFor="let s of reservation.secondaryGuests"
             >
-              {{ s?.firstName }} {{ s?.lastName
-              }}<i
+              {{ s?.firstName }} {{ s?.lastName }}
+              <i
                 class="material-symbols-rounded ms-1"
                 style="vertical-align: middle; font-size: 20px"
                 (click)="
@@ -289,28 +272,13 @@
                     s?.guestAddress
                   )
                 "
+                aria-label="Edit shared guest details"
               >
-                edit</i
-              >
+                edit
+              </i>
               <br />
             </span>
           </label>
-          <!-- <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">Balance</th>
-                <th scope="col">Date</th>
-                <th scope="col">Type</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let r of reservation?.roomBalances">
-                <td>{{ r.balance }}</td>
-                <td>{{ r.balanceDate | date }}</td>
-                <td>{{ r.balanceName }}</td>
-              </tr>
-            </tbody>
-          </table> -->
         </div>
         <div class="col-md-3 col-4 text-end">
           <div class="d-flex flex-column">
@@ -323,18 +291,27 @@
             <label
               class="form-label fw-semibold mt-2"
               (click)="readCancelCharge(reservation)"
+              *ngIf="reservation?.reservationStatus == 'reserved'"
             >
               Cancel Room
             </label>
             <label
               class="form-label fw-semibold mt-2"
               (click)="readNoshowCharge(reservation)"
+              *ngIf="
+                Today > reservation?.arrival &&
+                reservation?.reservationStatus == 'reserved'
+              "
             >
               No Show
             </label>
             <label
               class="form-label fw-semibold mt-2"
               (click)="openUpdateStayModal(reservation, stayUpdateModal)"
+              *ngIf="
+                reservation?.reservationStatus == 'reserved' ||
+                reservation?.reservationStatus == 'inhouse'
+              "
             >
               Update Stay
             </label>
@@ -342,7 +319,7 @@
               class="form-label fw-semibold mt-2"
               (click)="openChangeRoomModal(reservation, changeRoomModal)"
             >
-              Change Room
+              {{ reservation?.tantative ? "Assign Room" : "Change Room" }}
             </label>
             <label
               class="form-label fw-semibold mt-2"
@@ -356,7 +333,6 @@
             >
               Add Charges
             </label>
-            <label class="form-label fw-semibold mt-2">Make Payment </label>
           </div>
         </div>
         <div class="col-12" *ngIf="reservation.showCharges">
@@ -536,7 +512,10 @@
     ></button>
   </div>
   <div class="modal-body">
-    <div class="container-fluid text-center" *ngIf="roomsData.length > 0">
+    <div
+      class="container-fluid text-center"
+      *ngIf="roomsData.length > 0; else noRoomsTemplate"
+    >
       <table class="table">
         <thead>
           <tr>
@@ -567,11 +546,7 @@
                   currentRoomCount > 0
                 "
               >
-                <i
-                  class="material-symbols-rounded"
-                  style="vertical-align: middle"
-                  >add</i
-                >
+                <i class="material-symbols-rounded">add</i>
               </button>
               <span class="mx-1">{{
                 room?.dropdownSettings?.limitSelection
@@ -581,11 +556,7 @@
                 (click)="removeRoomCount(i)"
                 [disabled]="room?.dropdownSettings?.limitSelection === 0"
               >
-                <i
-                  class="material-symbols-rounded"
-                  style="vertical-align: middle"
-                  >remove</i
-                >
+                <i class="material-symbols-rounded">remove</i>
               </button>
             </td>
             <td>
@@ -605,13 +576,16 @@
                 [disabled]="room?.dropdownSettings?.limitSelection === 0"
                 (click)="modal.close(true)"
               >
-                Countinue
+                Continue
               </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
+    <ng-template #noRoomsTemplate>
+      <p>No rooms available. Please check back later.</p>
+    </ng-template>
   </div>
 </ng-template>
 
@@ -650,7 +624,7 @@
                   class="btn btn-outline-primary"
                   (click)="callChangeRoom(roomtype, room)"
                 >
-                  Countinue
+                  Continue
                 </button>
               </td>
             </tr>
@@ -658,48 +632,6 @@
         </tbody>
       </table>
     </div>
-  </div>
-</ng-template>
-<ng-template #docModal let-modal>
-  <div class="modal-header">
-    <h4 class="modal-title">View Documents</h4>
-    <button
-      type="button"
-      class="btn-close"
-      aria-label="Close"
-      (click)="modal.dismiss(false)"
-    ></button>
-  </div>
-  <div class="modal-body">
-    <div class="d-flex justify-content-center">
-      <div
-        style="
-          height: 200px;
-          width: 300px;
-          text-align: center;
-          margin: 0;
-          padding: 0;
-        "
-      >
-        <ng-image-slider
-          #nav
-          [images]="documentsImages"
-          [infinite]="false"
-          [autoSlide]="1"
-          [imageSize]="{ width: 300, height: 200 }"
-          slideImage="1"
-        ></ng-image-slider>
-      </div>
-    </div>
-  </div>
-  <div class="modal-footer">
-    <button
-      type="button"
-      class="btn btn-outline-secondary"
-      (click)="modal.close(true)"
-    >
-      Save
-    </button>
   </div>
 </ng-template>
 <ng-template #paymentModal let-modal>
@@ -715,18 +647,18 @@
   <div class="modal-body" [formGroup]="paymentForm">
     <div class="row">
       <div class="col-md-3 mt-3">
-        <label class="form-label">Payment Type </label>
+        <label class="form-label">Payment Type</label>
         <select
           class="form-control text-center select_reason"
           formControlName="paymentType"
         >
-          <option value="cash">cash</option>
-          <option value="card">card</option>
-          <option value="cheque">cheque</option>
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+          <option value="cheque">Cheque</option>
         </select>
       </div>
       <div class="col-md-2 mt-3">
-        <label class="form-label">Amount </label>
+        <label class="form-label">Amount</label>
         <input
           type="number"
           class="form-control"
@@ -746,13 +678,12 @@
             (paymentForm.get('amount')?.dirty ||
               paymentForm.get('amount')?.touched)
           "
+          >Amount is required</small
         >
-          amount is required
-        </small>
       </div>
       <div class="col-md-2 mt-3">
         <div class="mt-4">
-          <label class="form-label me-2">Deposit </label>
+          <label class="form-label me-2">Deposit</label>
           <input
             type="checkbox"
             class="form-check-input"
@@ -761,7 +692,7 @@
         </div>
       </div>
       <div class="col-md-3 mt-3">
-        <label class="form-label">Remark </label>
+        <label class="form-label">Remark</label>
         <input
           type="text"
           class="form-control"
@@ -781,9 +712,8 @@
             (paymentForm.get('remark')?.dirty ||
               paymentForm.get('remark')?.touched)
           "
+          >Remark is required</small
         >
-          remark is required
-        </small>
       </div>
       <div class="col-md-2 mt-3">
         <div class="d-flex justify-content-center">
@@ -800,6 +730,7 @@
     </div>
   </div>
 </ng-template>
+
 <ng-template #postChargeModal let-modal>
   <div class="modal-header">
     <h4 class="modal-title">Post Charge</h4>
@@ -813,7 +744,7 @@
   <div class="modal-body" [formGroup]="postChargeForm">
     <div class="row">
       <div class="col-md-3 mt-3">
-        <label class="form-label">Charge </label>
+        <label class="form-label">Charge</label>
         <input
           type="number"
           class="form-control"
@@ -833,11 +764,9 @@
             (postChargeForm.get('charge')?.dirty ||
               postChargeForm.get('charge')?.touched)
           "
+          >Charge is required</small
         >
-          charge is required
-        </small>
       </div>
-
       <div class="col-md-3 mt-3">
         <label class="form-label">reason </label>
         <select
@@ -859,7 +788,7 @@
             [disabled]="postChargeForm.invalid"
             (click)="modal.close(true)"
           >
-            Pay
+            Submit
           </button>
         </div>
       </div>
@@ -879,9 +808,9 @@
   </div>
   <div class="modal-body" *ngIf="noshowDetails">
     <p>
-      According To {{ noshowDetails.noShowPolicyName }} Policy ({{
+      According to {{ noshowDetails.noShowPolicyName }} Policy ({{
         noshowDetails.chargeValue
-      }}-{{ noshowDetails.chargeType }}) ,you charge for <br />
+      }}-{{ noshowDetails.chargeType }}), you charge for:
       <input
         type="number"
         class="form-control"
@@ -889,7 +818,7 @@
         placeholder="Enter charge"
       />
       <br />
-      press yes to Countinue
+      Press YES to continue.
     </p>
     <div class="d-flex justify-content-center">
       <button
@@ -909,6 +838,7 @@
     </div>
   </div>
 </ng-template>
+
 <ng-template #cancelReservationModal let-modal>
   <div class="modal-header">
     <h4 class="modal-title">Cancel Reservation</h4>
@@ -919,16 +849,14 @@
       (click)="modal.dismiss(false)"
     ></button>
   </div>
-
   <div class="modal-body" *ngIf="cancelDetails">
     <p>
-      According To {{ cancelDetails.cancelPolicyName }} Policy & window Range({{
-        cancelDetails.windowRange
-      }}) ({{
+      According to {{ cancelDetails.cancelPolicyName }} Policy & window Range
+      ({{ cancelDetails.windowRange }}) ({{
         cancelDetails.isInsideRange
           ? cancelDetails.insideWindowCharge
           : cancelDetails.outsideWindowCharge
-      }}-{{ cancelDetails.windowType }}) ,you charge for <br />
+      }}-{{ cancelDetails.windowType }}), you charge for:
       <input
         type="number"
         class="form-control"
@@ -936,7 +864,7 @@
         placeholder="Enter charge"
       />
       <br />
-      press yes to Countinue
+      Press YES to continue.
     </p>
     <div class="d-flex justify-content-center">
       <button
@@ -956,6 +884,7 @@
     </div>
   </div>
 </ng-template>
+
 <ng-template #guestModal let-modal>
   <div class="modal-header">
     <h4 class="modal-title">
