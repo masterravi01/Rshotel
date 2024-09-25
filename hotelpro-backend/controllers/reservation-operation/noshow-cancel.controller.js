@@ -267,10 +267,10 @@ const readCancelReservationCharge = asyncHandler(async (req, res) => {
   );
 });
 const cancelReservation = asyncHandler(async (req, res) => {
-  let { propertyUnitId, reservation } = req.body;
+  let { propertyUnitId, reservation, cancelDetails } = req.body;
   propertyUnitId = new ObjectId(propertyUnitId);
+  let groupId = new ObjectId(reservation.groupId);
   let reservationId = new ObjectId(reservation._id);
-
   if (reservation.roomId && reservation.roomLockId) {
     const DeallocatedRoomLock = await deallocateRoom(
       new ObjectId(reservation.roomLockId)
@@ -279,6 +279,49 @@ const cancelReservation = asyncHandler(async (req, res) => {
       throw prepareInternalError("error while deallocated room !");
     }
   }
+  // if (cancelDetails.penalty > 0) {
+  //   let roomBalance = new RoomBalance();
+  //   roomBalance.balance = -cancelDetails.penalty;
+  //   roomBalance.reason = "penalty";
+  //   roomBalance.balanceDate = Date.now();
+  //   roomBalance.balanceName = BalanceNameEnum.ROOMSERVICES;
+  //   await Promise.all([
+  //     GroupReservation.updateOne(
+  //       {
+  //         _id: groupId,
+  //       },
+  //       {
+  //         $inc: {
+  //           totalBalance: roomBalance.balance,
+  //           totalCost: cancelDetails.penalty,
+  //           totalPrice: cancelDetails.penalty,
+  //         },
+  //       }
+  //     ),
+  //     roomBalance.save(),
+  //     Reservation.updateOne(
+  //       {
+  //         _id: reservationId,
+  //       },
+  //       {
+  //         $set: {
+  //           reservationStatus: ReservationStatusEnum.CANCELLED,
+  //         },
+  //       }
+  //     ),
+  //     ReservationDetail.updateOne(
+  //       { reservationId: reservationId },
+  //       {
+  //         $set: {
+  //           cancellationDate: Date.now(),
+  //         },
+  //         $inc: {
+  //           roomCost: cancelDetails.penalty,
+  //         },
+  //       }
+  //     ),
+  //   ]);
+  // } else {
   await Promise.all([
     Reservation.updateOne(
       {
@@ -299,6 +342,7 @@ const cancelReservation = asyncHandler(async (req, res) => {
       }
     ),
   ]);
+  // }
 
   return res
     .status(200)

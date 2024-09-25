@@ -1676,46 +1676,6 @@ const readRateFunc = async (
   }
 };
 
-const uploadReservationImages = asyncHandler(async (req, res) => {
-  const { propertyUnitId } = req.params;
-
-  // Check if files are provided
-  if (!req.files || req.files.length === 0) {
-    throw new ApiError(400, "At least one image is required!");
-  }
-
-  // Array to hold the uploaded image URLs
-  const uploadedImages = [];
-
-  // Upload each file to Cloudinary
-  for (const file of req.files) {
-    const localFilePath = file.path;
-
-    const uploadedImage = await uploadOnCloudinary(
-      localFilePath,
-      CLOUD_USER_DOC_FOLDER_NAME
-    );
-
-    if (!uploadedImage) {
-      throw new ApiError(400, `Image upload failed for ${file.originalname}!`);
-    }
-
-    // Push the uploaded image URL to the array
-    uploadedImages.push(uploadedImage.url);
-  }
-
-  // Return the uploaded images URLs
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { images: uploadedImages },
-        "Images uploaded successfully!"
-      )
-    );
-});
-
 const guestFolio = asyncHandler(async (req, res) => {
   const { propertyUnitId } = req.params;
   const { groupId } = req.body;
@@ -2618,70 +2578,6 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
   }
 });
 
-const postReservationPayment = asyncHandler(async (req, res) => {
-  let data = {};
-  let transactionCode;
-  let guestTransaction;
-  let { propertyUnitId, groupId, userId, payment } = req.body;
-  groupId = new ObjectId(groupId);
-  userId = new ObjectId(userId);
-  propertyUnitId = new ObjectId(propertyUnitId);
-
-  let [billing_account, userDetails] = await Promise.all([
-    BillingAccount.findOne({
-      groupId,
-    }),
-    User.findById(userId),
-  ]);
-  if (!billing_account) {
-    billing_account = new BillingAccount({
-      billingAccountName: `${userDetails.firstName} ${userDetails.lastName}`,
-      propertyUnitId,
-      userId: userId,
-      groupId: groupId,
-    });
-    await billing_account.save();
-  }
-  if (payment.paymentType === "cash") {
-    transactionCode = new TransactionCode({
-      transactionCode: String(new ObjectId()),
-      transactionType: "Reservation",
-      transactionRate: payment.amount,
-      transactionDetail: payment.remark,
-      receipt: Math.floor(100000 + Math.random() * 900000),
-      date: Date.now(),
-    });
-
-    guestTransaction = new GuestTransaction({
-      transactionCodeId: transactionCode._id,
-      isDeposit: payment.deposit,
-      transactionDate: Date.now(),
-      userId: userId,
-      groupId: groupId,
-      billingAccountId: billing_account._id,
-    });
-  }
-  await Promise.all([
-    GroupReservation.updateOne(
-      {
-        _id: groupId,
-      },
-      {
-        $inc: {
-          totalBalance: payment.deposit ? 0 : payment.amount,
-          totalPayment: payment.deposit ? 0 : payment.amount,
-          totalDeposit: payment.deposit ? payment.amount : 0,
-        },
-      }
-    ),
-    transactionCode.save(),
-    guestTransaction.save(),
-  ]);
-  return res
-    .status(201)
-    .json(new ApiResponse(201, data, "Payment made successfully!"));
-});
-
 const addReservationCharge = asyncHandler(async (req, res) => {
   let data = {};
   let { propertyUnitId, groupId, charges } = req.body;
@@ -2731,11 +2627,9 @@ export default {
   updateReservationById,
   deleteReservationById,
   readReservationRate,
-  uploadReservationImages,
   guestFolio,
   stayUpdate,
   addRoomReservation,
   changeRoomReservation,
-  postReservationPayment,
   addReservationCharge,
 };

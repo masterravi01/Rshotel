@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import {
+  AbstractControl,
   FormBuilder,
   FormGroup,
   FormsModule,
@@ -20,6 +21,12 @@ import { NgImageSliderModule } from 'ng-image-slider-v17';
 import { AuthService } from '../../../core/services/auth.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
+import { NgxFileDropModule } from 'ngx-file-drop';
+import {
+  NgxFileDropEntry,
+  FileSystemFileEntry,
+  FileSystemDirectoryEntry,
+} from 'ngx-file-drop';
 
 @Component({
   selector: 'app-guest-folio',
@@ -33,6 +40,7 @@ import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
     FormsModule,
     NgMultiSelectDropDownModule,
     ReactiveFormsModule,
+    NgxFileDropModule,
   ],
   templateUrl: './guest-folio.component.html',
   styleUrl: './guest-folio.component.css',
@@ -51,8 +59,10 @@ export class GuestFolioComponent implements OnInit {
   documentsImages: any[] = [];
   paymentForm!: FormGroup;
   postChargeForm!: FormGroup;
+  guestForm!: FormGroup;
   noshowDetails: any = {};
   cancelDetails: any = {};
+  public files: NgxFileDropEntry[] = [];
   imageObject = [
     {
       image:
@@ -564,5 +574,100 @@ export class GuestFolioComponent implements OnInit {
         console.error(error);
       });
   }
-  makePayment() {}
+  openGuestForm(guest: any, address: any, content: any, reservationId?: any) {
+    this.guestForm = this.fb.group({
+      _id: [guest?._id || ''],
+      firstName: [
+        guest?.firstName || '',
+        [Validators.required, Validators.minLength(2)],
+      ],
+      lastName: [
+        guest?.lastName || '',
+        [Validators.required, Validators.minLength(2)],
+      ],
+      email: [guest?.email || '', [Validators.required, Validators.email]],
+      phone: [guest?.phone || ''],
+      addressLine1: [address?.addressLine1 || ''],
+      addressLine2: [address?.addressLine2 || ''],
+      country: [address?.country || ''],
+      city: [address?.city || ''],
+      state: [address?.state || '', [Validators.pattern(/^[A-Za-z\s]+$/)]],
+      zipCode: [address?.zipCode || ''],
+      documents: [guest?.documents],
+    });
+    this.modalService
+      .open(content, {
+        size: 'lg',
+        centered: true,
+        backdrop: 'static',
+        keyboard: false,
+      })
+      .result.then((result) => {
+        if (result) {
+          this.crudService
+            .post(APIConstant.CANCEL_RESERVATION, {
+              reservationId: reservationId,
+              groupId: this.groupId,
+              userDetails: this.guestForm.value,
+              propertyUnitId: this.propertyUnitId,
+            })
+            .then((response) => {
+              console.log(response);
+              this.alertService.successAlert(response.message);
+              this.ngOnInit();
+            })
+            .catch((error) => {
+              this.alertService.errorAlert(
+                error?.error?.message ||
+                  'An error occurred while processing payment'
+              );
+              console.error(error);
+            });
+        }
+      });
+  }
+  dropped(files: NgxFileDropEntry[], guestForm: AbstractControl) {
+    this.files = files;
+
+    // Create a single FormData object for all files
+    const formData = new FormData();
+
+    for (const droppedFile of files) {
+      // Is it a file?
+      if (droppedFile.fileEntry.isFile) {
+        const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
+
+        fileEntry.file((file: File) => {
+          // Append each file to the FormData
+          formData.append('uploadedImages', file, droppedFile.relativePath);
+
+          // After all files have been processed, send the request
+          if (files.indexOf(droppedFile) === files.length - 1) {
+            this.uploadPhotos(formData, guestForm);
+          }
+        });
+      } else {
+        // It was a directory (handle directories if necessary)
+        const fileEntry = droppedFile.fileEntry as FileSystemDirectoryEntry;
+        console.log(droppedFile.relativePath, fileEntry);
+      }
+    }
+  }
+
+  uploadPhotos(formData: FormData, guestForm: AbstractControl) {
+    this.crudService
+      .post(APIConstant.UPLOAD_RESERVATION_IMAGES, formData)
+      .then((response) => {
+        console.log(response);
+        if (response?.data?.images?.length) {
+          guestForm.patchValue({ documents: response?.data?.images });
+        }
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred'
+        );
+        console.error(error);
+      });
+  }
 }

@@ -75,21 +75,31 @@ export const APIConstant = {
 
   READ_RESERVATION_RATE: 'reservation/read-reservation-rate/',
   CREATE_RESERVATION: 'reservation/create-reservation',
-  UPLOAD_RESERVATION_IMAGES: 'reservation/upload-reservation-images',
   GUEST_FOLIO: 'reservation/guest-folio',
   STAY_UPDATE: 'reservation/stay-update',
   ADD_ROOM: 'reservation/add-room',
   CHANGE_ROOM: 'reservation/change-room',
   GET_ALL_RESERVATION: 'reservation/get-all-reservation',
-  POST_RESERVATION_PAYMENT: 'reservation/post-reservation-payment',
   ADD_RESERVATION_CHARGE: 'reservation/add-reservation-charge',
 
+  UPLOAD_RESERVATION_IMAGES: 'reservation/upload-reservation-images',
+  DELETE_RESERVATION_IMAGES: 'reservation/delete-reservation-images',
+
   CHECKIN_RESERVATION: 'reservation/checkin-reservation',
+
+  POST_RESERVATION_PAYMENT: 'reservation/post-reservation-payment',
+  REFUND_PAYMENT: 'reservation/refund-payment',
+
+  CHECKOUT_RESERVATION: 'reservation/checkout-reservation',
 
   READ_NOSHOW_CHARGE: 'reservation/read-noshow-charge',
   NOSHOW_RESERVATION: 'reservation/noshow-reservation',
   READ_CANCEL_RESERVATION_CHARGE: 'reservation/read-cancel-reservation-charge',
   CANCEL_RESERVATION: 'reservation/cancel-reservation',
+
+  ADD_GUEST_RESERVATION: 'reservation/add-guest-reservation',
+  UPDATE_GUEST_RESERVATION: 'reservation/update-guest-reservation',
+  DELETE_SHARED_GUEST: 'reservation/delete-shared-guest',
 
   CREATE_PAYMENT_ORDER: 'razor/create-payment-order',
   VALIDATE_PAYMENT: 'razor/validate-payment',
