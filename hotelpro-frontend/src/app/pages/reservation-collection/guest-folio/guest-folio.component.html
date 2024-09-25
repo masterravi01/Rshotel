@@ -290,6 +290,23 @@
             </label>
             <label
               class="form-label fw-semibold mt-2"
+              (click)="openCheckInModal(confirmModal, reservation)"
+              *ngIf="
+                Today === reservation?.arrival &&
+                reservation?.reservationStatus == 'reserved'
+              "
+            >
+              Check In
+            </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="openCheckOutModal(confirmModal, reservation)"
+              *ngIf="reservation?.reservationStatus == 'inhouse'"
+            >
+              Check Out
+            </label>
+            <label
+              class="form-label fw-semibold mt-2"
               (click)="readCancelCharge(reservation)"
               *ngIf="reservation?.reservationStatus == 'reserved'"
             >
@@ -631,6 +648,22 @@
           </ng-container>
         </tbody>
       </table>
+    </div>
+    <div
+      class="justify-content-center"
+      *ngIf="
+        currentReservation?.reservationStatus == 'reserved' &&
+        currentReservation?.roomId &&
+        !currentReservation?.tantative
+      "
+    >
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="unassignRoom()"
+      >
+        Unassign
+      </button>
     </div>
   </div>
 </ng-template>
@@ -1203,5 +1236,22 @@
         Delete
       </button>
     </div>
+  </div>
+</ng-template>
+<ng-template #confirmModal let-modal>
+  <div class="modal-body">
+    <h6 class="modal-title">{{ confirmMsg }}</h6>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="modal.close(true)">
+      Yes
+    </button>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="modal.close(false)"
+    >
+      No
+    </button>
   </div>
 </ng-template>

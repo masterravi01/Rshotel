@@ -50,43 +50,44 @@ import {
 } from "./room-reservation-concurrency.js";
 
 const checkoutReservation = asyncHandler(async (req, res) => {
-  const { propertyUnitId } = req.params;
-
-  // Check if files are provided
-  if (!req.files || req.files.length === 0) {
-    throw new ApiError(400, "At least one image is required!");
-  }
-
-  // Array to hold the uploaded image URLs
-  const uploadedImages = [];
-
-  // Upload each file to Cloudinary
-  for (const file of req.files) {
-    const localFilePath = file.path;
-
-    const uploadedImage = await uploadOnCloudinary(
-      localFilePath,
-      CLOUD_USER_DOC_FOLDER_NAME
+  let { propertyUnitId, reservation } = req.body;
+  propertyUnitId = new ObjectId(propertyUnitId);
+  let reservationId = new ObjectId(reservation._id);
+  if (reservation.roomLockId) {
+    const DeallocatedRoomLock = await deallocateRoom(
+      new ObjectId(reservation.roomLockId)
     );
-
-    if (!uploadedImage) {
-      throw new ApiError(400, `Image upload failed for ${file.originalname}!`);
+    if (!DeallocatedRoomLock) {
+      throw prepareInternalError("error while deallocated room !");
     }
-
-    // Push the uploaded image URL to the array
-    uploadedImages.push(uploadedImage.url);
   }
-
+  await Promise.all([
+    Reservation.updateOne(
+      {
+        _id: reservationId,
+      },
+      {
+        $set: {
+          reservationStatus: ReservationStatusEnum.CHECKEDOUT,
+        },
+      }
+    ),
+    ReservationDetail.updateOne(
+      {
+        reservationId: reservationId,
+      },
+      {
+        $set: {
+          checkOutDate: new Date(),
+          checkOutTime: new Date(),
+        },
+      }
+    ),
+  ]);
   // Return the uploaded images URLs
   return res
     .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { images: uploadedImages },
-        "Images uploaded successfully!"
-      )
-    );
+    .json(new ApiResponse(200, {}, "checked out successfully!"));
 });
 export default {
   checkoutReservation,

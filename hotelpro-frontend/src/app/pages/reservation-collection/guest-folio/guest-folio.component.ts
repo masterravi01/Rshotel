@@ -64,6 +64,7 @@ export class GuestFolioComponent implements OnInit {
   cancelDetails: any = {};
   public files: NgxFileDropEntry[] = [];
   Today: string = '';
+  confirmMsg: string = '';
   imageObject = [
     {
       image:
@@ -742,6 +743,79 @@ export class GuestFolioComponent implements OnInit {
           originalArray.splice(indexToRemove, 1);
         }
         this.guestForm.patchValue({ documents: originalArray });
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred '
+        );
+        console.error(error);
+      });
+  }
+
+  openCheckInModal(content: any, reservation: any): void {
+    if (reservation.tantative) {
+      this.alertService.errorAlert('Please Assign Room');
+    } else {
+      this.confirmMsg = 'Are you sure want to check in ?';
+      this.modalService.open(content).result.then((result) => {
+        if (result) {
+          this.crudService
+            .post(APIConstant.CHECKIN_RESERVATION, {
+              propertyUnitId: this.propertyUnitId,
+              groupId: this.groupId,
+              reservationId: reservation._id,
+            })
+            .then((response) => {
+              console.log(response);
+              this.alertService.successAlert(response.message);
+              this.ngOnInit();
+            })
+            .catch((error) => {
+              this.alertService.errorAlert(
+                error?.error?.message ||
+                  'An error occurred while adding charges'
+              );
+              console.error(error);
+            });
+        }
+      });
+    }
+  }
+  openCheckOutModal(content: any, reservation: any): void {
+    this.confirmMsg = 'Are you sure want to check out ?';
+    this.modalService.open(content).result.then((result) => {
+      if (result) {
+        this.crudService
+          .post(APIConstant.CHECKOUT_RESERVATION, {
+            propertyUnitId: this.propertyUnitId,
+            groupId: this.groupId,
+            reservation: reservation,
+          })
+          .then((response) => {
+            console.log(response);
+            this.alertService.successAlert(response.message);
+            this.ngOnInit();
+          })
+          .catch((error) => {
+            this.alertService.errorAlert(
+              error?.error?.message || 'An error occurred while adding charges'
+            );
+            console.error(error);
+          });
+      }
+    });
+  }
+  unassignRoom() {
+    this.crudService
+      .post(APIConstant.UNASSIGN_ROOM, {
+        propertyUnitId: this.propertyUnitId,
+        groupId: this.groupId,
+        reservation: this.currentReservation,
+      })
+      .then((response) => {
+        console.log(response);
+        this.alertService.successAlert(response.message);
+        this.ngOnInit();
       })
       .catch((error) => {
         this.alertService.errorAlert(

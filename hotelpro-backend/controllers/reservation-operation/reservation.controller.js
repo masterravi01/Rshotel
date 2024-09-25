@@ -2390,7 +2390,7 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
       // Handle room reservations and locks
 
       for (let r of TotalRooms) {
-        if (String(r._id) === reservation.roomTypeId) {
+        if (String(r._id) === String(reservation.roomTypeId)) {
           if (r.TotalRoom <= 0)
             throw prepareInternalError("Rooms not available");
           if (reservation.roomId == "assign") {
@@ -2403,6 +2403,7 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
             throw prepareInternalError("Selected room is not available");
           }
           if (reservation.roomId && r.roomId.includes(reservation.roomId)) {
+            reservation.tantative = false;
             const AllocatedRoomLockResponse = await checkAndAllocateRoom(
               propertyUnitId,
               reservation.roomId,
@@ -2620,6 +2621,39 @@ const addReservationCharge = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, data, "Payment made successfully!"));
 });
 
+const unassignRoom = asyncHandler(async (req, res) => {
+  let data = {};
+  let { propertyUnitId, reservation } = req.body;
+  propertyUnitId = new ObjectId(propertyUnitId);
+  let reservationId = new ObjectId(reservation._id);
+  if (reservation.roomLockId) {
+    const DeallocatedRoomLock = await deallocateRoom(
+      new ObjectId(reservation.roomLockId)
+    );
+    if (!DeallocatedRoomLock) {
+      throw prepareInternalError("error while deallocated room !");
+    }
+  }
+  await Reservation.updateOne(
+    {
+      _id: reservationId,
+    },
+    {
+      $unset: {
+        roomLockId: "",
+        roomId: "",
+      },
+      $set: {
+        tantative: true,
+      },
+    }
+  );
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, data, "unassign room successfully!"));
+});
+
 export default {
   getAllReservations,
   getReservationById,
@@ -2632,4 +2666,5 @@ export default {
   addRoomReservation,
   changeRoomReservation,
   addReservationCharge,
+  unassignRoom,
 };

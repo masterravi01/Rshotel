@@ -69,5 +69,6 @@ router.post(
   "/checkout-reservation",
   reservationOperationIndex.checkoutReservation
 );
+router.post("/unassign-room", reservationOperationIndex.unassignRoom);
 
 export default router;
