@@ -106,7 +106,7 @@ const getRoomMaintenance = asyncHandler(async (req, res) => {
           arrival: 1,
           departure: 1,
           roomId: 1,
-          tantative: 1,
+          tentative: 1,
           reservationStatus: 1,
           guestName: {
             $concat: ["$user.firstName", " ", "$user.lastName"],
@@ -378,7 +378,7 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
         {
           $project: {
             roomId: 1,
-            tantative: 1,
+            tentative: 1,
             roomType: 1,
             Arrival: 1,
             Departure: 1,
@@ -495,15 +495,15 @@ const getAvailableRoomForDateRange = asyncHandler(async (req, res) => {
         let index = TotalRooms[i].roomId.indexOf(r.roomId.toString());
         if (
           index > -1 &&
-          (r.tantative == false ||
-            r.tantative == undefined ||
-            r.tantative == null)
+          (r.tentative == false ||
+            r.tentative == undefined ||
+            r.tentative == null)
         ) {
           TotalRooms[i].rooms.splice(index, 1);
           TotalRooms[i].roomId.splice(index, 1);
         }
-        if (index > -1 && r.tantative == true) {
-          TotalRooms[i].rooms[index].tantative = r.tantative;
+        if (index > -1 && r.tentative == true) {
+          TotalRooms[i].rooms[index].tentative = r.tentative;
         }
       });
     }

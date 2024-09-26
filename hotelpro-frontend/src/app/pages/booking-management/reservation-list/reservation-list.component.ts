@@ -14,14 +14,20 @@ import { APIConstant } from '../../../core/constants/APIConstant';
 import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { CustomValidators } from '../../../core/shared/validators/custom-validators';
-
+import { StatusPipe } from '../../../core/shared/pipes/status.pipe';
 
 @Component({
   selector: 'app-reservation-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule,
+    StatusPipe,
+  ],
   templateUrl: './reservation-list.component.html',
-  styleUrl: './reservation-list.component.css'
+  styleUrl: './reservation-list.component.css',
 })
 export class ReservationListComponent implements OnInit {
   propertyUnitId: string | null = '';
@@ -33,8 +39,8 @@ export class ReservationListComponent implements OnInit {
     private alertService: AlertService,
     private activeRoute: ActivatedRoute,
     private router: Router,
-    private authService: AuthService,
-  ) { }
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
@@ -43,14 +49,15 @@ export class ReservationListComponent implements OnInit {
 
   fetchData() {
     this.crudService
-      .post(APIConstant.GET_ALL_RESERVATION, { propertyUnitId: this.propertyUnitId })
+      .post(APIConstant.GET_ALL_RESERVATION, {
+        propertyUnitId: this.propertyUnitId,
+      })
       .then((response) => {
         this.reservationData = response.data;
       })
       .catch((error) => {
         this.alertService.errorAlert(
-          error?.error?.message ||
-          'An error occurred while fetching users'
+          error?.error?.message || 'An error occurred while fetching users'
         );
         console.error(error);
       });
@@ -59,7 +66,9 @@ export class ReservationListComponent implements OnInit {
   search(event: any) {
     this.reservationData.forEach((element: any) => {
       if (
-        JSON.stringify(element)?.toLowerCase()?.includes(event.target.value.toLowerCase())
+        JSON.stringify(element)
+          ?.toLowerCase()
+          ?.includes(event.target.value.toLowerCase())
       ) {
         element.Show = true;
       } else {
@@ -67,6 +76,4 @@ export class ReservationListComponent implements OnInit {
       }
     });
   }
-
 }
-

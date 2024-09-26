@@ -209,7 +209,7 @@ const createReservation = asyncHandler(async (req, res) => {
               ],
             },
           },
-          { $project: { roomId: 1, tantative: 1, roomTypeId: 1 } },
+          { $project: { roomId: 1, tentative: 1, roomTypeId: 1 } },
         ]),
         RoomType.aggregate([
           {
@@ -288,11 +288,11 @@ const createReservation = asyncHandler(async (req, res) => {
       // Adjust availability based on old reservations and maintenance
       for (let i = 0; i < TotalRooms.length; i++) {
         OldReservations.forEach((r) => {
-          if (r.tantative && r.roomTypeId.equals(TotalRooms[i]._id)) {
+          if (r.tentative && r.roomTypeId.equals(TotalRooms[i]._id)) {
             TotalRooms[i].TotalRoom -= 1;
           } else {
             const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
-            if (index > -1 && !r.tantative) {
+            if (index > -1 && !r.tentative) {
               TotalRooms[i].rooms.splice(index, 1);
               TotalRooms[i].roomId.splice(index, 1);
               TotalRooms[i].TotalRoom -= 1;
@@ -320,7 +320,7 @@ const createReservation = asyncHandler(async (req, res) => {
               throw prepareInternalError("Rooms not available");
             if (reservation.roomId == "assign") {
               delete reservation.roomId;
-              reservation.tantative = true;
+              reservation.tentative = true;
               r.TotalRoom -= 1;
               continue;
             }
@@ -457,37 +457,39 @@ const createReservation = asyncHandler(async (req, res) => {
         userId: customerDetails._id,
         groupId: groupData._id,
       });
+      if (paymentEntries) {
+        paymentEntries.forEach((payment) => {
+          if (payment.paymentType === "cash") {
+            let transactionCode = new TransactionCode({
+              transactionCode: String(new ObjectId()),
+              transactionType: "Reservation",
+              transactionRate: payment.amount,
+              transactionDetail: payment.remark,
+              receipt: Math.floor(100000 + Math.random() * 900000),
+              date: Date.now(),
+            });
 
-      paymentEntries.forEach((payment) => {
-        if (payment.paymentType === "cash") {
-          let transactionCode = new TransactionCode({
-            transactionCode: String(new ObjectId()),
-            transactionType: "Reservation",
-            transactionRate: payment.amount,
-            transactionDetail: payment.remark,
-            receipt: Math.floor(100000 + Math.random() * 900000),
-            date: Date.now(),
-          });
+            let guestTransaction = new GuestTransaction({
+              transactionCodeId: transactionCode._id,
+              isDeposit: payment.deposit,
+              transactionDate: Date.now(),
+              userId: customerDetails._id,
+              groupId: groupData._id,
+              billingAccountId: billing_account._id,
+            });
 
-          let guestTransaction = new GuestTransaction({
-            transactionCodeId: transactionCode._id,
-            isDeposit: payment.deposit,
-            transactionDate: Date.now(),
-            userId: customerDetails._id,
-            groupId: groupData._id,
-            billingAccountId: billing_account._id,
-          });
-
-          TransactionCodeEntries.push(transactionCode);
-          GuestTransactionEntries.push(guestTransaction);
-          if (payment.deposit) {
-            groupData.totalDeposit += payment.amount;
-          } else {
-            groupData.totalBalance += payment.amount;
-            groupData.totalPayment += payment.amount;
+            TransactionCodeEntries.push(transactionCode);
+            GuestTransactionEntries.push(guestTransaction);
+            if (payment.deposit) {
+              groupData.totalDeposit += payment.amount;
+            } else {
+              groupData.totalBalance += payment.amount;
+              groupData.totalPayment += payment.amount;
+            }
           }
-        }
-      });
+        });
+      }
+
       groupData.groupNumber = await generateGroupNumber(propertyUnitId);
 
       // // for live
@@ -718,7 +720,7 @@ const stayUpdate = asyncHandler(async (req, res) => {
                 ],
               },
             },
-            { $project: { roomId: 1, tantative: 1, roomTypeId: 1 } },
+            { $project: { roomId: 1, tentative: 1, roomTypeId: 1 } },
           ]),
           RoomType.aggregate([
             {
@@ -795,18 +797,18 @@ const stayUpdate = asyncHandler(async (req, res) => {
         for (let i = 0; i < TotalRooms.length; i++) {
           if (OldReservations.length > 0) {
             OldReservations.forEach((r) => {
-              if (!r.tantative && r.roomId == OldReservationDetails.roomId) {
+              if (!r.tentative && r.roomId == OldReservationDetails.roomId) {
                 throw prepareInternalError(
                   "Room is Overlap with another reservation !"
                 );
               } else if (
-                r.tantative &&
+                r.tentative &&
                 r.roomTypeId.equals(TotalRooms[i]._id)
               ) {
                 TotalRooms[i].TotalRoom -= 1;
               } else {
                 const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
-                if (index > -1 && !r.tantative) {
+                if (index > -1 && !r.tentative) {
                   TotalRooms[i].rooms.splice(index, 1);
                   TotalRooms[i].roomId.splice(index, 1);
                   TotalRooms[i].TotalRoom -= 1;
@@ -959,7 +961,7 @@ const stayUpdate = asyncHandler(async (req, res) => {
           console.error("Error saving entries:", error);
           throw error;
         }
-      } else if (OldReservationDetails.tantative) {
+      } else if (OldReservationDetails.tentative) {
         console.log("for not assign room !");
         let [
           OldReservations,
@@ -985,7 +987,7 @@ const stayUpdate = asyncHandler(async (req, res) => {
                 ],
               },
             },
-            { $project: { roomId: 1, tantative: 1, roomTypeId: 1 } },
+            { $project: { roomId: 1, tentative: 1, roomTypeId: 1 } },
           ]),
           RoomType.aggregate([
             {
@@ -1069,11 +1071,11 @@ const stayUpdate = asyncHandler(async (req, res) => {
         for (let i = 0; i < TotalRooms.length; i++) {
           if (OldReservations.length > 0) {
             OldReservations.forEach((r) => {
-              if (r.tantative && r.roomTypeId.equals(TotalRooms[i]._id)) {
+              if (r.tentative && r.roomTypeId.equals(TotalRooms[i]._id)) {
                 TotalRooms[i].TotalRoom -= 1;
               } else {
                 const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
-                if (index > -1 && !r.tantative) {
+                if (index > -1 && !r.tentative) {
                   TotalRooms[i].rooms.splice(index, 1);
                   TotalRooms[i].roomId.splice(index, 1);
                   TotalRooms[i].TotalRoom -= 1;
@@ -1432,7 +1434,7 @@ const readReservationRate = asyncHandler(async (req, res) => {
           ],
         },
       },
-      { $project: { roomId: 1, tantative: 1, roomTypeId: 1 } },
+      { $project: { roomId: 1, tentative: 1, roomTypeId: 1 } },
     ]),
     RoomMaintenance.aggregate([
       {
@@ -1486,11 +1488,11 @@ const readReservationRate = asyncHandler(async (req, res) => {
   for (let i = 0; i < ratesData.length; i++) {
     if (OldReservations.length > 0) {
       OldReservations.forEach((r) => {
-        if (r.tantative && r.roomTypeId.equals(ratesData[i].roomTypeId)) {
+        if (r.tentative && r.roomTypeId.equals(ratesData[i].roomTypeId)) {
           ratesData[i].totalRoom -= 1;
         } else {
           const index = ratesData[i].roomId.indexOf(String(r.roomId));
-          if (index > -1 && !r.tantative) {
+          if (index > -1 && !r.tentative) {
             ratesData[i].rooms.splice(index, 1);
             ratesData[i].roomId.splice(index, 1);
             ratesData[i].totalRoom -= 1;
@@ -1932,7 +1934,7 @@ const addRoomReservation = asyncHandler(async (req, res) => {
               ],
             },
           },
-          { $project: { roomId: 1, tantative: 1, roomTypeId: 1 } },
+          { $project: { roomId: 1, tentative: 1, roomTypeId: 1 } },
         ]),
         RoomType.aggregate([
           {
@@ -2019,11 +2021,11 @@ const addRoomReservation = asyncHandler(async (req, res) => {
       for (let i = 0; i < TotalRooms.length; i++) {
         if (OldReservations.length > 0) {
           OldReservations.forEach((r) => {
-            if (r.tantative && r.roomTypeId.equals(TotalRooms[i]._id)) {
+            if (r.tentative && r.roomTypeId.equals(TotalRooms[i]._id)) {
               TotalRooms[i].TotalRoom -= 1;
             } else {
               const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
-              if (index > -1 && !r.tantative) {
+              if (index > -1 && !r.tentative) {
                 TotalRooms[i].rooms.splice(index, 1);
                 TotalRooms[i].roomId.splice(index, 1);
                 TotalRooms[i].TotalRoom -= 1;
@@ -2052,7 +2054,7 @@ const addRoomReservation = asyncHandler(async (req, res) => {
             throw prepareInternalError("Rooms not available");
           if (reservation.roomId == "assign") {
             delete reservation.roomId;
-            reservation.tantative = true;
+            reservation.tentative = true;
             r.TotalRoom -= 1;
             continue;
           }
@@ -2266,6 +2268,7 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
                 { arrival: { $lt: assigncheckoutdate } },
                 { propertyUnitId },
                 { roomTypeId: reservation.roomTypeId },
+                { _id: { $ne: oldReservation._id } },
                 {
                   $or: [
                     { reservationStatus: ReservationStatusEnum.INHOUSE },
@@ -2275,7 +2278,7 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
               ],
             },
           },
-          { $project: { roomId: 1, tantative: 1, roomTypeId: 1 } },
+          { $project: { roomId: 1, tentative: 1, roomTypeId: 1 } },
         ]),
         RoomType.aggregate([
           {
@@ -2362,11 +2365,11 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
       for (let i = 0; i < TotalRooms.length; i++) {
         if (OldReservations.length > 0) {
           OldReservations.forEach((r) => {
-            if (r.tantative && r.roomTypeId.equals(TotalRooms[i]._id)) {
+            if (r.tentative && r.roomTypeId.equals(TotalRooms[i]._id)) {
               TotalRooms[i].TotalRoom -= 1;
             } else {
               const index = TotalRooms[i].roomId.indexOf(String(r.roomId));
-              if (index > -1 && !r.tantative) {
+              if (index > -1 && !r.tentative) {
                 TotalRooms[i].rooms.splice(index, 1);
                 TotalRooms[i].roomId.splice(index, 1);
                 TotalRooms[i].TotalRoom -= 1;
@@ -2395,15 +2398,21 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
             throw prepareInternalError("Rooms not available");
           if (reservation.roomId == "assign") {
             delete reservation.roomId;
-            reservation.tantative = true;
+            reservation.tentative = true;
             r.TotalRoom -= 1;
             continue;
           }
-          if (reservation.roomId && !r.roomId.includes(reservation.roomId)) {
+          if (
+            reservation.roomId &&
+            !r.roomId.includes(String(reservation.roomId))
+          ) {
             throw prepareInternalError("Selected room is not available");
           }
-          if (reservation.roomId && r.roomId.includes(reservation.roomId)) {
-            reservation.tantative = false;
+          if (
+            reservation.roomId &&
+            r.roomId.includes(String(reservation.roomId))
+          ) {
+            reservation.tentative = false;
             const AllocatedRoomLockResponse = await checkAndAllocateRoom(
               propertyUnitId,
               reservation.roomId,
@@ -2551,7 +2560,7 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
         throw error;
       }
 
-      data = groupData;
+      data = {};
     });
     console.log("Transaction committed successfully");
     return res
@@ -2599,8 +2608,8 @@ const addReservationCharge = asyncHandler(async (req, res) => {
       {
         $inc: {
           totalBalance: roomBalance.balance,
-          totalCost: charges.charge,
-          totalPrice: charges.charge,
+          totalExtraCharge: charges.charge,
+          // totalPrice: charges.charge,
         },
       }
     ),
@@ -2611,7 +2620,7 @@ const addReservationCharge = asyncHandler(async (req, res) => {
       },
       {
         $inc: {
-          roomCost: charges.charge,
+          roomExtraCharge: charges.charge,
         },
       }
     ),
@@ -2644,7 +2653,7 @@ const unassignRoom = asyncHandler(async (req, res) => {
         roomId: "",
       },
       $set: {
-        tantative: true,
+        tentative: true,
       },
     }
   );

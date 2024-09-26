@@ -636,12 +636,34 @@ const groupReservationSchema = new Schema(
     adults: Number,
     childs: Number,
     notes: String,
-    totalCost: Number,
-    totalPrice: Number,
-    totalTax: Number,
-    totalPayment: Number,
-    totalDeposit: Number,
-    totalBalance: Number,
+    totalCost: {
+      type: Number,
+      default: 0,
+    },
+    totalPrice: {
+      type: Number,
+      default: 0,
+    },
+    totalExtraCharge: {
+      type: Number,
+      default: 0,
+    },
+    totalTax: {
+      type: Number,
+      default: 0,
+    },
+    totalPayment: {
+      type: Number,
+      default: 0,
+    },
+    totalDeposit: {
+      type: Number,
+      default: 0,
+    },
+    totalBalance: {
+      type: Number,
+      default: 0,
+    },
     groupNumber: String,
   },
   { timestamps: true }
@@ -674,7 +696,7 @@ const reservationSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "RoomType",
     },
-    tantative: {
+    tentative: {
       type: Boolean,
       default: false,
     },
@@ -738,11 +760,11 @@ const reservationDetailSchema = new Schema(
       type: Number,
       default: 0,
     },
-    deposit: {
+    roomPrice: {
       type: Number,
       default: 0,
     },
-    payment: {
+    roomExtraCharge: {
       type: Number,
       default: 0,
     },

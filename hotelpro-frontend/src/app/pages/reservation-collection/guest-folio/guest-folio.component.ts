@@ -27,6 +27,8 @@ import {
   FileSystemFileEntry,
   FileSystemDirectoryEntry,
 } from 'ngx-file-drop';
+import { StatusPipe } from '../../../core/shared/pipes/status.pipe';
+import { BalancePipe } from '../../../core/shared/pipes/balance.pipe';
 
 @Component({
   selector: 'app-guest-folio',
@@ -35,6 +37,8 @@ import {
     JsonPipe,
     DatePipe,
     CurrencyPipe,
+    StatusPipe,
+    BalancePipe,
     CommonModule,
     NgImageSliderModule,
     FormsModule,
@@ -383,7 +387,11 @@ export class GuestFolioComponent implements OnInit {
 
     this.crudService
       .post(APIConstant.CHANGE_ROOM, {
-        groupData: this.groupDetails,
+        groupData: {
+          groupId: this.groupDetails._id,
+          arrival: this.groupDetails.arrival,
+          departure: this.groupDetails.departure,
+        },
         propertyUnitId: this.propertyUnitId,
         reservation: newReservation,
         oldReservation: this.currentReservation,
@@ -753,7 +761,7 @@ export class GuestFolioComponent implements OnInit {
   }
 
   openCheckInModal(content: any, reservation: any): void {
-    if (reservation.tantative) {
+    if (reservation.tentative) {
       this.alertService.errorAlert('Please Assign Room');
     } else {
       this.confirmMsg = 'Are you sure want to check in ?';

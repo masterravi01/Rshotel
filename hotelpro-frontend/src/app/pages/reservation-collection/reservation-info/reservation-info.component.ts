@@ -270,7 +270,15 @@ export class ReservationInfoComponent implements OnInit {
         const sendObj = {
           propertyUnitId: this.propertyUnitId,
           reservationsArray: this.reservationForm.get('reservations')?.value,
-          groupDetails: this.groupForm.value,
+          groupDetails: {
+            ...this.groupForm.value,
+            totalTax:
+              this.groupForm.get('totalCost')?.value -
+              this.groupForm.get('totalPrice')?.value,
+            totalBalance: -this.groupForm.get('totalCost')?.value,
+            totalPayment: 0,
+            totalDeposit: 0,
+          },
         };
 
         this.crudService
