@@ -62,13 +62,16 @@ export class GuestFolioComponent implements OnInit {
   currentReservation: any;
   documentsImages: any[] = [];
   paymentForm!: FormGroup;
+  refundForm!: FormGroup;
   postChargeForm!: FormGroup;
   guestForm!: FormGroup;
   noshowDetails: any = {};
   cancelDetails: any = {};
   public files: NgxFileDropEntry[] = [];
   Today: string = '';
+  FormatToday: string = '';
   confirmMsg: string = '';
+  depositObj: any = {};
   imageObject = [
     {
       image:
@@ -105,6 +108,7 @@ export class GuestFolioComponent implements OnInit {
   ) {}
   ngOnInit(): void {
     let d = new Date();
+    this.FormatToday = this.formatDate(d);
     d.setUTCHours(0, 0, 0, 0);
     this.Today = d.toISOString();
     this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
@@ -118,6 +122,13 @@ export class GuestFolioComponent implements OnInit {
       paymentType: ['cash', [Validators.required]],
       deposit: [false],
       amount: [10, [Validators.required, Validators.min(0)]],
+      remark: [''],
+    });
+    this.refundForm = this.fb.group({
+      groupId: ['', [Validators.required]],
+      paymentType: ['cash', [Validators.required]],
+      amount: [10, [Validators.required, Validators.min(0)]],
+      maxRefund: [0, [Validators.required, Validators.min(0)]],
       remark: [''],
     });
 
@@ -169,6 +180,16 @@ export class GuestFolioComponent implements OnInit {
   }
   private formatDate(date: Date): string {
     return new DatePipe('en-US').transform(date, 'yyyy-MM-dd') || '';
+  }
+  nextDate() {
+    let x = new Date(this.updateStayArrival);
+    x.setDate(x.getDate() + 1);
+    return this.formatDate(x);
+  }
+  checkDate() {
+    return (
+      new Date(this.updateStayArrival) < new Date(this.updateStayDeparture)
+    );
   }
   // Open modal for stay update
   openUpdateStayModal(reservation: any, content: any): void {
@@ -500,6 +521,58 @@ export class GuestFolioComponent implements OnInit {
       });
   }
 
+  openRefundModal(content: any): void {
+    const s = this.groupDetails?.paymentDetails.reduce(
+      (acc: Number, curr: any) => {
+        if (!curr.isDeposit && curr?.transactionDetails?.transactionRate > 0) {
+          acc = acc + curr?.transactionDetails?.transactionRate;
+        }
+        return acc;
+      },
+      0
+    );
+    console.log(s);
+    if (s > 0) {
+      this.refundForm.patchValue({
+        groupId: this.groupId,
+        paymentType: 'cash',
+        amount: 0,
+        maxRefund: s,
+        remark: '',
+      });
+
+      this.modalService
+        .open(content, {
+          size: 'lg',
+          centered: true,
+          backdrop: 'static',
+          keyboard: false,
+        })
+        .result.then((result) => {
+          if (result) {
+            this.crudService
+              .post(APIConstant.REFUND_PAYMENT, {
+                payment: this.refundForm.value,
+                userId: this.groupDetails.customerId,
+                propertyUnitId: this.propertyUnitId,
+                groupId: this.groupId,
+              })
+              .then((response) => {
+                console.log(response);
+                this.alertService.successAlert(response.message);
+                this.ngOnInit();
+              })
+              .catch((error) => {
+                this.alertService.errorAlert(
+                  error?.error?.message || 'An error occurred '
+                );
+                console.error(error);
+              });
+          }
+        });
+    }
+  }
+
   readNoshowCharge(reservation: any): void {
     this.crudService
       .post(APIConstant.READ_NOSHOW_CHARGE, {
@@ -798,6 +871,35 @@ export class GuestFolioComponent implements OnInit {
             propertyUnitId: this.propertyUnitId,
             groupId: this.groupId,
             reservation: reservation,
+          })
+          .then((response) => {
+            console.log(response);
+            this.alertService.successAlert(response.message);
+            this.ngOnInit();
+          })
+          .catch((error) => {
+            this.alertService.errorAlert(
+              error?.error?.message || 'An error occurred while adding charges'
+            );
+            console.error(error);
+          });
+      }
+    });
+  }
+
+  openDepositModal(content: any, deposit: any): void {
+    deposit.transactionDetails.refundAmount =
+      deposit.transactionDetails.transactionRate;
+    deposit.transactionDetails.captureAmount =
+      deposit.transactionDetails.transactionRate;
+    this.depositObj = deposit;
+    this.modalService.open(content).result.then((result) => {
+      if (result) {
+        this.crudService
+          .post(APIConstant.DEPOSIT_RELEASE, {
+            propertyUnitId: this.propertyUnitId,
+            groupId: this.groupId,
+            deposit: this.depositObj,
           })
           .then((response) => {
             console.log(response);

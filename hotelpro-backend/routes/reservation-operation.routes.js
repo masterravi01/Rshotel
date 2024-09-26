@@ -71,4 +71,6 @@ router.post(
 );
 router.post("/unassign-room", reservationOperationIndex.unassignRoom);
 
+router.post("/deposit-release", reservationOperationIndex.depositRelease);
+
 export default router;

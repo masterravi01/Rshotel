@@ -88,6 +88,12 @@
             >
               Make Payment
             </label>
+            <label
+              class="form-label fw-semibold mt-2"
+              (click)="openRefundModal(refundModal)"
+            >
+              Make Refund
+            </label>
             <label class="form-label fw-semibold mt-2">View Logs</label>
             <label class="form-label fw-semibold mt-2"
               >Cancel Reservations</label
@@ -450,9 +456,14 @@
             <td>{{ r.transactionDetails?.receipt }}</td>
 
             <td>
-              {{ r.transactionDetails?.isRefund ? "Refund" : ""
-              }}{{ r.isDeposit ? "Deposit" : ""
+              {{ r.isRefund ? "Refund" : "" }}{{ r.isDeposit ? "Deposit" : ""
               }}{{ r.isAuthorize ? "Authorized" : "" }}
+              <span
+                *ngIf="r.isDeposit"
+                (click)="openDepositModal(depositReleaseModal, r)"
+              >
+                Capture</span
+              >
             </td>
           </tr>
         </tbody>
@@ -503,22 +514,37 @@
       type="date"
       class="form-control"
       name="updateStayArrival"
+      [min]="FormatToday"
       [(ngModel)]="updateStayArrival"
+      #arrival="ngModel"
+      required
       placeholder="Enter arrival"
     />
+    <div *ngIf="arrival.invalid && (arrival.dirty || arrival.touched)">
+      <div *ngIf="arrival.errors?.['required']">Arrival date is required.</div>
+    </div>
     <label class="form-label">Departure Date</label>
     <input
       type="date"
       class="form-control"
       name="updateStayDeparture"
+      [min]="nextDate()"
       [(ngModel)]="updateStayDeparture"
+      #departure="ngModel"
+      required
       placeholder="Enter departure"
     />
+    <div *ngIf="departure.invalid && (departure.dirty || departure.touched)">
+      <div *ngIf="departure.errors?.['required']">
+        Departure date is required.
+      </div>
+    </div>
   </div>
   <div class="modal-footer">
     <button
       type="button"
       class="btn btn-outline-secondary"
+      [disabled]="!checkDate()"
       (click)="modal.close(true)"
     >
       Save
@@ -835,7 +861,97 @@
     </div>
   </div>
 </ng-template>
+<ng-template #refundModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Make Refund</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body" [formGroup]="refundForm">
+    <div class="row">
+      <div class="col-md-3 mt-3">
+        <label class="form-label">Payment Type</label>
+        <select
+          class="form-control text-center select_reason"
+          formControlName="paymentType"
+        >
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+          <option value="cheque">Cheque</option>
+        </select>
+      </div>
+      <div class="col-md-2 mt-3">
+        <label class="form-label">Amount</label>
+        <input
+          type="number"
+          class="form-control"
+          formControlName="amount"
+          placeholder="Enter amount"
+          [ngClass]="{
+            'is-invalid':
+              refundForm.get('amount')?.invalid &&
+              (refundForm.get('amount')?.dirty ||
+                refundForm.get('amount')?.touched)
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            refundForm.get('amount')?.invalid &&
+            (refundForm.get('amount')?.dirty ||
+              refundForm.get('amount')?.touched)
+          "
+          >Amount is required</small
+        >
+      </div>
 
+      <div class="col-md-3 mt-3">
+        <label class="form-label">Remark</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="remark"
+          placeholder="Enter remark"
+          [ngClass]="{
+            'is-invalid':
+              refundForm.get('remark')?.invalid &&
+              (refundForm.get('remark')?.dirty ||
+                refundForm.get('remark')?.touched)
+          }"
+        />
+        <small
+          class="text-danger"
+          *ngIf="
+            refundForm.get('remark')?.invalid &&
+            (refundForm.get('remark')?.dirty ||
+              refundForm.get('remark')?.touched)
+          "
+          >Remark is required</small
+        >
+      </div>
+      <div class="col-md-2 mt-3">
+        <div class="d-flex justify-content-center">
+          <button
+            class="btn btn-primary mt-4"
+            type="button"
+            [disabled]="
+              refundForm.invalid ||
+              refundForm.get('maxRefund')?.value <
+                refundForm.get('amount')?.value
+            "
+            (click)="modal.close(true)"
+          >
+            Refund
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
 <ng-template #noshowReservationModal let-modal>
   <div class="modal-header">
     <h4 class="modal-title">Noshow Reservation</h4>
@@ -864,6 +980,58 @@
       <button
         class="btn btn-primary mt-4"
         type="button"
+        (click)="modal.close(true)"
+      >
+        YES
+      </button>
+      <button
+        class="btn btn-outline-primary mt-4"
+        type="button"
+        (click)="modal.close(false)"
+      >
+        NO
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #depositReleaseModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Deposit Operation</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss(false)"
+    ></button>
+  </div>
+  <div class="modal-body" *ngIf="depositObj">
+    <p>
+      Total Amount {{ depositObj?.transactionDetails?.transactionRate }}
+      <br />
+      Capture Amount<input
+        type="number"
+        class="form-control"
+        [max]="depositObj?.transactionDetails?.transactionRate"
+        [(ngModel)]="depositObj.transactionDetails.captureAmount"
+        placeholder="Enter Capture Amount"
+      />
+      <br />
+      Release Amount
+      {{
+        depositObj?.transactionDetails?.transactionRate -
+          depositObj.transactionDetails.captureAmount
+      }}
+    </p>
+    <div class="d-flex justify-content-center">
+      <button
+        class="btn btn-primary mt-4"
+        type="button"
+        [disabled]="
+          depositObj.transactionDetails.captureAmount < 0 ||
+          depositObj?.transactionDetails?.transactionRate <
+            depositObj.transactionDetails.captureAmount
+        "
         (click)="modal.close(true)"
       >
         YES

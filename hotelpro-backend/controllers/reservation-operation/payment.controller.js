@@ -137,7 +137,7 @@ const refundPayment = asyncHandler(async (req, res) => {
 
     guestTransaction = new GuestTransaction({
       transactionCodeId: transactionCode._id,
-      isDeposit: payment.deposit,
+      isRefund: true,
       transactionDate: Date.now(),
       userId: userId,
       groupId: groupId,
@@ -151,9 +151,8 @@ const refundPayment = asyncHandler(async (req, res) => {
       },
       {
         $inc: {
-          totalBalance: payment.deposit ? 0 : payment.amount,
-          totalPayment: payment.deposit ? 0 : payment.amount,
-          totalDeposit: payment.deposit ? payment.amount : 0,
+          totalBalance: payment.amount,
+          totalPayment: payment.amount,
         },
       }
     ),
@@ -164,7 +163,81 @@ const refundPayment = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, data, "Refund Payment  successfully!"));
 });
+
+const depositRelease = asyncHandler(async (req, res) => {
+  let data = {};
+  let transactionCode;
+  let guestTransaction;
+  let { propertyUnitId, groupId, userId, deposit } = req.body;
+  groupId = new ObjectId(groupId);
+  userId = new ObjectId(userId);
+  propertyUnitId = new ObjectId(propertyUnitId);
+
+  if (deposit.transactionDetails.captureAmount > 0) {
+    await Promise.all([
+      GroupReservation.updateOne(
+        {
+          _id: groupId,
+        },
+        {
+          $inc: {
+            totalBalance: deposit.transactionDetails.captureAmount,
+            totalPayment: deposit.transactionDetails.captureAmount,
+            totalDeposit: -deposit.transactionDetails.transactionRate,
+          },
+        }
+      ),
+      TransactionCode.updateOne(
+        {
+          _id: new ObjectId(deposit.transactionDetails._id),
+        },
+        {
+          $set: {
+            transactionRate: deposit.transactionDetails.captureAmount,
+            date: new Date(),
+          },
+        }
+      ),
+      GuestTransaction.updateOne(
+        {
+          _id: new ObjectId(deposit._id),
+        },
+        {
+          $set: {
+            isDeposit: false,
+            transactionDate: new Date(),
+          },
+        }
+      ),
+    ]);
+  } else {
+    await Promise.all([
+      GroupReservation.updateOne(
+        {
+          _id: groupId,
+        },
+        {
+          $inc: {
+            totalDeposit: -deposit.transactionDetails.transactionRate,
+          },
+        }
+      ),
+      TransactionCode.deleteOne({
+        _id: new ObjectId(deposit.transactionDetails._id),
+      }),
+      GuestTransaction.deleteOne({
+        _id: new ObjectId(deposit._id),
+      }),
+    ]);
+  }
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, data, "Payment made successfully!"));
+});
+
 export default {
   postReservationPayment,
   refundPayment,
+  depositRelease,
 };

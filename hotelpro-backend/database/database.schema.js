@@ -935,10 +935,6 @@ const transactionCodeSchema = new Schema(
       type: String,
       enum: ["Amenity", "Card", "Tax", "Reservation", "Other"],
     },
-    isRefund: {
-      type: Boolean,
-      default: false,
-    },
   },
   { timestamps: true }
 );
@@ -977,6 +973,10 @@ const guestTransactionSchema = new Schema(
       default: false,
     },
     isAuthorize: {
+      type: Boolean,
+      default: false,
+    },
+    isRefund: {
       type: Boolean,
       default: false,
     },
