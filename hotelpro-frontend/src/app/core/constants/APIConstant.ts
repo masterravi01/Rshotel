@@ -80,6 +80,7 @@ export const APIConstant = {
   STAY_UPDATE: 'reservation/stay-update',
   ADD_ROOM: 'reservation/add-room',
   CHANGE_ROOM: 'reservation/change-room',
+  UNASSIGN_ROOM: 'reservation/unassign-room',
   GET_ALL_RESERVATION: 'reservation/get-all-reservation',
   ADD_RESERVATION_CHARGE: 'reservation/add-reservation-charge',
   

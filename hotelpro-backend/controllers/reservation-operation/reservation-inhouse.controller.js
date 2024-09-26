@@ -52,16 +52,29 @@ const checkInReservation = asyncHandler(async (req, res) => {
   let data = {};
   let { reservationId } = req.body;
   reservationId = new ObjectId(reservationId);
-  await Reservation.updateOne(
-    {
-      _id: reservationId,
-    },
-    {
-      $set: {
-        reservationStatus: ReservationStatusEnum.INHOUSE,
+  await Promise.all([
+    Reservation.updateOne(
+      {
+        _id: reservationId,
       },
-    }
-  );
+      {
+        $set: {
+          reservationStatus: ReservationStatusEnum.INHOUSE,
+        },
+      }
+    ),
+    ReservationDetail.updateOne(
+      {
+        reservationId: reservationId,
+      },
+      {
+        $set: {
+          checkInDate: new Date(),
+          checkInTime: new Date(),
+        },
+      }
+    ),
+  ]);
 
   return res
     .status(200)
