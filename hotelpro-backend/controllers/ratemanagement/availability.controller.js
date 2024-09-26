@@ -26,7 +26,6 @@ const getDatesInRange = (startDate, endDate) => {
   }
   return dates;
 };
-
 const checkDateWiseRoomAvailability = async (
   startDate,
   endDate,
@@ -77,10 +76,25 @@ const checkDateWiseRoomAvailability = async (
             },
           },
           {
+            $lookup: {
+              from: "rooms",
+              localField: "roomId",
+              foreignField: "_id",
+              as: "roomDetail",
+            },
+          },
+          {
             $project: {
-              roomId: { $toString: "$roomId" },
+              roomId: {
+                $toString: "$roomId",
+              },
               startDate: 1,
               endDate: 1,
+              roomTypeId: {
+                $toString: {
+                  $arrayElemAt: ["$roomDetail.roomTypeId", 0],
+                },
+              },
             },
           },
         ]),
@@ -108,10 +122,23 @@ const checkDateWiseRoomAvailability = async (
             },
           },
           {
+            $lookup: {
+              from: "rooms",
+              localField: "roomId",
+              foreignField: "_id",
+              as: "roomDetail",
+            },
+          },
+          {
             $project: {
               roomId: { $toString: "$roomId" },
               arrival: 1,
               departure: 1,
+              roomTypeId: {
+                $toString: {
+                  $arrayElemAt: ["$roomDetail.roomTypeId", 0],
+                },
+              },
             },
           },
         ]),
@@ -126,11 +153,21 @@ const checkDateWiseRoomAvailability = async (
         let dayStart = new Date(date);
 
         const maintenanceRoomIds = maintenanceRooms
-          .filter((m) => m.startDate <= dayStart && dayStart < m.endDate)
+          .filter(
+            (m) =>
+              m.roomTypeId == roomType._id.toString() &&
+              m.startDate <= dayStart &&
+              dayStart < m.endDate
+          )
           .map((m) => m.roomId);
 
         const reservedRoomIds = reservedRooms
-          .filter((r) => r.arrival <= dayStart && dayStart < r.departure)
+          .filter(
+            (r) =>
+              r.roomTypeId == roomType._id.toString() &&
+              r.arrival <= dayStart &&
+              dayStart < r.departure
+          )
           .map((r) => r.roomId);
 
         const unavailableRoomsForType = rooms.filter((room) => {

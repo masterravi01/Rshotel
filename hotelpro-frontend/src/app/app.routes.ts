@@ -244,6 +244,17 @@ export const routes: Routes = [
         title: 'House Keeping',
         canActivate: [authGuard],
       },
+
+      // rate management collection
+      {
+        path: 'future-availability',
+        loadComponent: () =>
+          import(
+            './pages/rate-management/future-availability/future-availability.component'
+          ).then((m) => m.FutureAvailabilityComponent),
+        title: 'Future Availability',
+        canActivate: [authGuard],
+      },
     ],
   },
 
