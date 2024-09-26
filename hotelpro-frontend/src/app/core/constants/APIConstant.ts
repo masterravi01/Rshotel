@@ -72,7 +72,8 @@ export const APIConstant = {
   READ_RATEPLAN: 'ratemanagement/read-rateplan/',
   CREATE_RATEPLAN: 'ratemanagement/create-rateplan',
   UPDATE_RATEPLAN: 'ratemanagement/update-rateplan/',
-
+  READ_FUTURE_AVAILABILITY: 'ratemanagement/read-future-availability',
+  
   READ_RESERVATION_RATE: 'reservation/read-reservation-rate/',
   CREATE_RESERVATION: 'reservation/create-reservation',
   GUEST_FOLIO: 'reservation/guest-folio',
@@ -82,7 +83,7 @@ export const APIConstant = {
   UNASSIGN_ROOM: 'reservation/unassign-room',
   GET_ALL_RESERVATION: 'reservation/get-all-reservation',
   ADD_RESERVATION_CHARGE: 'reservation/add-reservation-charge',
-
+  
   UPLOAD_RESERVATION_IMAGES: 'reservation/upload-reservation-images',
   DELETE_RESERVATION_IMAGES: 'reservation/delete-reservation-images',
 
@@ -105,5 +106,4 @@ export const APIConstant = {
   CREATE_PAYMENT_ORDER: 'razor/create-payment-order',
   VALIDATE_PAYMENT: 'razor/validate-payment',
 
-  READ_FUTURE_AVAILABILITY: 'availability/read-future-availability',
 };

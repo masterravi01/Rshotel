@@ -47,4 +47,9 @@ router.post("/read-rateplan", ratemanagementIndex.readRatePlan);
 router.post("/create-rateplan", ratemanagementIndex.createRatePlan);
 router.post("/update-rateplan", ratemanagementIndex.updateRatePlan);
 
+router.post(
+  "/read-future-availability",
+  ratemanagementIndex.readFutureAvailability
+);
+
 export default router;
