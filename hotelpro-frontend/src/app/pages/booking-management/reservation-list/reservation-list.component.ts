@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit } from '@angular/core';
 import {
   FormGroup,
   FormArray,
@@ -32,7 +32,7 @@ import { StatusPipe } from '../../../core/shared/pipes/status.pipe';
 export class ReservationListComponent implements OnInit {
   propertyUnitId: string | null = '';
   reservationData: any[] = [];
-
+  today: any;
   constructor(
     private crudService: CrudService,
     private fb: FormBuilder,
@@ -40,10 +40,12 @@ export class ReservationListComponent implements OnInit {
     private activeRoute: ActivatedRoute,
     private router: Router,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
+    this.today = new Date();
+    this.today.setUTCHours(0, 0, 0, 0);
     this.fetchData();
   }
 
@@ -75,5 +77,26 @@ export class ReservationListComponent implements OnInit {
         element.Show = false;
       }
     });
+  }
+
+  filterByReservationStatus(event: any) {
+    let filter = event.target.value;
+    for (let r of this.reservationData) {
+      r.Show = false;
+      if (filter == "all") {
+        r.Show = true;
+      }
+      else if (filter == "arrival") {
+        if (r.reservationStatus == "reserved" && new Date(r.arrival).toString() == this.today.toString()) {
+          r.Show = true;
+        }
+      } else if (filter == "departure") {
+        if (r.reservationStatus == "inhouse" && new Date(r.departure).toString() == this.today.toString()) {
+          r.Show = true;
+        }
+      } else if (r.reservationStatus == filter) {
+        r.Show = true;
+      }
+    }
   }
 }
