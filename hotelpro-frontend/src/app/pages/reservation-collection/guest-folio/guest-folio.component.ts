@@ -29,6 +29,7 @@ import {
 } from 'ngx-file-drop';
 import { StatusPipe } from '../../../core/shared/pipes/status.pipe';
 import { BalancePipe } from '../../../core/shared/pipes/balance.pipe';
+import { PaymentSharedService } from '../../../core/services/payment-shared.service';
 
 @Component({
   selector: 'app-guest-folio',
@@ -104,7 +105,8 @@ export class GuestFolioComponent implements OnInit {
     private alertService: AlertService,
     private authService: AuthService,
     private crudService: CrudService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private paymentSharedService: PaymentSharedService
   ) {}
   ngOnInit(): void {
     let d = new Date();
@@ -476,7 +478,30 @@ export class GuestFolioComponent implements OnInit {
         }
       });
   }
-
+  createPaymentOrder() {
+    this.crudService
+      .post(APIConstant.CREATE_PAYMENT_ORDER, {
+        payment: this.paymentForm.value,
+        userId: this.groupDetails.customerId,
+        propertyUnitId: this.propertyUnitId,
+        groupId: this.groupId,
+      })
+      .then((response: any) => {
+        console.log(response);
+        this.paymentSharedService.updatePaymentData({
+          paymentOrderId: response.data.id,
+          payment: this.paymentForm.value,
+          userId: this.groupDetails.customerId,
+          propertyUnitId: this.propertyUnitId,
+          groupId: this.groupId,
+        });
+        this.modalService.dismissAll();
+        this.router.navigateByUrl('razorpay-demo');
+      })
+      .catch((error: any) => {
+        console.error('There was an error!', error);
+      });
+  }
   openPaymentModal(content: any): void {
     const amount = this.groupDetails.totalBalance
       ? -this.groupDetails.totalBalance

@@ -7,7 +7,7 @@ import propertyUnitRouter from "./propertyunit.routes.js";
 import roomRouter from "./room.routes.js";
 import ratemanagementRouter from "./ratemanagement.routes.js";
 import reservationOperationRouter from "./reservation-operation.routes.js";
-// import paymentRouter from "./payment.routes.js";
+import paymentRouter from "./payment.routes.js";
 const router = express.Router();
 
 router.use("/user", userRouter);
@@ -18,6 +18,6 @@ router.use("/propertyunit", propertyUnitRouter);
 router.use("/room", roomRouter);
 router.use("/ratemanagement", ratemanagementRouter);
 router.use("/reservation", reservationOperationRouter);
-// router.use("/razor", paymentRouter);
+router.use("/razor", paymentRouter);
 
 export default router;
