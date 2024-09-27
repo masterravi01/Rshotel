@@ -995,8 +995,7 @@ const billingCardSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "BillingAccount",
     },
-    billingCardOtherDetails: String,
-    cardToken: String,
+    extraDetails: Object,
   },
   { timestamps: true }
 );

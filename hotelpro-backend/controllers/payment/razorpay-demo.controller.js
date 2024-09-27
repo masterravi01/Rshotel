@@ -11,14 +11,17 @@ let instance = new Razorpay({
 });
 
 const createPaymentOrder = asyncHandler(async (req, res) => {
-  var amount = req.body.price * 100;
-  var options = {
+  const { payment, userId, groupId, propertyUnitId } = req.body;
+  const amount = payment.amount * 100;
+  const options = {
     amount: amount, // amount in the smallest currency unit here paise
     currency: "INR",
-    receipt: "order_rcptid_11",
+    receipt: `order_rcp_${Date.now()}`,
     notes: {
-      key1: "value3",
-      key2: "value2",
+      propertyUnitId: propertyUnitId,
+      groupId: groupId,
+      userId: userId,
+      remark: payment.remark,
     },
   };
   instance.orders.create(options, function (err, order) {
@@ -48,5 +51,4 @@ const validatePayment = asyncHandler(async (req, res) => {
   isPaymentVerfied ? res.status(200) : res.status(500);
   res.send({ data: { isPaymentVerfied: isPaymentVerfied } });
 });
-
 export default { createPaymentOrder, validatePayment };

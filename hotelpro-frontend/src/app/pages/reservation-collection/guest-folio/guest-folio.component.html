@@ -747,7 +747,10 @@
           >Amount is required</small
         >
       </div>
-      <div class="col-md-2 mt-3">
+      <div
+        class="col-md-2 mt-3"
+        *ngIf="paymentForm.get('paymentType')?.value === 'cash'"
+      >
         <div class="mt-4">
           <label class="form-label me-2">Deposit</label>
           <input
@@ -784,12 +787,22 @@
       <div class="col-md-2 mt-3">
         <div class="d-flex justify-content-center">
           <button
+            *ngIf="paymentForm.get('paymentType')?.value === 'cash'"
             class="btn btn-primary mt-4"
             type="button"
             [disabled]="paymentForm.invalid"
             (click)="modal.close(true)"
           >
             Pay
+          </button>
+          <button
+            *ngIf="paymentForm.get('paymentType')?.value === 'card'"
+            class="btn btn-primary mt-4"
+            type="button"
+            [disabled]="paymentForm.invalid"
+            (click)="createPaymentOrder()"
+          >
+            Proceed
           </button>
         </div>
       </div>

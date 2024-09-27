@@ -17,6 +17,7 @@ import {
   GuestTransaction,
   BookingControl,
   RoomMaintenance,
+  BillingCard,
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
 const ObjectId = mongoose.Types.ObjectId;
@@ -46,12 +47,21 @@ import {
   deallocateMultipleRooms,
   deallocateRoom,
 } from "./room-reservation-concurrency.js";
+import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils.js";
 
 const postReservationPayment = asyncHandler(async (req, res) => {
   let data = {};
   let transactionCode;
   let guestTransaction;
-  let { propertyUnitId, groupId, userId, payment } = req.body;
+  let {
+    propertyUnitId,
+    groupId,
+    userId,
+    payment,
+    razorpay_signature,
+    original_order_id,
+    razorpay_payment_id,
+  } = req.body;
   groupId = new ObjectId(groupId);
   userId = new ObjectId(userId);
   propertyUnitId = new ObjectId(propertyUnitId);
@@ -89,6 +99,32 @@ const postReservationPayment = asyncHandler(async (req, res) => {
       groupId: groupId,
       billingAccountId: billing_account._id,
     });
+  } else if (payment.paymentType === "card") {
+    const isPaymentVerfied = validatePaymentVerification(
+      { order_id: original_order_id, payment_id: razorpay_payment_id },
+      razorpay_signature,
+      process.env.Razor_key_secret
+    );
+    if (isPaymentVerfied) {
+      transactionCode = new TransactionCode({
+        transactionCode: String(new ObjectId()),
+        transactionType: "Reservation",
+        transactionRate: payment.amount,
+        transactionDetail: payment.remark,
+        receipt: Math.floor(100000 + Math.random() * 900000),
+        date: Date.now(),
+      });
+
+      guestTransaction = new GuestTransaction({
+        transactionCodeId: transactionCode._id,
+        transactionDate: Date.now(),
+        userId: userId,
+        groupId: groupId,
+        billingAccountId: billing_account._id,
+      });
+    } else {
+      throw prepareInternalError("payment is not verified !");
+    }
   }
   await Promise.all([
     GroupReservation.updateOne(
