@@ -255,6 +255,15 @@ export const routes: Routes = [
         title: 'Future Availability',
         canActivate: [authGuard],
       },
+      {
+        path: 'tape-chart',
+        loadComponent: () =>
+          import(
+            './pages/rate-management/tape-chart/tape-chart.component'
+          ).then((m) => m.TapeChartComponent),
+        title: 'Tape Chart',
+        canActivate: [authGuard],
+      },
     ],
   },
 
