@@ -113,9 +113,9 @@ const getAllReservations = asyncHandler(async (req, res) => {
         arrival: 1,
         departure: 1,
         confirmationNumber: 1,
+        Show: true,
       },
     },
-    { $addFields: { Show: true } },
   ]);
   return res
     .status(200)
@@ -125,20 +125,6 @@ const getAllReservations = asyncHandler(async (req, res) => {
         reservations,
         "All reservations retrieved successfully"
       )
-    );
-});
-
-// GET a single reservation by ID
-const getReservationById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const reservation = await Reservation.findById(id);
-  if (!reservation) {
-    throw new ApiError(404, "Reservation not found");
-  }
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, reservation, "Reservation retrieved successfully")
     );
 });
 
@@ -639,9 +625,7 @@ const stayUpdate = asyncHandler(async (req, res) => {
       propertyUnitId = new ObjectId(propertyUnitId);
       let [groupDetails, OldReservationDetails, roomBalanceDetails] =
         await Promise.all([
-          GroupReservation.findOne({
-            _id: groupId,
-          }),
+          GroupReservation.findById(groupId),
           Reservation.aggregate([
             {
               $match: {
@@ -691,7 +675,7 @@ const stayUpdate = asyncHandler(async (req, res) => {
               },
             },
           ]),
-          RoomBalance.find({ reservationId: reservationId }),
+          RoomBalance.find({ reservationId }),
         ]);
       OldReservationDetails = OldReservationDetails[0];
 
@@ -1249,55 +1233,6 @@ const stayUpdate = asyncHandler(async (req, res) => {
   }
 });
 
-// PUT update a reservation by ID
-const updateReservationById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const {
-    roomIds,
-    propertyUnitId,
-    arrival,
-    departure,
-    reservationStatus,
-    notes,
-    ratePlanSetupId,
-    userId,
-  } = req.body;
-  const reservation = await Reservation.findByIdAndUpdate(
-    id,
-    {
-      roomIds,
-      propertyUnitId,
-      arrival,
-      departure,
-      reservationStatus,
-      notes,
-      ratePlanSetupId,
-      userId,
-    },
-    { new: true }
-  );
-  if (!reservation) {
-    throw new ApiError(404, "Reservation not found");
-  }
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, reservation, "Reservation updated successfully")
-    );
-});
-
-// DELETE a reservation by ID
-const deleteReservationById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const reservation = await Reservation.findByIdAndDelete(id);
-  if (!reservation) {
-    throw new ApiError(404, "Reservation not found");
-  }
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { id }, "Reservation deleted successfully"));
-});
-
 const readReservationRate = asyncHandler(async (req, res) => {
   let { propertyUnitId } = req.params;
   let { arrival, departure, adults, childs } = req.body;
@@ -1314,9 +1249,7 @@ const readReservationRate = asyncHandler(async (req, res) => {
   ] = await Promise.all([
     RoomType.aggregate([
       {
-        $match: {
-          propertyUnitId: propertyUnitId,
-        },
+        $match: { propertyUnitId: propertyUnitId },
       },
       {
         $lookup: {
@@ -1356,9 +1289,7 @@ const readReservationRate = asyncHandler(async (req, res) => {
               },
             },
             {
-              $addFields: {
-                ratePlanName: "$rateSetup.ratePlanName",
-              },
+              $addFields: { ratePlanName: "$rateSetup.ratePlanName" },
             },
             {
               $unset: "rateSetup",
@@ -1474,6 +1405,7 @@ const readReservationRate = asyncHandler(async (req, res) => {
 
   RoomMaintainanceDetails = RoomMaintainanceDetails[0];
 
+  // Adjust room availability based on booking control
   BookingControlDetails.forEach((b) => {
     if (b.soldOut && b.date >= arrival && b.date < departure) {
       ratesData.forEach((r) => {
@@ -1514,6 +1446,7 @@ const readReservationRate = asyncHandler(async (req, res) => {
     }
   }
 
+  // Prepare rateType and dateRate
   for (let roomtype of ratesData) {
     roomtype["rateType"] = {};
     roomtype["dateRate"] = [];
@@ -1522,6 +1455,8 @@ const readReservationRate = asyncHandler(async (req, res) => {
     }
     delete roomtype.rates;
   }
+
+  // Populate dateRate
   for (let j = 0; nextDate < departure; j++) {
     for (let roomtype of ratesData) {
       roomtype.rateType.date = nextDate;
@@ -1530,10 +1465,15 @@ const readReservationRate = asyncHandler(async (req, res) => {
     }
     nextDate.setDate(nextDate.getDate() + 1);
   }
+
   return res
     .status(200)
     .json(
-      new ApiResponse(200, ratesData, "Reservation Rate get successfully!")
+      new ApiResponse(
+        200,
+        ratesData,
+        "Reservation Rate retrieved successfully!"
+      )
     );
 });
 
@@ -1545,18 +1485,19 @@ const readRateFunc = async (
   departure
 ) => {
   try {
+    // Ensure the dates are valid
+    const arrivalDate = new Date(arrival);
+    const departureDate = new Date(departure);
+
     let nextDate = new Date(arrival);
-    let matchquerry = {
-      propertyUnitId: propertyUnitId,
-    };
+    let matchquerry = { propertyUnitId };
 
     if (roomTypeId) {
       matchquerry._id = roomTypeId;
     }
+
     let ratesData = await RoomType.aggregate([
-      {
-        $match: matchquerry,
-      },
+      { $match: matchquerry },
       {
         $lookup: {
           from: "rooms",
@@ -1589,24 +1530,11 @@ const readRateFunc = async (
               },
             },
             {
-              $unwind: {
-                path: "$rateSetup",
-                preserveNullAndEmptyArrays: true,
-              },
+              $unwind: { path: "$rateSetup", preserveNullAndEmptyArrays: true },
             },
-            {
-              $match: {
-                "rateSetup._id": rateplanId,
-              },
-            },
-            {
-              $addFields: {
-                ratePlanName: "$rateSetup.ratePlanName",
-              },
-            },
-            {
-              $unset: "rateSetup",
-            },
+            { $match: { "rateSetup._id": rateplanId } },
+            { $addFields: { ratePlanName: "$rateSetup.ratePlanName" } },
+            { $unset: "rateSetup" },
             {
               $lookup: {
                 from: "rateplanroomrates",
@@ -1618,12 +1546,7 @@ const readRateFunc = async (
           ],
         },
       },
-      {
-        $unwind: {
-          path: "$rateRoomTypes",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
+      { $unwind: { path: "$rateRoomTypes", preserveNullAndEmptyArrays: true } },
       {
         $project: {
           _id: 0,
@@ -1656,6 +1579,7 @@ const readRateFunc = async (
         },
       },
     ]);
+
     for (let roomtype of ratesData) {
       roomtype["rateType"] = {};
       roomtype["dateRate"] = [];
@@ -1664,7 +1588,8 @@ const readRateFunc = async (
       }
       delete roomtype.rates;
     }
-    for (let j = 0; nextDate < departure; j++) {
+
+    while (nextDate < departureDate) {
       for (let roomtype of ratesData) {
         roomtype.rateType.date = nextDate;
         let obj = JSON.parse(JSON.stringify(roomtype.rateType));
@@ -1672,6 +1597,7 @@ const readRateFunc = async (
       }
       nextDate.setDate(nextDate.getDate() + 1);
     }
+
     return ratesData;
   } catch (err) {
     console.log(err);
@@ -1683,6 +1609,7 @@ const guestFolio = asyncHandler(async (req, res) => {
   const { propertyUnitId } = req.params;
   const { groupId } = req.body;
 
+  // Fetch group reservation details
   const groupReservationDetails = await GroupReservation.aggregate([
     {
       $match: {
@@ -1887,12 +1814,20 @@ const guestFolio = asyncHandler(async (req, res) => {
     },
   ]);
 
+  // Check if any group reservation was found
+  if (!groupReservationDetails.length) {
+    return res
+      .status(404)
+      .json(new ApiResponse(404, null, "Group reservation not found."));
+  }
+
+  // Send the response with group reservation details
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        groupReservationDetails?.[0],
+        groupReservationDetails[0],
         "Reservation retrieved successfully!"
       )
     );
@@ -1903,6 +1838,7 @@ const addRoomReservation = asyncHandler(async (req, res) => {
   let AllInsertedRoomLockIds = [];
   let transaction_retry_count = 0;
   let data = {};
+
   try {
     session = await mongoose.startSession();
     console.log("Session started:", session.id);
@@ -1913,8 +1849,8 @@ const addRoomReservation = asyncHandler(async (req, res) => {
       let { groupData, reservation, propertyUnitId } = req.body;
 
       if (transaction_retry_count > 0) {
-        console.log("in retry");
-        // if we are retrying then, deallocate old rooms
+        console.log("Retrying transaction...");
+        // Deallocate old rooms if retrying
         await deallocateMultipleRooms(AllInsertedRoomLockIds);
         AllInsertedRoomLockIds = [];
       }
@@ -1922,7 +1858,6 @@ const addRoomReservation = asyncHandler(async (req, res) => {
       transaction_retry_count++;
       propertyUnitId = new ObjectId(propertyUnitId);
       reservation.roomTypeId = new ObjectId(reservation.roomTypeId);
-      let reservationsRoomTypeIds = [];
       let assigncheckindate = new Date(groupData.arrival);
       let assigncheckoutdate = new Date(groupData.departure);
 
@@ -2062,12 +1997,11 @@ const addRoomReservation = asyncHandler(async (req, res) => {
       }
 
       // Handle room reservations and locks
-
       for (let r of TotalRooms) {
         if (String(r._id) === String(reservation.roomTypeId)) {
           if (r.TotalRoom <= 0)
             throw prepareInternalError("Rooms not available");
-          if (reservation.roomId == "assign") {
+          if (reservation.roomId === "assign") {
             delete reservation.roomId;
             reservation.tentative = true;
             r.TotalRoom -= 1;
@@ -2150,26 +2084,7 @@ const addRoomReservation = asyncHandler(async (req, res) => {
       });
       gt.totalCost = gt.totalPrice + gt.totalTax;
       gt.totalBalance = -gt.totalCost;
-      // // for live
-      // try {
-      //   console.log("Saving All data...");
-      //   await Promise.all([
-      //     groupData.save({ session }),
-      //     Reservation.insertMany(ReservationEntries, { session }),
-      //     ReservationDetail.insertMany(ReservationDetailEntries, { session }),
-      //     RoomBalance.insertMany(RoomBalanceEntries, { session }),
-      //     BillingAccount.insertMany([billing_account], { session }),
-      //     User.insertMany(UserEntries, { session }),
-      //     Address.insertMany(AddressEntries, { session }),
-      //     TransactionCode.insertMany(TransactionCodeEntries, { session }),
-      //     GuestTransaction.insertMany(GuestTransactionEntries, { session }),
-      //   ]);
-      // } catch (error) {
-      //   console.error("Error saving All data :", error);
-      //   throw error;
-      // }
 
-      //for debugging
       try {
         console.log("Saving group data...");
         await GroupReservation.updateOne(
@@ -2209,15 +2124,14 @@ const addRoomReservation = asyncHandler(async (req, res) => {
 
       data = groupData;
     });
+
     console.log("Transaction committed successfully");
     return res
       .status(201)
       .json(new ApiResponse(201, data, "Reservation created successfully"));
   } catch (error) {
-    const DeallocatedRoomLocks = await deallocateMultipleRooms(
-      AllInsertedRoomLockIds
-    );
-    console.log("Error in transaction:", error);
+    console.error("Error in transaction:", error);
+    await deallocateMultipleRooms(AllInsertedRoomLockIds);
     return res
       .status(500)
       .json(
@@ -2240,6 +2154,7 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
   let AllInsertedRoomLockIds = [];
   let transaction_retry_count = 0;
   let data = {};
+
   try {
     session = await mongoose.startSession();
     console.log("Session started:", session.id);
@@ -2250,8 +2165,7 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
       let { groupData, reservation, oldReservation, propertyUnitId } = req.body;
 
       if (transaction_retry_count > 0) {
-        console.log("in retry");
-        // if we are retrying then, deallocate old rooms
+        console.log("In retry");
         await deallocateMultipleRooms(AllInsertedRoomLockIds);
         AllInsertedRoomLockIds = [];
       }
@@ -2356,7 +2270,6 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
 
       RoomMaintainanceDetails = RoomMaintainanceDetails[0];
 
-      // Update TotalRooms with booking controls and maintenance
       BookingControlDetails.forEach((b) => {
         if (
           b.soldOut &&
@@ -2376,7 +2289,6 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
         r.TotalRoom = r.rooms.length;
       });
 
-      // Adjust room availability based on old reservations and maintenance
       for (let i = 0; i < TotalRooms.length; i++) {
         if (OldReservations.length > 0) {
           OldReservations.forEach((r) => {
@@ -2405,24 +2317,25 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
         }
       }
 
-      // Handle room reservations and locks
-
       for (let r of TotalRooms) {
         if (String(r._id) === String(reservation.roomTypeId)) {
           if (r.TotalRoom <= 0)
             throw prepareInternalError("Rooms not available");
+
           if (reservation.roomId == "assign") {
             delete reservation.roomId;
             reservation.tentative = true;
             r.TotalRoom -= 1;
             continue;
           }
+
           if (
             reservation.roomId &&
             !r.roomId.includes(String(reservation.roomId))
           ) {
             throw prepareInternalError("Selected room is not available");
           }
+
           if (
             reservation.roomId &&
             r.roomId.includes(String(reservation.roomId))
@@ -2460,7 +2373,6 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
         childs: reservation.childOccupant + reservation.extraChilds,
       };
 
-      // Handle date rates
       let gt = {
         totalCost: -oldReservation.reservationDetails.roomCost,
         totalBalance: oldReservation.reservationDetails.roomCost,
@@ -2469,6 +2381,7 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
           (1 + Number(oldReservation.taxPercentage) / 100),
         totalTax: 0,
       };
+
       gt.totalTax =
         (gt.totalPrice * Number(oldReservation.taxPercentage)) / 100;
 
@@ -2503,38 +2416,21 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
         gt.totalTax += -rbtax.balance;
         RoomBalanceEntries.push(rbtax);
       });
+
       gt.totalCost = gt.totalPrice + gt.totalTax;
       gt.totalBalance = -gt.totalCost;
-      // // for live
-      // try {
-      //   console.log("Saving All data...");
-      //   await Promise.all([
-      //     groupData.save({ session }),
-      //     Reservation.insertMany(ReservationEntries, { session }),
-      //     ReservationDetail.insertMany(ReservationDetailEntries, { session }),
-      //     RoomBalance.insertMany(RoomBalanceEntries, { session }),
-      //     BillingAccount.insertMany([billing_account], { session }),
-      //     User.insertMany(UserEntries, { session }),
-      //     Address.insertMany(AddressEntries, { session }),
-      //     TransactionCode.insertMany(TransactionCodeEntries, { session }),
-      //     GuestTransaction.insertMany(GuestTransactionEntries, { session }),
-      //   ]);
-      // } catch (error) {
-      //   console.error("Error saving All data :", error);
-      //   throw error;
-      // }
 
-      //for debugging
       try {
-        console.log("Deelte room balance entries...");
+        console.log("Deleting room balance entries...");
         await RoomBalance.deleteMany(
           { reservationId: oldReservation._id },
           { session }
         );
       } catch (error) {
-        console.error("Error delete room balance entries:", error);
+        console.error("Error deleting room balance entries:", error);
         throw error;
       }
+
       try {
         console.log("Saving group data...");
         await GroupReservation.updateOne(
@@ -2606,20 +2502,21 @@ const changeRoomReservation = asyncHandler(async (req, res) => {
 const addReservationCharge = asyncHandler(async (req, res) => {
   let data = {};
   let { propertyUnitId, groupId, charges } = req.body;
+
   groupId = new ObjectId(groupId);
   let reservationId = new ObjectId(charges.reservationId);
   propertyUnitId = new ObjectId(propertyUnitId);
 
+  // Create a new RoomBalance entry
   let roomBalance = new RoomBalance(charges);
-  roomBalance.balance = -charges.charge;
+  roomBalance.balance = -charges.charge; // Negative charge for balance
   roomBalance.balanceDate = Date.now();
-  roomBalance.balanceName = BalanceNameEnum.ROOMSERVICES;
+  roomBalance.balanceName = BalanceNameEnum.ROOMSERVICES; // Set balance name
 
+  // Use Promise.all to perform multiple asynchronous operations
   await Promise.all([
     GroupReservation.updateOne(
-      {
-        _id: groupId,
-      },
+      { _id: groupId },
       {
         $inc: {
           totalBalance: roomBalance.balance,
@@ -2628,11 +2525,9 @@ const addReservationCharge = asyncHandler(async (req, res) => {
         },
       }
     ),
-    roomBalance.save(),
+    roomBalance.save(), // Save the room balance entry
     ReservationDetail.updateOne(
-      {
-        reservationId: reservationId,
-      },
+      { reservationId: reservationId },
       {
         $inc: {
           roomExtraCharge: charges.charge,
@@ -2640,6 +2535,7 @@ const addReservationCharge = asyncHandler(async (req, res) => {
       }
     ),
   ]);
+
   return res
     .status(201)
     .json(new ApiResponse(201, data, "Payment made successfully!"));
@@ -2648,42 +2544,42 @@ const addReservationCharge = asyncHandler(async (req, res) => {
 const unassignRoom = asyncHandler(async (req, res) => {
   let data = {};
   let { propertyUnitId, reservation } = req.body;
+
   propertyUnitId = new ObjectId(propertyUnitId);
   let reservationId = new ObjectId(reservation._id);
+
+  // Check if there's a room lock to deallocate
   if (reservation.roomLockId) {
     const DeallocatedRoomLock = await deallocateRoom(
       new ObjectId(reservation.roomLockId)
     );
     if (!DeallocatedRoomLock) {
-      throw prepareInternalError("error while deallocated room !");
+      throw prepareInternalError("Error while deallocating room!");
     }
   }
+
+  // Update the reservation to unassign the room
   await Reservation.updateOne(
-    {
-      _id: reservationId,
-    },
+    { _id: reservationId },
     {
       $unset: {
         roomLockId: "",
         roomId: "",
       },
       $set: {
-        tentative: true,
+        tentative: true, // Set reservation as tentative
       },
     }
   );
 
   return res
     .status(201)
-    .json(new ApiResponse(201, data, "unassign room successfully!"));
+    .json(new ApiResponse(201, data, "Unassigned room successfully!"));
 });
 
 export default {
   getAllReservations,
-  getReservationById,
   createReservation,
-  updateReservationById,
-  deleteReservationById,
   readReservationRate,
   guestFolio,
   stayUpdate,
