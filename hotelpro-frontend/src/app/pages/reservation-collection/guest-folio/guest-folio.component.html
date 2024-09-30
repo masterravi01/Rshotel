@@ -319,14 +319,14 @@
             </label>
             <label
               class="form-label fw-semibold mt-2"
-              (click)="readCancelCharge(reservation)"
+              (click)="readCancelCharge(reservation, cancelReservationModal)"
               *ngIf="reservation?.reservationStatus == 'reserved'"
             >
               Cancel Room
             </label>
             <label
               class="form-label fw-semibold mt-2"
-              (click)="readNoshowCharge(reservation)"
+              (click)="readNoshowCharge(reservation, noshowReservationModal)"
               *ngIf="
                 Today > reservation?.arrival &&
                 reservation?.reservationStatus == 'reserved'
@@ -505,7 +505,7 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
   <div class="modal-body">
@@ -558,7 +558,7 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
   <div class="modal-body">
@@ -646,7 +646,7 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
   <div class="modal-body">
@@ -707,20 +707,19 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
   <div class="modal-body" [formGroup]="paymentForm">
     <div class="row">
       <div class="col-md-3 mt-3">
-        <label class="form-label">Payment Type</label>
+        <label class="form-label">Select Payment Type</label>
         <select
           class="form-control text-center select_reason"
           formControlName="paymentType"
         >
           <option value="cash">Cash</option>
           <option value="card">Card</option>
-          <option value="cheque">Cheque</option>
         </select>
       </div>
       <div class="col-md-2 mt-3">
@@ -747,11 +746,11 @@
           >Amount is required</small
         >
       </div>
-      <div
-        class="col-md-2 mt-3"
-        *ngIf="paymentForm.get('paymentType')?.value === 'cash'"
-      >
-        <div class="mt-4">
+      <div class="col-md-2 mt-3">
+        <div
+          class="mt-4"
+          *ngIf="paymentForm.get('paymentType')?.value === 'cash'"
+        >
           <label class="form-label me-2">Deposit</label>
           <input
             type="checkbox"
@@ -817,7 +816,7 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
   <div class="modal-body" [formGroup]="postChargeForm">
@@ -881,7 +880,7 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
   <div class="modal-body" [formGroup]="refundForm">
@@ -893,8 +892,28 @@
           formControlName="paymentType"
         >
           <option value="cash">Cash</option>
-          <option value="card">Card</option>
-          <option value="cheque">Cheque</option>
+          <option value="card">Online</option>
+        </select>
+      </div>
+      <div
+        class="col-md-3 mt-3"
+        *ngIf="refundForm.get('paymentType')?.value == 'card'"
+      >
+        <label class="form-label">Card</label>
+        <select
+          id="options"
+          formControlName="payId"
+          class="form-control"
+          style="appearance: auto"
+          (change)="onCardChange($event)"
+        >
+          <option
+            *ngFor="let option of cardsArray"
+            [value]="option.extraDetails.id"
+          >
+            {{ option.extraDetails?.id }} {{ option.extraDetails?.vpa
+            }}{{ option.extraDetails?.card?.last4 }}
+          </option>
         </select>
       </div>
       <div class="col-md-2 mt-3">
@@ -951,6 +970,7 @@
           <button
             class="btn btn-primary mt-4"
             type="button"
+            *ngIf="refundForm.get('paymentType')?.value == 'cash'"
             [disabled]="
               refundForm.invalid ||
               refundForm.get('maxRefund')?.value <
@@ -959,6 +979,21 @@
             (click)="modal.close(true)"
           >
             Refund
+          </button>
+          <button
+            class="btn btn-primary mt-4"
+            type="button"
+            *ngIf="refundForm.get('paymentType')?.value == 'card'"
+            [disabled]="
+              refundForm.invalid ||
+              (cardDetails.extraDetails?.amount -
+                cardDetails.extraDetails?.amount_refunded) /
+                100 <
+                refundForm.get('amount')?.value
+            "
+            (click)="modal.close(true)"
+          >
+            Proceed
           </button>
         </div>
       </div>
@@ -972,7 +1007,7 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
   <div class="modal-body" *ngIf="noshowDetails">
@@ -1015,7 +1050,7 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
   <div class="modal-body" *ngIf="depositObj">
@@ -1067,7 +1102,7 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
   <div class="modal-body" *ngIf="cancelDetails">
@@ -1115,7 +1150,7 @@
       type="button"
       class="btn-close"
       aria-label="Close"
-      (click)="modal.dismiss(false)"
+      (click)="modal.close(false)"
     ></button>
   </div>
 

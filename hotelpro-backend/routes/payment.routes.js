@@ -4,6 +4,6 @@ import razorpayDemoController from "../controllers/payment/razorpay-demo.control
 const router = express.Router();
 
 router.post("/create-payment-order", razorpayDemoController.createPaymentOrder);
-router.post("/validate-payment", razorpayDemoController.validatePayment);
+router.post("/verify-payment", razorpayDemoController.verifyPayment);
 
 export default router;

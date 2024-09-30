@@ -1867,6 +1867,20 @@ const guestFolio = asyncHandler(async (req, res) => {
               preserveNullAndEmptyArrays: true,
             },
           },
+          {
+            $lookup: {
+              from: "billingcards",
+              localField: "billingCardId",
+              foreignField: "_id",
+              as: "billingCardDetails",
+            },
+          },
+          {
+            $unwind: {
+              path: "$billingCardDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
         ],
       },
     },

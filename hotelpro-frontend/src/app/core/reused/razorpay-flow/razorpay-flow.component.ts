@@ -5,6 +5,7 @@ import { environment } from '../../../../environments/environment.development';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PaymentSharedService } from '../../services/payment-shared.service';
+import { AlertService } from '../../services/alert.service';
 
 interface PaymentData {
   paymentOrderId: string;
@@ -23,13 +24,14 @@ interface PaymentData {
 })
 export class RazorpayFlowComponent implements OnInit {
   paymentOrderId: string | null = '';
-  razorPayKey: string = environment.razor_key_id;
+  razorPayKey: string = environment.RAZOR_KEY_ID;
   paymentData: PaymentData = {} as PaymentData;
 
   constructor(
     private crudService: CrudService,
     private router: Router,
     private paymentSharedService: PaymentSharedService,
+    private alertService: AlertService,
     @Inject(PLATFORM_ID) private platformId: object
   ) {}
 
@@ -103,8 +105,9 @@ export class RazorpayFlowComponent implements OnInit {
     rzp.open();
 
     options.modal.ondismiss = () => {
-      alert('Transaction has been cancelled.');
-      this.router.navigateByUrl('');
+      console.log('Transaction has been cancelled.');
+      this.alertService.successAlert('Transaction has been cancelled.');
+      this.router.navigateByUrl(`guest-folio/${this.paymentData.groupId}`);
     };
   }
 
@@ -119,15 +122,15 @@ export class RazorpayFlowComponent implements OnInit {
     this.crudService
       .post(APIConstant.POST_RESERVATION_PAYMENT, obj)
       .then((response: any) => {
-        if (response.data.isPaymentVerfied) {
-          this.router.navigateByUrl('paymentsuccess');
-        } else {
-          this.router.navigateByUrl('paymentfailed');
-        }
+        this.alertService.successAlert(response.message);
+        this.router.navigateByUrl(`guest-folio/${this.paymentData.groupId}`);
       })
       .catch((error: any) => {
         console.error('There was an error!', error);
-        this.router.navigateByUrl('paymentfailed');
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred while doing Payment'
+        );
+        this.router.navigateByUrl(`guest-folio/${this.paymentData.groupId}`);
       });
   }
 }

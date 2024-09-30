@@ -935,6 +935,8 @@ const transactionCodeSchema = new Schema(
       type: String,
       enum: ["Amenity", "Card", "Tax", "Reservation", "Other"],
     },
+    paymentId: String,
+    refundId: String,
   },
   { timestamps: true }
 );
@@ -995,6 +997,8 @@ const billingCardSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "BillingAccount",
     },
+    orderId: String,
+    paymentId: String,
     extraDetails: Object,
   },
   { timestamps: true }

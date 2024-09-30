@@ -48,11 +48,10 @@ import {
   deallocateRoom,
 } from "./room-reservation-concurrency.js";
 import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils.js";
+import razorPayController from "../payment/razorpay-demo.controller.js";
 
+// Function to process reservation payment
 const postReservationPayment = asyncHandler(async (req, res) => {
-  let data = {};
-  let transactionCode;
-  let guestTransaction;
   let {
     propertyUnitId,
     groupId,
@@ -62,27 +61,29 @@ const postReservationPayment = asyncHandler(async (req, res) => {
     original_order_id,
     razorpay_payment_id,
   } = req.body;
+
   groupId = new ObjectId(groupId);
   userId = new ObjectId(userId);
   propertyUnitId = new ObjectId(propertyUnitId);
 
   let [billing_account, userDetails] = await Promise.all([
-    BillingAccount.findOne({
-      groupId,
-    }),
+    BillingAccount.findOne({ groupId }),
     User.findById(userId),
   ]);
+
   if (!billing_account) {
     billing_account = new BillingAccount({
       billingAccountName: `${userDetails.firstName} ${userDetails.lastName}`,
       propertyUnitId,
-      userId: userId,
-      groupId: groupId,
+      userId,
+      groupId,
     });
     await billing_account.save();
   }
+
+  const promiseArray = [];
   if (payment.paymentType === "cash") {
-    transactionCode = new TransactionCode({
+    const transactionCode = new TransactionCode({
       transactionCode: String(new ObjectId()),
       transactionType: "Reservation",
       transactionRate: payment.amount,
@@ -90,47 +91,67 @@ const postReservationPayment = asyncHandler(async (req, res) => {
       receipt: Math.floor(100000 + Math.random() * 900000),
       date: Date.now(),
     });
+    promiseArray.push(transactionCode.save());
 
-    guestTransaction = new GuestTransaction({
+    const guestTransaction = new GuestTransaction({
       transactionCodeId: transactionCode._id,
       isDeposit: payment.deposit,
       transactionDate: Date.now(),
-      userId: userId,
-      groupId: groupId,
+      userId,
+      groupId,
       billingAccountId: billing_account._id,
     });
+    promiseArray.push(guestTransaction.save());
   } else if (payment.paymentType === "card") {
-    const isPaymentVerfied = validatePaymentVerification(
-      { order_id: original_order_id, payment_id: razorpay_payment_id },
-      razorpay_signature,
-      process.env.Razor_key_secret
+    const isPaymentVerified = await razorPayController.isPaymentVerifiedFunc(
+      original_order_id,
+      razorpay_payment_id,
+      razorpay_signature
     );
-    if (isPaymentVerfied) {
-      transactionCode = new TransactionCode({
-        transactionCode: String(new ObjectId()),
-        transactionType: "Reservation",
-        transactionRate: payment.amount,
-        transactionDetail: payment.remark,
-        receipt: Math.floor(100000 + Math.random() * 900000),
-        date: Date.now(),
-      });
-
-      guestTransaction = new GuestTransaction({
-        transactionCodeId: transactionCode._id,
-        transactionDate: Date.now(),
-        userId: userId,
-        groupId: groupId,
-        billingAccountId: billing_account._id,
-      });
-    } else {
-      throw prepareInternalError("payment is not verified !");
+    if (!isPaymentVerified) {
+      throw prepareInternalError("Payment is not verified!");
     }
+
+    const razorPaymentDetails = await razorPayController.fetchPaymentByIdFunc(
+      razorpay_payment_id
+    );
+    if (!razorPaymentDetails) {
+      throw prepareInternalError("Error while getting payment details");
+    }
+
+    const billing_card = new BillingCard({
+      paymentId: razorpay_payment_id,
+      orderId: original_order_id,
+      extraDetails: razorPaymentDetails,
+      billingAccountId: billing_account._id,
+    });
+    promiseArray.push(billing_card.save());
+
+    const transactionCode = new TransactionCode({
+      transactionCode: String(new ObjectId()),
+      transactionType: "Reservation",
+      transactionRate: payment.amount,
+      transactionDetail: payment.remark,
+      receipt: Math.floor(100000 + Math.random() * 900000),
+      date: Date.now(),
+      paymentId: razorpay_payment_id,
+    });
+    promiseArray.push(transactionCode.save());
+
+    const guestTransaction = new GuestTransaction({
+      transactionCodeId: transactionCode._id,
+      transactionDate: Date.now(),
+      userId,
+      groupId,
+      billingAccountId: billing_account._id,
+      billingCardId: billing_card._id,
+    });
+    promiseArray.push(guestTransaction.save());
   }
-  await Promise.all([
+
+  promiseArray.push(
     GroupReservation.updateOne(
-      {
-        _id: groupId,
-      },
+      { _id: groupId },
       {
         $inc: {
           totalBalance: payment.deposit ? 0 : payment.amount,
@@ -138,31 +159,29 @@ const postReservationPayment = asyncHandler(async (req, res) => {
           totalDeposit: payment.deposit ? payment.amount : 0,
         },
       }
-    ),
-    transactionCode.save(),
-    guestTransaction.save(),
-  ]);
+    )
+  );
+
+  await Promise.all(promiseArray);
   return res
     .status(201)
-    .json(new ApiResponse(201, data, "Payment made successfully!"));
+    .json(new ApiResponse(201, {}, "Payment made successfully!"));
 });
 
+// Function to process refund
 const refundPayment = asyncHandler(async (req, res) => {
-  let data = {};
-  let transactionCode;
-  let guestTransaction;
   let { propertyUnitId, groupId, userId, payment } = req.body;
+
   groupId = new ObjectId(groupId);
   userId = new ObjectId(userId);
   propertyUnitId = new ObjectId(propertyUnitId);
 
-  let billing_account = await BillingAccount.findOne({
-    groupId,
-  });
+  let billing_account = await BillingAccount.findOne({ groupId });
+  const promiseArray = [];
 
   if (payment.paymentType === "cash") {
-    payment.amount = -payment.amount;
-    transactionCode = new TransactionCode({
+    payment.amount = -payment.amount; // Negate amount for refund
+    const transactionCode = new TransactionCode({
       transactionCode: String(new ObjectId()),
       transactionType: "Reservation",
       transactionRate: payment.amount,
@@ -170,41 +189,87 @@ const refundPayment = asyncHandler(async (req, res) => {
       receipt: Math.floor(100000 + Math.random() * 900000),
       date: Date.now(),
     });
+    promiseArray.push(transactionCode.save());
 
-    guestTransaction = new GuestTransaction({
+    const guestTransaction = new GuestTransaction({
       transactionCodeId: transactionCode._id,
       isRefund: true,
       transactionDate: Date.now(),
-      userId: userId,
-      groupId: groupId,
+      userId,
+      groupId,
       billingAccountId: billing_account._id,
     });
+    promiseArray.push(guestTransaction.save());
+  } else if (payment.paymentType === "card") {
+    const billing_card = await BillingCard.findOne({
+      paymentId: payment.payId,
+    });
+    const razorRefundDetails = await razorPayController.initiateRefundFunc(
+      req.body
+    );
+    if (!razorRefundDetails) {
+      throw prepareInternalError("Error while refunding payment");
+    }
+
+    const razorPaymentDetails =
+      await razorPayController.getRazorPaymentByIdFunc(payment.payId);
+    if (!razorPaymentDetails) {
+      throw prepareInternalError("Error while getting payment details");
+    }
+
+    payment.amount = -payment.amount; // Negate amount for refund
+    const transactionCode = new TransactionCode({
+      transactionCode: String(new ObjectId()),
+      transactionType: "Reservation",
+      transactionRate: payment.amount,
+      transactionDetail: payment.remark,
+      receipt: Math.floor(100000 + Math.random() * 900000),
+      date: Date.now(),
+      refundId: razorRefundDetails.id,
+    });
+    promiseArray.push(transactionCode.save());
+
+    const guestTransaction = new GuestTransaction({
+      transactionCodeId: transactionCode._id,
+      isRefund: true,
+      transactionDate: Date.now(),
+      userId,
+      groupId,
+      billingAccountId: billing_account._id,
+      billingCardId: billing_card._id,
+    });
+    promiseArray.push(guestTransaction.save());
+
+    promiseArray.push(
+      BillingCard.updateOne(
+        { _id: billing_card._id },
+        { $set: { extraDetails: razorPaymentDetails } }
+      )
+    );
   }
-  await Promise.all([
+
+  promiseArray.push(
     GroupReservation.updateOne(
-      {
-        _id: groupId,
-      },
+      { _id: groupId },
       {
         $inc: {
           totalBalance: payment.amount,
           totalPayment: payment.amount,
         },
       }
-    ),
-    transactionCode.save(),
-    guestTransaction.save(),
-  ]);
+    )
+  );
+
+  await Promise.all(promiseArray);
   return res
     .status(201)
-    .json(new ApiResponse(201, data, "Refund Payment  successfully!"));
+    .json(new ApiResponse(201, {}, "Refund payment successfully!"));
 });
 
+// Function to release deposit
 const depositRelease = asyncHandler(async (req, res) => {
-  let data = {};
-  let transactionCode;
-  let guestTransaction;
   let { propertyUnitId, groupId, userId, deposit } = req.body;
+
   groupId = new ObjectId(groupId);
   userId = new ObjectId(userId);
   propertyUnitId = new ObjectId(propertyUnitId);
@@ -212,9 +277,7 @@ const depositRelease = asyncHandler(async (req, res) => {
   if (deposit.transactionDetails.captureAmount > 0) {
     await Promise.all([
       GroupReservation.updateOne(
-        {
-          _id: groupId,
-        },
+        { _id: groupId },
         {
           $inc: {
             totalBalance: deposit.transactionDetails.captureAmount,
@@ -224,9 +287,7 @@ const depositRelease = asyncHandler(async (req, res) => {
         }
       ),
       TransactionCode.updateOne(
-        {
-          _id: new ObjectId(deposit.transactionDetails._id),
-        },
+        { _id: new ObjectId(deposit.transactionDetails._id) },
         {
           $set: {
             transactionRate: deposit.transactionDetails.captureAmount,
@@ -235,9 +296,7 @@ const depositRelease = asyncHandler(async (req, res) => {
         }
       ),
       GuestTransaction.updateOne(
-        {
-          _id: new ObjectId(deposit._id),
-        },
+        { _id: new ObjectId(deposit._id) },
         {
           $set: {
             isDeposit: false,
@@ -249,9 +308,7 @@ const depositRelease = asyncHandler(async (req, res) => {
   } else {
     await Promise.all([
       GroupReservation.updateOne(
-        {
-          _id: groupId,
-        },
+        { _id: groupId },
         {
           $inc: {
             totalDeposit: -deposit.transactionDetails.transactionRate,
@@ -261,15 +318,13 @@ const depositRelease = asyncHandler(async (req, res) => {
       TransactionCode.deleteOne({
         _id: new ObjectId(deposit.transactionDetails._id),
       }),
-      GuestTransaction.deleteOne({
-        _id: new ObjectId(deposit._id),
-      }),
+      GuestTransaction.deleteOne({ _id: new ObjectId(deposit._id) }),
     ]);
   }
 
   return res
     .status(201)
-    .json(new ApiResponse(201, data, "Payment made successfully!"));
+    .json(new ApiResponse(201, {}, "Deposit released successfully!"));
 });
 
 export default {

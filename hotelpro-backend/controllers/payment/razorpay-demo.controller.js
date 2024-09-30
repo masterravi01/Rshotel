@@ -5,50 +5,104 @@ import { ApiResponse } from "../../utils/ApiResponse.js";
 import Razorpay from "razorpay";
 import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils.js";
 
-let instance = new Razorpay({
-  key_id: process.env.Razor_key_id,
-  key_secret: process.env.Razor_key_secret,
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZOR_KEY_ID,
+  key_secret: process.env.RAZOR_KEY_SECRET,
 });
 
+// Function to create a payment order
 const createPaymentOrder = asyncHandler(async (req, res) => {
   const { payment, userId, groupId, propertyUnitId } = req.body;
-  const amount = payment.amount * 100;
+  const amount = payment.amount * 100; // Convert to paise
   const options = {
-    amount: amount, // amount in the smallest currency unit here paise
+    amount: amount,
     currency: "INR",
     receipt: `order_rcp_${Date.now()}`,
     notes: {
-      propertyUnitId: propertyUnitId,
-      groupId: groupId,
-      userId: userId,
+      propertyUnitId,
+      groupId,
+      userId,
       remark: payment.remark,
     },
   };
-  instance.orders.create(options, function (err, order) {
-    if (err) {
-      res.status(500);
-      let response = { status: 500, data: err };
-      res.send(response);
-    } else if (order) {
-      res.status(200);
-      let response = { status: 200, data: order };
-      res.send(response);
-    }
-  });
+
+  try {
+    const order = await razorpayInstance.orders.create(options);
+    res.status(200).send({ status: 200, data: order });
+  } catch (err) {
+    res.status(500).send({ status: 500, data: err });
+  }
 });
 
-const validatePayment = asyncHandler(async (req, res) => {
-  const razorpay_signature = req.body.razorpay_signature;
-  const secret = instance.key_secret;
-  const order_id = req.body.original_order_id;
-  const razorpay_payment_id = req.body.razorpay_payment_id;
+// Function to validate the payment
+const verifyPayment = asyncHandler(async (req, res) => {
+  const { razorpay_signature, original_order_id, razorpay_payment_id } =
+    req.body;
+  const secret = razorpayInstance.key_secret;
 
-  const isPaymentVerfied = validatePaymentVerification(
-    { order_id: order_id, payment_id: razorpay_payment_id },
+  const isPaymentVerified = validatePaymentVerification(
+    { order_id: original_order_id, payment_id: razorpay_payment_id },
     razorpay_signature,
     secret
   );
-  isPaymentVerfied ? res.status(200) : res.status(500);
-  res.send({ data: { isPaymentVerfied: isPaymentVerfied } });
+
+  res
+    .status(isPaymentVerified ? 200 : 500)
+    .send({ data: { isPaymentVerified } });
 });
-export default { createPaymentOrder, validatePayment };
+
+// Function to validate Razorpay payment signature
+const isPaymentVerifiedFunc = async (orderId, paymentId, signature) => {
+  try {
+    return validatePaymentVerification(
+      { order_id: orderId, payment_id: paymentId },
+      signature,
+      process.env.RAZOR_KEY_SECRET
+    );
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+};
+
+// Function to fetch payment details by ID
+const fetchPaymentByIdFunc = async (paymentId) => {
+  try {
+    return await razorpayInstance.payments.fetch(paymentId);
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+};
+
+// Function to create a refund
+const initiateRefundFunc = async (body) => {
+  const { propertyUnitId, groupId, userId, payment } = body;
+  try {
+    const refundDetails = await razorpayInstance.payments.refund(
+      payment.payId,
+      {
+        amount: payment.amount * 100, // Convert to paise
+        notes: {
+          propertyUnitId,
+          groupId,
+          userId,
+          remark: payment.remark,
+        },
+        receipt: `ref_rcp_${Date.now()}`,
+      }
+    );
+    return refundDetails;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+};
+
+export default {
+  createPaymentOrder,
+  verifyPayment,
+  isPaymentVerifiedFunc,
+  fetchPaymentByIdFunc,
+  initiateRefundFunc,
+};

@@ -105,5 +105,5 @@ export const APIConstant = {
   DELETE_SHARED_GUEST: 'reservation/delete-shared-guest',
 
   CREATE_PAYMENT_ORDER: 'razor/create-payment-order',
-  VALIDATE_PAYMENT: 'razor/validate-payment',
+  VERIFY_PAYMENT: 'razor/verify-payment',
 };

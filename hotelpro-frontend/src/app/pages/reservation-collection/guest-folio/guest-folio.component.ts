@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -73,6 +73,8 @@ export class GuestFolioComponent implements OnInit {
   FormatToday: string = '';
   confirmMsg: string = '';
   depositObj: any = {};
+  cardsArray: any[] = [];
+  cardDetails: any = {};
   imageObject = [
     {
       image:
@@ -94,10 +96,7 @@ export class GuestFolioComponent implements OnInit {
       title: 'Example with title.',
     },
   ];
-  @ViewChild('noshowReservationModal', { static: true })
-  noshowReservationModal!: ElementRef;
-  @ViewChild('cancelReservationModal', { static: true })
-  cancelReservationModal!: ElementRef;
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -132,6 +131,7 @@ export class GuestFolioComponent implements OnInit {
       amount: [10, [Validators.required, Validators.min(0)]],
       maxRefund: [0, [Validators.required, Validators.min(0)]],
       remark: [''],
+      payId: [''],
     });
 
     this.postChargeForm = this.fb.group({
@@ -152,7 +152,8 @@ export class GuestFolioComponent implements OnInit {
         })
         .catch((error) => {
           this.alertService.errorAlert(
-            error?.error?.message || 'An error occurred '
+            error?.error?.message ||
+              'An error occurred while loading group details'
           );
           console.error(error);
         });
@@ -175,7 +176,7 @@ export class GuestFolioComponent implements OnInit {
       })
       .catch((error) => {
         this.alertService.errorAlert(
-          error?.error?.message || 'An error occurred '
+          error?.error?.message || 'An error occurred while updating stay '
         );
         console.error(error);
       });
@@ -197,13 +198,15 @@ export class GuestFolioComponent implements OnInit {
   openUpdateStayModal(reservation: any, content: any): void {
     this.updateStayArrival = this.formatDate(new Date(reservation.arrival));
     this.updateStayDeparture = this.formatDate(new Date(reservation.departure));
-    this.modalService.open(content).result.then((result) => {
+    this.openModal(content).then((result) => {
       if (result) {
         this.updateStay(reservation._id);
       }
     });
   }
-
+  openModal(content: any, options?: any): Promise<any> {
+    return this.modalService.open(content, options).result;
+  }
   openAddRoomModal(content: any): void {
     this.currentRoomCount = 0;
 
@@ -216,36 +219,34 @@ export class GuestFolioComponent implements OnInit {
       .then((response: any) => {
         console.log(response.data);
         this.processRoomsData(response.data); // Process the room data
-        this.modalService
-          .open(content, {
-            size: 'lg',
-            centered: true,
-            backdrop: 'static',
-            keyboard: false,
-          })
-          .result.then((result) => {
-            if (result) {
-              const reservationDetails = this.prepareReservationDetails(); // Prepare room reservation details
-              this.crudService
-                .post(APIConstant.ADD_ROOM, {
-                  groupData: this.groupDetails,
-                  propertyUnitId: this.propertyUnitId,
-                  reservation: reservationDetails[0],
-                })
-                .then((response) => {
-                  console.log(response);
-                  this.alertService.successAlert(response.message); // Success alert
-                  this.ngOnInit(); // Refresh the component (Consider optimizing if performance is slow)
-                })
-                .catch((error) => {
-                  this.alertService.errorAlert(
-                    error?.error?.message ||
-                      'An error occurred while processing the room addition'
-                  );
-                  console.error(error);
-                });
-            }
-          });
+        this.openModal(content, {
+          size: 'lg',
+          centered: true,
+          backdrop: 'static',
+          keyboard: false,
+        }).then((result) => {
+          if (result) {
+            const reservationDetails = this.prepareReservationDetails(); // Prepare room reservation details
+            this.crudService
+              .post(APIConstant.ADD_ROOM, {
+                groupData: this.groupDetails,
+                propertyUnitId: this.propertyUnitId,
+                reservation: reservationDetails[0],
+              })
+              .then((response) => {
+                console.log(response);
+                this.alertService.successAlert(response.message); // Success alert
+                this.loadGroupDetails(); // Refresh the component (Consider optimizing if performance is slow)
+              })
+              .catch((error) => {
+                this.alertService.errorAlert(
+                  error?.error?.message ||
+                    'An error occurred while processing the room addition'
+                );
+                console.error(error);
+              });
+          }
+        });
       })
       .catch((error: any) => {
         this.alertService.errorAlert(
@@ -374,14 +375,19 @@ export class GuestFolioComponent implements OnInit {
       (room: any) =>
         !this.selectedItems.some(
           (selectedRooms: any[], i: number) =>
-            i !== index && selectedRooms.some((r: any) => r.id === room.id)
+            i !== index &&
+            selectedRooms.some(
+              (selectedRoom: any) => selectedRoom.id === room.id
+            )
         )
     );
   }
 
+  // Open modal to change room and fetch room rates
   openChangeRoomModal(reservation: any, content: any): void {
     this.currentReservation = reservation;
 
+    // Fetch reservation rates for the selected reservation
     this.crudService
       .post(APIConstant.READ_RESERVATION_RATE + this.propertyUnitId, {
         arrival: new Date(reservation.arrival),
@@ -389,21 +395,18 @@ export class GuestFolioComponent implements OnInit {
       })
       .then((response: any) => {
         console.log(response.data);
-        this.processRoomsData(response.data); // Reuse processRoomsData function
-        this.modalService.open(content, {
-          size: 'lg',
-          centered: true,
-          backdrop: 'static',
-          keyboard: false,
-        });
+        this.processRoomsData(response.data); // Reuse the processRoomsData function
+        this.openModal(content); // Open the modal
       })
       .catch((error: any) => {
         this.alertService.errorAlert(
           error?.error?.message || 'Failed to fetch room rates'
         );
+        console.error(error);
       });
   }
 
+  // Submit the room change request
   callChangeRoom(newReservation: any, room: any): void {
     newReservation.room = room;
     newReservation.roomId = room.id;
@@ -419,13 +422,13 @@ export class GuestFolioComponent implements OnInit {
         reservation: newReservation,
         oldReservation: this.currentReservation,
       })
-      .then((response) => {
+      .then((response: any) => {
         console.log(response);
-        this.modalService.dismissAll();
-        this.alertService.successAlert(response.message);
-        this.ngOnInit(); // Refresh the component
+        this.modalService.dismissAll(); // Close the modal
+        this.alertService.successAlert(response.message); // Success alert
+        this.loadGroupDetails(); // Refresh the component
       })
-      .catch((error) => {
+      .catch((error: any) => {
         this.alertService.errorAlert(
           error?.error?.message || 'An error occurred while changing the room'
         );
@@ -433,51 +436,49 @@ export class GuestFolioComponent implements OnInit {
       });
   }
 
+  // Toggle room charges display
   showRoomCharges(reservation: any): void {
-    reservation.showCharges =
-      reservation.showCharges == undefined || reservation.showCharges == false
-        ? true
-        : false;
+    reservation.showCharges = !reservation.showCharges;
   }
 
+  // Open modal to add charges to a reservation
   openAddChargeModal(content: any, reservation: any): void {
+    // Initialize the charge form with default values
     this.postChargeForm.patchValue({
       groupId: reservation.groupId,
       reservationId: reservation._id,
-      charge: 10,
+      charge: 10, // Default charge value, can be changed
       description: '',
     });
 
-    this.modalService
-      .open(content, {
-        size: 'lg',
-        centered: true,
-        backdrop: 'static',
-        keyboard: false,
+    this.openModal(content).then((result) => {
+      if (result) {
+        this.submitReservationCharge(); // Submit charge when confirmed
+      }
+    });
+  }
+
+  // Submit reservation charge to the server
+  private submitReservationCharge(): void {
+    this.crudService
+      .post(APIConstant.ADD_RESERVATION_CHARGE, {
+        propertyUnitId: this.propertyUnitId,
+        groupId: this.groupId,
+        charges: this.postChargeForm.value,
       })
-      .result.then((result) => {
-        if (result) {
-          this.crudService
-            .post(APIConstant.ADD_RESERVATION_CHARGE, {
-              propertyUnitId: this.propertyUnitId,
-              groupId: this.groupId,
-              charges: this.postChargeForm.value,
-            })
-            .then((response) => {
-              console.log(response);
-              this.alertService.successAlert(response.message);
-              this.ngOnInit();
-            })
-            .catch((error) => {
-              this.alertService.errorAlert(
-                error?.error?.message ||
-                  'An error occurred while adding charges'
-              );
-              console.error(error);
-            });
-        }
+      .then((response: any) => {
+        console.log(response);
+        this.alertService.successAlert(response.message); // Success alert
+        this.loadGroupDetails(); // Refresh the component
+      })
+      .catch((error: any) => {
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred while adding charges'
+        );
+        console.error(error);
       });
   }
+
   createPaymentOrder() {
     this.crudService
       .post(APIConstant.CREATE_PAYMENT_ORDER, {
@@ -499,7 +500,10 @@ export class GuestFolioComponent implements OnInit {
         this.router.navigateByUrl('razorpay-demo');
       })
       .catch((error: any) => {
-        console.error('There was an error!', error);
+        this.alertService.errorAlert(
+          error?.error?.message || 'An error occurred while adding Payment'
+        );
+        console.error(error);
       });
   }
   openPaymentModal(content: any): void {
@@ -514,19 +518,80 @@ export class GuestFolioComponent implements OnInit {
       deposit: false,
       remark: '',
     });
+    this.openModal(content, {
+      size: 'lg',
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+    }).then((result) => {
+      if (result) {
+        this.crudService
+          .post(APIConstant.POST_RESERVATION_PAYMENT, {
+            payment: this.paymentForm.value,
+            userId: this.groupDetails.customerId,
+            propertyUnitId: this.propertyUnitId,
+            groupId: this.groupId,
+          })
+          .then((response) => {
+            console.log(response);
+            this.alertService.successAlert(response.message);
+            this.loadGroupDetails();
+          })
+          .catch((error) => {
+            this.alertService.errorAlert(
+              error?.error?.message || 'An error occurred '
+            );
+            console.error(error);
+          });
+      }
+    });
+  }
 
-    this.modalService
-      .open(content, {
+  openRefundModal(content: any): void {
+    const totalRefundable = this.groupDetails?.paymentDetails.reduce(
+      (acc: number, curr: any) => {
+        if (
+          !curr.isDeposit &&
+          !curr.isRefund &&
+          curr.billingCardId &&
+          curr?.transactionDetails?.transactionRate > 0
+        ) {
+          acc += curr?.transactionDetails?.transactionRate;
+        }
+        return acc;
+      },
+      0
+    );
+    this.groupDetails?.paymentDetails.forEach((payment: any) => {
+      if (
+        payment.billingCardDetails &&
+        !payment.isRefund &&
+        !payment.isDeposit
+      ) {
+        this.cardsArray.push(payment.billingCardDetails);
+      }
+    });
+
+    this.cardDetails = this.cardsArray?.[0];
+    if (totalRefundable > 0 || this.cardDetails) {
+      this.refundForm.patchValue({
+        groupId: this.groupId,
+        paymentType: 'cash',
+        amount: 0,
+        maxRefund: totalRefundable,
+        remark: '',
+        payId: this.cardDetails?.extraDetails?.id,
+      });
+      this.openModal(content, {
         size: 'lg',
         centered: true,
         backdrop: 'static',
         keyboard: false,
-      })
-      .result.then((result) => {
+      }).then((result) => {
         if (result) {
           this.crudService
-            .post(APIConstant.POST_RESERVATION_PAYMENT, {
-              payment: this.paymentForm.value,
+            .post(APIConstant.REFUND_PAYMENT, {
+              payment: this.refundForm.value,
               userId: this.groupDetails.customerId,
               propertyUnitId: this.propertyUnitId,
               groupId: this.groupId,
@@ -534,7 +599,7 @@ export class GuestFolioComponent implements OnInit {
             .then((response) => {
               console.log(response);
               this.alertService.successAlert(response.message);
-              this.ngOnInit();
+              this.loadGroupDetails();
             })
             .catch((error) => {
               this.alertService.errorAlert(
@@ -544,61 +609,18 @@ export class GuestFolioComponent implements OnInit {
             });
         }
       });
-  }
-
-  openRefundModal(content: any): void {
-    const s = this.groupDetails?.paymentDetails.reduce(
-      (acc: Number, curr: any) => {
-        if (!curr.isDeposit && curr?.transactionDetails?.transactionRate > 0) {
-          acc = acc + curr?.transactionDetails?.transactionRate;
-        }
-        return acc;
-      },
-      0
-    );
-    console.log(s);
-    if (s > 0) {
-      this.refundForm.patchValue({
-        groupId: this.groupId,
-        paymentType: 'cash',
-        amount: 0,
-        maxRefund: s,
-        remark: '',
-      });
-
-      this.modalService
-        .open(content, {
-          size: 'lg',
-          centered: true,
-          backdrop: 'static',
-          keyboard: false,
-        })
-        .result.then((result) => {
-          if (result) {
-            this.crudService
-              .post(APIConstant.REFUND_PAYMENT, {
-                payment: this.refundForm.value,
-                userId: this.groupDetails.customerId,
-                propertyUnitId: this.propertyUnitId,
-                groupId: this.groupId,
-              })
-              .then((response) => {
-                console.log(response);
-                this.alertService.successAlert(response.message);
-                this.ngOnInit();
-              })
-              .catch((error) => {
-                this.alertService.errorAlert(
-                  error?.error?.message || 'An error occurred '
-                );
-                console.error(error);
-              });
-          }
-        });
+    } else {
+      this.alertService.errorAlert('All Refund Done , Nothing is remaining!');
     }
   }
+  // Handle card change event in the refund process
+  onCardChange(event: any): void {
+    this.cardDetails = this.cardsArray.find(
+      (card: any) => card.paymentId === event.target.value
+    );
+  }
 
-  readNoshowCharge(reservation: any): void {
+  readNoshowCharge(reservation: any, content: any): void {
     this.crudService
       .post(APIConstant.READ_NOSHOW_CHARGE, {
         propertyUnitId: this.propertyUnitId,
@@ -607,36 +629,28 @@ export class GuestFolioComponent implements OnInit {
       .then((response) => {
         console.log(response);
         this.noshowDetails = response.data;
-        this.modalService
-          .open(this.noshowReservationModal, {
-            size: 'lg',
-            centered: true,
-            backdrop: 'static',
-            keyboard: false,
-          })
-          .result.then((result) => {
-            if (result) {
-              this.crudService
-                .post(APIConstant.NOSHOW_RESERVATION, {
-                  noshowDetails: this.noshowDetails,
-                  reservation: reservation,
-                  propertyUnitId: this.propertyUnitId,
-                })
-                .then((response) => {
-                  console.log(response);
-                  this.alertService.successAlert(response.message);
-                  this.ngOnInit();
-                })
-                .catch((error) => {
-                  this.alertService.errorAlert(
-                    error?.error?.message ||
-                      'An error occurred while processing no-show'
-                  );
-                  console.error(error);
-                });
-            }
-          });
-        this.alertService.successAlert(response.message);
+        this.openModal(content).then((result) => {
+          if (result) {
+            this.crudService
+              .post(APIConstant.NOSHOW_RESERVATION, {
+                noshowDetails: this.noshowDetails,
+                reservation: reservation,
+                propertyUnitId: this.propertyUnitId,
+              })
+              .then((response) => {
+                console.log(response);
+                this.alertService.successAlert(response.message);
+                this.loadGroupDetails();
+              })
+              .catch((error) => {
+                this.alertService.errorAlert(
+                  error?.error?.message ||
+                    'An error occurred while processing no-show'
+                );
+                console.error(error);
+              });
+          }
+        });
       })
       .catch((error) => {
         this.alertService.errorAlert(
@@ -646,7 +660,7 @@ export class GuestFolioComponent implements OnInit {
       });
   }
 
-  readCancelCharge(reservation: any): void {
+  readCancelCharge(reservation: any, content: any): void {
     this.crudService
       .post(APIConstant.READ_CANCEL_RESERVATION_CHARGE, {
         propertyUnitId: this.propertyUnitId,
@@ -655,36 +669,33 @@ export class GuestFolioComponent implements OnInit {
       .then((response) => {
         console.log(response);
         this.cancelDetails = response.data;
-        this.modalService
-          .open(this.cancelReservationModal, {
-            size: 'lg',
-            centered: true,
-            backdrop: 'static',
-            keyboard: false,
-          })
-          .result.then((result) => {
-            if (result) {
-              this.crudService
-                .post(APIConstant.CANCEL_RESERVATION, {
-                  cancelDetails: this.cancelDetails,
-                  reservation: reservation,
-                  propertyUnitId: this.propertyUnitId,
-                })
-                .then((response) => {
-                  console.log(response);
-                  this.alertService.successAlert(response.message);
-                  this.ngOnInit();
-                })
-                .catch((error) => {
-                  this.alertService.errorAlert(
-                    error?.error?.message ||
-                      'An error occurred while canceling the reservation'
-                  );
-                  console.error(error);
-                });
-            }
-          });
-        this.alertService.successAlert(response.message);
+        this.openModal(content, {
+          size: 'lg',
+          centered: true,
+          backdrop: 'static',
+          keyboard: false,
+        }).then((result) => {
+          if (result) {
+            this.crudService
+              .post(APIConstant.CANCEL_RESERVATION, {
+                cancelDetails: this.cancelDetails,
+                reservation: reservation,
+                propertyUnitId: this.propertyUnitId,
+              })
+              .then((response) => {
+                console.log(response);
+                this.alertService.successAlert(response.message);
+                this.loadGroupDetails();
+              })
+              .catch((error) => {
+                this.alertService.errorAlert(
+                  error?.error?.message ||
+                    'An error occurred while canceling the reservation'
+                );
+                console.error(error);
+              });
+          }
+        });
       })
       .catch((error) => {
         this.alertService.errorAlert(
@@ -722,21 +733,18 @@ export class GuestFolioComponent implements OnInit {
       documents: [guest?.documents || []],
       isCustomer: [isDeleteAble],
     });
-
-    this.modalService
-      .open(content, {
-        size: 'lg',
-        centered: true,
-        backdrop: 'static',
-        keyboard: false,
-      })
-      .result.then((result) => {
-        if (result === 'delete') {
-          this.deleteGuest(reservationId);
-        } else if (result) {
-          this.saveGuest(reservationId);
-        }
-      });
+    this.openModal(content, {
+      size: 'lg',
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+    }).then((result) => {
+      if (result === 'delete') {
+        this.deleteGuest(reservationId);
+      } else if (result) {
+        this.saveGuest(reservationId);
+      }
+    });
   }
 
   private deleteGuest(reservationId: any): void {
@@ -750,7 +758,7 @@ export class GuestFolioComponent implements OnInit {
       .then((response) => {
         console.log(response);
         this.alertService.successAlert(response.message);
-        this.ngOnInit();
+        this.loadGroupDetails();
       })
       .catch((error) => {
         this.alertService.errorAlert(
@@ -761,12 +769,12 @@ export class GuestFolioComponent implements OnInit {
   }
 
   private saveGuest(reservationId: any): void {
-    const callUrl = this.guestForm.get('_id')?.value
+    const apiEndpoint = this.guestForm.get('_id')?.value
       ? APIConstant.UPDATE_GUEST_RESERVATION
       : APIConstant.ADD_SHARED_GUEST_RESERVATION;
 
     this.crudService
-      .post(callUrl, {
+      .post(apiEndpoint, {
         reservationId: reservationId,
         groupId: this.groupId,
         userDetails: this.guestForm.value,
@@ -775,7 +783,7 @@ export class GuestFolioComponent implements OnInit {
       .then((response) => {
         console.log(response);
         this.alertService.successAlert(response.message);
-        this.ngOnInit();
+        this.loadGroupDetails();
       })
       .catch((error) => {
         this.alertService.errorAlert(
@@ -785,46 +793,38 @@ export class GuestFolioComponent implements OnInit {
       });
   }
 
-  dropped(files: NgxFileDropEntry[], guestForm: AbstractControl) {
-    this.files = files;
-
-    // Create a single FormData object for all files
+  dropped(files: NgxFileDropEntry[], guestForm: AbstractControl): void {
     const formData = new FormData();
 
-    for (const droppedFile of files) {
-      // Is it a file?
-      if (droppedFile.fileEntry.isFile) {
-        const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
+    files.forEach((fileEntry, index) => {
+      if (fileEntry.fileEntry.isFile) {
+        const entry = fileEntry.fileEntry as FileSystemFileEntry;
+        entry.file((file: File) => {
+          formData.append('uploadedImages', file, fileEntry.relativePath);
 
-        fileEntry.file((file: File) => {
-          // Append each file to the FormData
-          formData.append('uploadedImages', file, droppedFile.relativePath);
-
-          // After all files have been processed, send the request
-          if (files.indexOf(droppedFile) === files.length - 1) {
+          // Once all files are processed, send the upload request
+          if (index === files.length - 1) {
             formData.append('userId', guestForm.get('_id')?.value);
-
             this.uploadPhotos(formData, guestForm);
           }
         });
       } else {
-        // It was a directory (handle directories if necessary)
-        const fileEntry = droppedFile.fileEntry as FileSystemDirectoryEntry;
-        console.log(droppedFile.relativePath, fileEntry);
+        // Handle directories if needed
+        const dirEntry = fileEntry.fileEntry as FileSystemDirectoryEntry;
+        console.log(fileEntry.relativePath, dirEntry);
       }
-    }
+    });
   }
 
   uploadPhotos(formData: FormData, guestForm: AbstractControl) {
     this.crudService
       .post(APIConstant.UPLOAD_RESERVATION_IMAGES, formData)
       .then((response) => {
-        if (response?.data?.images?.length) {
+        const uploadedImages = response?.data?.images || [];
+        if (uploadedImages.length) {
+          const currentDocuments = guestForm.get('documents')?.value || [];
           guestForm.patchValue({
-            documents: [
-              ...guestForm.get('documents')?.value,
-              ...response?.data?.images,
-            ],
+            documents: [...currentDocuments, ...uploadedImages],
           });
         }
       })
@@ -843,12 +843,11 @@ export class GuestFolioComponent implements OnInit {
         userId: this.guestForm?.get('_id')?.value,
       })
       .then((response) => {
-        let originalArray = this.guestForm?.get('documents')?.value;
-        const indexToRemove = originalArray.indexOf(imageUrl);
-        if (indexToRemove !== -1) {
-          originalArray.splice(indexToRemove, 1);
-        }
-        this.guestForm.patchValue({ documents: originalArray });
+        const currentDocuments = this.guestForm.get('documents')?.value;
+        const updatedDocuments = currentDocuments.filter(
+          (doc: string) => doc !== imageUrl
+        );
+        this.guestForm.patchValue({ documents: updatedDocuments });
       })
       .catch((error) => {
         this.alertService.errorAlert(
@@ -863,7 +862,7 @@ export class GuestFolioComponent implements OnInit {
       this.alertService.errorAlert('Please Assign Room');
     } else {
       this.confirmMsg = 'Are you sure want to check in ?';
-      this.modalService.open(content).result.then((result) => {
+      this.openModal(content).then((result) => {
         if (result) {
           this.crudService
             .post(APIConstant.CHECKIN_RESERVATION, {
@@ -874,7 +873,7 @@ export class GuestFolioComponent implements OnInit {
             .then((response) => {
               console.log(response);
               this.alertService.successAlert(response.message);
-              this.ngOnInit();
+              this.loadGroupDetails();
             })
             .catch((error) => {
               this.alertService.errorAlert(
@@ -889,7 +888,7 @@ export class GuestFolioComponent implements OnInit {
   }
   openCheckOutModal(content: any, reservation: any): void {
     this.confirmMsg = 'Are you sure want to check out ?';
-    this.modalService.open(content).result.then((result) => {
+    this.openModal(content).then((result) => {
       if (result) {
         this.crudService
           .post(APIConstant.CHECKOUT_RESERVATION, {
@@ -900,7 +899,7 @@ export class GuestFolioComponent implements OnInit {
           .then((response) => {
             console.log(response);
             this.alertService.successAlert(response.message);
-            this.ngOnInit();
+            this.loadGroupDetails();
           })
           .catch((error) => {
             this.alertService.errorAlert(
@@ -918,7 +917,7 @@ export class GuestFolioComponent implements OnInit {
     deposit.transactionDetails.captureAmount =
       deposit.transactionDetails.transactionRate;
     this.depositObj = deposit;
-    this.modalService.open(content).result.then((result) => {
+    this.openModal(content).then((result) => {
       if (result) {
         this.crudService
           .post(APIConstant.DEPOSIT_RELEASE, {
@@ -929,7 +928,7 @@ export class GuestFolioComponent implements OnInit {
           .then((response) => {
             console.log(response);
             this.alertService.successAlert(response.message);
-            this.ngOnInit();
+            this.loadGroupDetails();
           })
           .catch((error) => {
             this.alertService.errorAlert(
@@ -950,7 +949,7 @@ export class GuestFolioComponent implements OnInit {
       .then((response) => {
         console.log(response);
         this.alertService.successAlert(response.message);
-        this.ngOnInit();
+        this.loadGroupDetails();
       })
       .catch((error) => {
         this.alertService.errorAlert(
