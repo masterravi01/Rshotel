@@ -52,4 +52,5 @@ router.post(
   ratemanagementIndex.readFutureAvailability
 );
 
+router.post("/get-tapechart", ratemanagementIndex.getTapechart);
 export default router;

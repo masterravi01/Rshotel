@@ -112,6 +112,7 @@ const getAllReservations = asyncHandler(async (req, res) => {
         reservationStatus: 1,
         arrival: 1,
         departure: 1,
+        confirmationNumber: 1,
       },
     },
     { $addFields: { Show: true } },
