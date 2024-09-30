@@ -82,6 +82,7 @@ class HotelProDatabase {
     new_values,
     session
   ) => {
+    // eslint-disable-next-line no-useless-catch
     try {
       if (
         typeof update_condition_obj !== "string" &&

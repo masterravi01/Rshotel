@@ -10,3 +10,7 @@
 .pay-table tr:last-child td:last-child {
   border-bottom-right-radius: 8px;
 }
+
+.link:hover {
+  text-decoration: underline;
+}

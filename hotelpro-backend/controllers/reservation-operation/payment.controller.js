@@ -86,6 +86,7 @@ const postReservationPayment = asyncHandler(async (req, res) => {
     const transactionCode = new TransactionCode({
       transactionCode: String(new ObjectId()),
       transactionType: "Reservation",
+      paymentType: payment.paymentType,
       transactionRate: payment.amount,
       transactionDetail: payment.remark,
       receipt: Math.floor(100000 + Math.random() * 900000),
@@ -130,6 +131,7 @@ const postReservationPayment = asyncHandler(async (req, res) => {
     const transactionCode = new TransactionCode({
       transactionCode: String(new ObjectId()),
       transactionType: "Reservation",
+      paymentType: payment.paymentType,
       transactionRate: payment.amount,
       transactionDetail: payment.remark,
       receipt: Math.floor(100000 + Math.random() * 900000),
@@ -184,6 +186,7 @@ const refundPayment = asyncHandler(async (req, res) => {
     const transactionCode = new TransactionCode({
       transactionCode: String(new ObjectId()),
       transactionType: "Reservation",
+      paymentType: payment.paymentType,
       transactionRate: payment.amount,
       transactionDetail: payment.remark,
       receipt: Math.floor(100000 + Math.random() * 900000),
@@ -221,6 +224,7 @@ const refundPayment = asyncHandler(async (req, res) => {
     const transactionCode = new TransactionCode({
       transactionCode: String(new ObjectId()),
       transactionType: "Reservation",
+      paymentType: payment.paymentType,
       transactionRate: payment.amount,
       transactionDetail: payment.remark,
       receipt: Math.floor(100000 + Math.random() * 900000),

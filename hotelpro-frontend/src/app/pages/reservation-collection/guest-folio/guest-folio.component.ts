@@ -138,6 +138,7 @@ export class GuestFolioComponent implements OnInit {
       groupId: ['', [Validators.required]],
       reservationId: ['', [Validators.required]],
       reason: ['penalty', [Validators.required]],
+      remark: [''],
       charge: [10, [Validators.required, Validators.min(0)]],
     });
   }
@@ -396,7 +397,12 @@ export class GuestFolioComponent implements OnInit {
       .then((response: any) => {
         console.log(response.data);
         this.processRoomsData(response.data); // Reuse the processRoomsData function
-        this.openModal(content); // Open the modal
+        this.openModal(content, {
+          size: 'lg',
+          centered: true,
+          backdrop: 'static',
+          keyboard: false,
+        }); // Open the modal
       })
       .catch((error: any) => {
         this.alertService.errorAlert(
@@ -451,7 +457,11 @@ export class GuestFolioComponent implements OnInit {
       description: '',
     });
 
-    this.openModal(content).then((result) => {
+    this.openModal(content, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    }).then((result) => {
       if (result) {
         this.submitReservationCharge(); // Submit charge when confirmed
       }
@@ -507,9 +517,10 @@ export class GuestFolioComponent implements OnInit {
       });
   }
   openPaymentModal(content: any): void {
-    const amount = this.groupDetails.totalBalance
-      ? -this.groupDetails.totalBalance
-      : 10;
+    const amount =
+      this.groupDetails?.totalBalance < 0
+        ? -this.groupDetails.totalBalance
+        : 10;
 
     this.paymentForm.patchValue({
       groupId: this.groupId,
@@ -887,7 +898,11 @@ export class GuestFolioComponent implements OnInit {
     }
   }
   openCheckOutModal(content: any, reservation: any): void {
-    this.confirmMsg = 'Are you sure want to check out ?';
+    this.confirmMsg =
+      this.groupDetails.totalBalance < 0
+        ? `Are you sure want to check out without clearing current outstanding ${-this
+            .groupDetails.totalBalance}`
+        : 'Are you sure want to check out ?';
     this.openModal(content).then((result) => {
       if (result) {
         this.crudService

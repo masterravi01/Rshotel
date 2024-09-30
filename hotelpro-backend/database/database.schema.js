@@ -82,7 +82,10 @@ const userSchema = new Schema(
         localPath: "",
       },
     },
-    documents: [String],
+    documents: {
+      type: [String],
+      default: [], // Set default value to an empty array
+    },
   },
   { timestamps: true }
 );
@@ -934,6 +937,10 @@ const transactionCodeSchema = new Schema(
     transactionType: {
       type: String,
       enum: ["Amenity", "Card", "Tax", "Reservation", "Other"],
+    },
+    paymentType: {
+      type: String,
+      enum: ["card", "cash"],
     },
     paymentId: String,
     refundId: String,

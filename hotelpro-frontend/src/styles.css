@@ -15,7 +15,9 @@ body {
 .backdroptrans {
   background-color: transparent !important;
 }
-
+.link {
+  cursor: pointer;
+}
 .form-label {
   margin-bottom: 0;
 }
