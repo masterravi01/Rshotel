@@ -264,6 +264,16 @@ export const routes: Routes = [
         title: 'Tape Chart',
         canActivate: [authGuard],
       },
+
+      {
+        path: 'view-notification',
+        loadComponent: () =>
+          import('./pages/view-notification/view-notification.component').then(
+            (m) => m.ViewNotificationComponent
+          ),
+        title: 'View Notification',
+        canActivate: [authGuard],
+      },
     ],
   },
 

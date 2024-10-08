@@ -856,27 +856,6 @@ const roomAmenitySchema = new Schema(
 );
 export const RoomAmenity = mongoose.model("RoomAmenity", roomAmenitySchema);
 
-const notificationSchema = new Schema(
-  {
-    propertyUnitId: {
-      type: Schema.Types.ObjectId,
-      ref: "PropertyUnit",
-    },
-    reservationId: {
-      type: Schema.Types.ObjectId,
-      ref: "Reservation",
-    },
-    receiverId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
-    isRead: Boolean,
-    message: String,
-  },
-  { timestamps: true }
-);
-export const Notification = mongoose.model("Notification", notificationSchema);
-
 const newDaySchema = new Schema(
   {
     propertyUnitId: {
@@ -1113,3 +1092,77 @@ export const propertyFolio = mongoose.model(
   "propertyFolio",
   propertyFolioSchema
 );
+
+const logSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    propertyUnitId: {
+      type: Schema.Types.ObjectId,
+      ref: "PropertyUnit",
+    },
+    action: {
+      type: String,
+      enum: ["CREATE", "UPDATE", "DELETE"],
+      default: "CREATE",
+    },
+    module: {
+      type: String,
+      enum: ["RATE", "RESERVATION", "PAYMENT"],
+      default: "RESERVATION",
+    },
+    details: { type: Object, default: {} }, // Flexible to store specific action details
+  },
+  {
+    timestamps: true, // Adds `createdAt` and `updatedAt` timestamps
+  }
+);
+
+export const log = mongoose.model("log", logSchema);
+
+const notificationSchema = new Schema(
+  {
+    propertyUnitId: {
+      type: Schema.Types.ObjectId,
+      ref: "PropertyUnit",
+    },
+    groupId: {
+      type: Schema.Types.ObjectId,
+      ref: "GroupReservation",
+    },
+    reservationId: {
+      type: Schema.Types.ObjectId,
+      ref: "Reservation",
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    receiverIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    readBy: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    module: {
+      type: String,
+      enum: ["RATE", "RESERVATION", "PAYMENT"],
+      default: "RESERVATION",
+    },
+    eventName: {
+      type: String,
+      default: "",
+    },
+    message: String,
+  },
+  { timestamps: true, default: { receiverIds: [], readBy: [] } }
+);
+export const Notification = mongoose.model("Notification", notificationSchema);

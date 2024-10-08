@@ -1,4 +1,4 @@
-import { Component, TemplateRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -6,27 +6,78 @@ import { CrudService } from '../../core/services/crud.service';
 import { APIConstant } from '../../core/constants/APIConstant';
 import { AlertService } from '../../core/services/alert.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule, DatePipe, JsonPipe } from '@angular/common';
+import { NotificationSharedService } from '../../core/services/notification-shared.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [FormsModule, CommonModule, RouterModule],
+  imports: [
+    FormsModule,
+    CommonModule,
+    RouterModule,
+    JsonPipe,
+    AsyncPipe,
+    DatePipe,
+  ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit, OnDestroy {
   oldPassword: string = '';
   newPassword: string = '';
+  userInfo: any = {};
+  notifications$ = this.notificationService.currentNotifications$;
+  private notificationInterval: any;
 
   constructor(
     private authService: AuthService,
     private router: Router,
     private crudService: CrudService,
     private alertService: AlertService,
+    private notificationService: NotificationSharedService,
     private modalService: NgbModal
-  ) { }
+  ) {}
 
+  ngOnInit(): void {
+    this.userInfo = this.authService.getUserInfo()?.user;
+    console.log('hi');
+    this.readNotifications();
+    this.monitorForNotifications();
+  }
+  monitorForNotifications() {
+    // this.notificationInterval = setInterval(() => {
+    //   this.readNotifications();
+    // }, 1000000); //1 min
+  }
+  readNotifications() {
+    this.crudService
+      .post(
+        APIConstant.READ_ALL_NOTIFICATION,
+        {
+          propertyUnitId: this.userInfo?.propertyUnitId,
+        },
+        {
+          skipLoader: true,
+        }
+      )
+      .then((response: any) => {
+        console.log(response?.data);
+        response?.data?.forEach((e: any) => {
+          if (e.message && typeof e.message === 'string') {
+            try {
+              e.message = JSON.parse(e.message);
+            } catch (err) {
+              console.error('Failed to parse message', err);
+            }
+          }
+        });
+        this.notificationService.sendNewNotifications(response?.data);
+      })
+      .catch((error: any) => {
+        this.alertService.errorAlert(error?.error?.message);
+      });
+  }
   async logOut() {
     try {
       await this.authService.logout();
@@ -76,5 +127,11 @@ export class NavbarComponent {
       hasUpperCase && hasLowerCase && hasNumeric && hasSpecialCharacter;
 
     return !passwordValid ? { passwordStrength: true } : null;
+  }
+
+  ngOnDestroy(): void {
+    if (this.notificationInterval) {
+      clearInterval(this.notificationInterval); // Clean up interval
+    }
   }
 }
