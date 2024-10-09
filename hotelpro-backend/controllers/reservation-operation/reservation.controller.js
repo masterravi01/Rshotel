@@ -576,6 +576,13 @@ const createReservation = asyncHandler(async (req, res) => {
         throw error;
       }
 
+      notification.sendNotification(
+        propertyUnitId,
+        [{ ...groupDetails, ...groupData._doc, reservationsArray }],
+        "Reservation Created",
+        "RESERVATION",
+        req.user
+      );
       data = groupData;
     });
     console.log("Transaction committed successfully");
@@ -1468,13 +1475,13 @@ const readReservationRate = asyncHandler(async (req, res) => {
     }
     nextDate.setDate(nextDate.getDate() + 1);
   }
-  notification.sendNotification(
-    propertyUnitId,
-    [{ rate: 232 }],
-    "Rate Change",
-    "RATE",
-    req.user
-  );
+  // notification.sendNotification(
+  //   propertyUnitId,
+  //   [{ rate: 232 }],
+  //   "Rate Change",
+  //   "RATE",
+  //   req.user
+  // );
   return res
     .status(200)
     .json(

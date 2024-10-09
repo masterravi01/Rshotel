@@ -121,12 +121,13 @@
           </div>
         </li>
       </ul>
-      <div *ngIf="notifications$ | async as notifications">
+      <div *ngIf="notifications">
         <div class="dropdown">
           <div
             class="dropdown-toggle custom_btn"
             type="button"
             data-bs-toggle="dropdown"
+            data-bs-auto-close="outside"
             aria-expanded="false"
           >
             <i class="material-symbols-rounded" style="vertical-align: middle">
@@ -141,23 +142,114 @@
                 font-size: 10px;
               "
               *ngIf="notifications?.length != 0"
-              >{{ notifications?.length }}</span
+              >{{ notifications.length }}</span
             >
           </div>
-          <div class="dropdown-menu dropdown-menu-end">
-            <div *ngFor="let n of notifications" class="dropdown-item">
-              <!-- your rate is change to {{ n?.message?.rate }} at
+          <div class="dropdown-menu dropdown-menu-end" id="notificationId">
+            <div
+              style="height: 50dvh; overflow: auto"
+              *ngIf="notifications?.length != 0"
+            >
+              <ng-container *ngFor="let n of notifications">
+                <div class="dropdown-item">
+                  <!-- your rate is change to {{ n?.message?.rate }} at
               {{ n?.createdAt }} by {{ n?.createdBy }} -->
-              <div class="card">
-                <div class="card-header">Rate Change</div>
-                <div class="card-body">
-                  <p class="card-text">Date:22/09/2001</p>
-                  <p class="card-text">Old Rate:200 , New Rate: 210</p>
+                  @if(n.eventName=='Rate Updated'){
+                  <ngb-toast
+                    [header]="n.eventName"
+                    [autohide]="false"
+                    (hidden)="dismiss(n._id)"
+                    ><div
+                      style="text-wrap: pretty"
+                      (click)="goToPage('/create-reservation', n._id)"
+                    >
+                      <p class="mb-0">Date: {{ n.createdAt | date }}</p>
+                      <p class="mb-0">{{ n.message | json }}</p>
+                    </div>
+                    <div class="text-body-secondary mt-1">
+                      By {{ n.createdUserName }} At
+                      {{ n.createdAt | date : "medium" }}
+                    </div>
+                  </ngb-toast>
+                  }@else if(n.eventName=='Reservation Created'){
+                  <ngb-toast
+                    [header]="
+                      n?.message?.customerName +
+                      '  Reserved (' +
+                      n?.message?.groupNumber +
+                      ')'
+                    "
+                    [autohide]="false"
+                    (hidden)="dismiss(n._id)"
+                    ><div
+                      style="text-wrap: pretty"
+                      (click)="goToPage('/create-reservation', n._id)"
+                    >
+                      <p class="mb-0">
+                        Arrival: {{ n.message?.arrival | date }}=> Departure:{{
+                          n.message?.departure | date
+                        }}
+                      </p>
+                      <p class="mb-0">
+                        Departure: {{ n.message?.departure | date }}
+                      </p>
+                      <p class="mb-0">
+                        Total Rooms: {{ n.message.rooms.length }}
+                      </p>
+                      <p class="mb-0" *ngFor="let r of n.message.rooms">
+                        {{ r.roomtype }}-{{ r.rateName }} (Room:{{
+                          r.roomName
+                        }})
+                      </p>
+                    </div>
+                    <div class="text-body-secondary mt-1">
+                      By {{ n.createdUserName }} At
+                      {{ n.createdAt | date : "medium" }}
+                    </div>
+                  </ngb-toast>
+                  } @else{
+                  <ngb-toast
+                    [header]="n.eventName"
+                    [autohide]="false"
+                    (hidden)="dismiss(n._id)"
+                    ><div
+                      style="text-wrap: pretty"
+                      (click)="goToPage('/', n._id)"
+                    >
+                      <p class="mb-0">{{ n.message | json }}</p>
+                    </div>
+                    <div class="text-body-secondary mt-1">
+                      By {{ n.createdUserName }} At
+                      {{ n.createdAt | date : "medium" }}
+                    </div>
+                  </ngb-toast>
+                  }
                 </div>
-                <div class="card-footer text-body-secondary">
-                  By Sanjiv Gupta At
-                  {{ n.createdAt | date : "medium" }}
-                </div>
+              </ng-container>
+            </div>
+
+            <div
+              class="d-flex justify-content-end m-2"
+              style="min-width: 300px"
+            >
+              <button
+                type="button"
+                class="btn btn-primary me-1"
+                *ngIf="notifications?.length != 0"
+                (click)="goToPage('view-notification')"
+              >
+                View All
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary ms-1"
+                (click)="markAsRead()"
+                *ngIf="notifications?.length != 0"
+              >
+                Mark All As Read
+              </button>
+              <div *ngIf="notifications?.length == 0">
+                No New Notifications Found!
               </div>
             </div>
           </div>

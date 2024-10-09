@@ -5,9 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { CrudService } from '../../core/services/crud.service';
 import { APIConstant } from '../../core/constants/APIConstant';
 import { AlertService } from '../../core/services/alert.service';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbToast } from '@ng-bootstrap/ng-bootstrap';
 import { AsyncPipe, CommonModule, DatePipe, JsonPipe } from '@angular/common';
 import { NotificationSharedService } from '../../core/services/notification-shared.service';
+import { interval, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -19,6 +20,7 @@ import { NotificationSharedService } from '../../core/services/notification-shar
     JsonPipe,
     AsyncPipe,
     DatePipe,
+    NgbToast,
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
@@ -27,8 +29,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   oldPassword: string = '';
   newPassword: string = '';
   userInfo: any = {};
-  notifications$ = this.notificationService.currentNotifications$;
-  private notificationInterval: any;
+  notifications: any[] = [];
+  private pollingSubscription: Subscription | null = null;
 
   constructor(
     private authService: AuthService,
@@ -41,14 +43,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.userInfo = this.authService.getUserInfo()?.user;
-    console.log('hi');
+
     this.readNotifications();
     this.monitorForNotifications();
   }
   monitorForNotifications() {
-    // this.notificationInterval = setInterval(() => {
-    //   this.readNotifications();
-    // }, 1000000); //1 min
+    this.pollingSubscription = interval(60000) // 1 minute interval
+      .subscribe(() => {
+        this.readNotifications();
+      });
   }
   readNotifications() {
     this.crudService
@@ -73,6 +76,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           }
         });
         this.notificationService.sendNewNotifications(response?.data);
+        this.notifications = response?.data;
       })
       .catch((error: any) => {
         this.alertService.errorAlert(error?.error?.message);
@@ -128,10 +132,48 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     return !passwordValid ? { passwordStrength: true } : null;
   }
-
+  updateNotifications(ids: any[]) {
+    this.crudService
+      .post(
+        APIConstant.UPDATE_MULTIPLE_NOTIFICATION,
+        {
+          ids,
+        },
+        {
+          skipLoader: true,
+        }
+      )
+      .then((response: any) => {
+        console.log(response?.data);
+        this.notifications = this.notifications.filter(
+          (d) => !ids.includes(d._id)
+        );
+        this.notificationService.sendNewNotifications(this.notifications);
+      })
+      .catch((error: any) => {
+        this.alertService.errorAlert(error?.error?.message);
+      });
+  }
+  dismiss(id: any) {
+    this.updateNotifications([id]);
+  }
+  markAsRead() {
+    this.closeDropDown();
+    this.updateNotifications(this.notifications.map((e) => e._id));
+  }
+  goToPage(link: string, id?: any) {
+    this.router.navigateByUrl(link);
+    this.closeDropDown();
+    if (id) this.dismiss(id);
+  }
+  closeDropDown() {
+    let el = document?.getElementById('notificationId');
+    if (el) el.classList.remove('show');
+  }
   ngOnDestroy(): void {
-    if (this.notificationInterval) {
-      clearInterval(this.notificationInterval); // Clean up interval
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
+      this.pollingSubscription = null; // Clean up
     }
   }
 }

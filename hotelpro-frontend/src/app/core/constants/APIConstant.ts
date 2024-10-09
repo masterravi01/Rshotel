@@ -110,4 +110,5 @@ export const APIConstant = {
   VERIFY_PAYMENT: 'razor/verify-payment',
 
   READ_ALL_NOTIFICATION: 'notification/read-all-notification',
+  UPDATE_MULTIPLE_NOTIFICATION: 'notification/update-multiple-notification',
 };

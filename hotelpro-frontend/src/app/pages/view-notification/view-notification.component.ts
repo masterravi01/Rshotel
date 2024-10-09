@@ -34,6 +34,7 @@ export class ViewNotificationComponent implements OnInit {
     this.crudService
       .post(APIConstant.READ_ALL_NOTIFICATION, {
         propertyUnitId: this.propertyUnitId,
+        viewAll: true,
       })
       .then((response: any) => {
         console.log(response?.data);
