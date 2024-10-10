@@ -16,9 +16,11 @@ export const APIConstant = {
   CREATE_USER: 'property/create-user/',
   UPLOAD_PROFILE_PHOTO: 'property/upload-profile-photo',
   UPLOAD_ROOMS_PHOTOS: 'property/upload-rooms-photos',
+
   UPDATE_PROPERTY_UNIT: 'propertyunit/update-propertyunit/',
   CREATE_PROPERTY_UNIT: 'propertyunit/create-propertyunit',
   READ_PROPERTY_UNIT: 'propertyunit/read-propertyunit/',
+  SWITCH_PROPERTY: 'propertyunit/switch-property',
 
   GET_SUPERADMIN_DASHBOARD: 'admin/get-superadmin-dashboard/',
 
@@ -110,4 +112,7 @@ export const APIConstant = {
 
   CREATE_PAYMENT_ORDER: 'razor/create-payment-order',
   VERIFY_PAYMENT: 'razor/verify-payment',
+
+  READ_ALL_NOTIFICATION: 'notification/read-all-notification',
+  UPDATE_MULTIPLE_NOTIFICATION: 'notification/update-multiple-notification',
 };

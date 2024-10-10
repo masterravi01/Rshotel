@@ -243,13 +243,7 @@ const loginUser = asyncHandler(async (req, res) => {
             $first: "$property.propertyName",
           },
           propertyUnitId: {
-            $first: "$propertyUnits._id",
-          },
-          propertyUnitCode: {
-            $first: "$propertyUnits.propertyUnitCode",
-          },
-          propertyUnitName: {
-            $first: "$propertyUnits.propertyUnitName",
+            $first: "$propertyUnitId",
           },
           propertyUnits: {
             $push: "$propertyUnits",
@@ -257,6 +251,20 @@ const loginUser = asyncHandler(async (req, res) => {
         },
       },
     ]);
+    if (loggedInUser[0].propertyUnitId) {
+      let hasProperty = loggedInUser[0].propertyUnits.find((p) => {
+        return p._id.toString() == loggedInUser[0].propertyUnitId.toString();
+      });
+      loggedInUser[0].propertyUnitCode = hasProperty.propertyUnitCode;
+      loggedInUser[0].propertyUnitName = hasProperty.propertyUnitName;
+      loggedInUser[0].propertyUnitId = hasProperty._id;
+    } else {
+      loggedInUser[0].propertyUnitCode =
+        loggedInUser[0].propertyUnits[0].propertyUnitCode;
+      loggedInUser[0].propertyUnitName =
+        loggedInUser[0].propertyUnits[0].propertyUnitName;
+      loggedInUser[0].propertyUnitId = loggedInUser[0].propertyUnits[0]._id;
+    }
   } else if (user.userType == UserTypesEnum.FRONTDESK) {
     loggedInUser = await User.aggregate([
       {

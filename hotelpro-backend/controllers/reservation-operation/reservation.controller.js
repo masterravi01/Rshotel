@@ -47,6 +47,8 @@ import {
   deallocateRoom,
 } from "./room-reservation-concurrency.js";
 
+import notification from "../notification/notification.js";
+
 // GET all reservations
 const getAllReservations = asyncHandler(async (req, res) => {
   const { propertyUnitId } = req.body;
@@ -113,9 +115,9 @@ const getAllReservations = asyncHandler(async (req, res) => {
         arrival: 1,
         departure: 1,
         confirmationNumber: 1,
-        Show: true,
       },
     },
+    { $addFields: { Show: true } },
   ]);
   return res
     .status(200)
@@ -574,6 +576,13 @@ const createReservation = asyncHandler(async (req, res) => {
         throw error;
       }
 
+      notification.sendNotification(
+        propertyUnitId,
+        [{ ...groupDetails, ...groupData._doc, reservationsArray }],
+        "Reservation Created",
+        "RESERVATION",
+        req.user
+      );
       data = groupData;
     });
     console.log("Transaction committed successfully");
@@ -1466,7 +1475,13 @@ const readReservationRate = asyncHandler(async (req, res) => {
     }
     nextDate.setDate(nextDate.getDate() + 1);
   }
-
+  // notification.sendNotification(
+  //   propertyUnitId,
+  //   [{ rate: 232 }],
+  //   "Rate Change",
+  //   "RATE",
+  //   req.user
+  // );
   return res
     .status(200)
     .json(

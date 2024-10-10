@@ -8,3 +8,11 @@
 .dropdown-menu li a {
   cursor: pointer;
 }
+.custom_btn::after {
+  border-right: 0 !important;
+  border-left: 0 !important;
+}
+
+.dropdown-item:active {
+  background-color: rgb(180, 180, 180);
+}

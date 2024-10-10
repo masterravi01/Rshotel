@@ -51,6 +51,8 @@ export class RateplanComponent implements OnInit {
   ngOnInit() {
     this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
     this.ratePlanId = this.activeRoute.snapshot.paramMap.get('ratePlanId');
+    const pId = this.activeRoute.snapshot.paramMap.get('propertyUnitId');
+    if (pId) this.propertyUnitId = pId;
     this.noshowPolicyForm = this.fb.group({
       _id: [''],
       noShowPolicyName: ['', Validators.required],
@@ -220,7 +222,7 @@ export class RateplanComponent implements OnInit {
 
   readRate() {
     let obj = {};
-    if (this.router.url == '/baserate-setup') {
+    if (this.router.url.includes('/baserate-setup')) {
       obj = {
         isBaseRate: true,
         propertyUnitId: this.propertyUnitId,

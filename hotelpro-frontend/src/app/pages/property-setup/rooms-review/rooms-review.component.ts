@@ -189,6 +189,6 @@ export class RoomsReviewComponent implements OnInit {
     return this.expandedRowIndices.has(index);
   }
   next() {
-    this.router.navigate(['/baserate-setup']);
+    this.router.navigate(['/baserate-setup/', this.propertyUnitId]);
   }
 }

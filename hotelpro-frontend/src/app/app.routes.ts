@@ -150,12 +150,12 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'baserate-setup',
+        path: 'baserate-setup/:propertyUnitId',
         loadComponent: () =>
           import('./pages/property-setup/rateplan/rateplan.component').then(
             (m) => m.RateplanComponent
           ),
-        title: 'RatePlan Setup',
+        title: 'BaseRate Setup',
         canActivate: [authGuard],
       },
       {
@@ -271,6 +271,14 @@ export const routes: Routes = [
             './pages/rate-management/future-rates/future-rates.component'
           ).then((m) => m.FutureRatesComponent),
         title: 'Future Rates',
+      },
+      {
+        path: 'view-notification',
+        loadComponent: () =>
+          import('./pages/view-notification/view-notification.component').then(
+            (m) => m.ViewNotificationComponent
+          ),
+        title: 'View Notification',
         canActivate: [authGuard],
       },
     ],

@@ -36,7 +36,7 @@ export class AlertService {
   }
 
   private autoClearAlert(): void {
-    setTimeout(() => this.clearAlert(), 20000); // Auto-hide after 20 seconds
+    setTimeout(() => this.clearAlert(), 5000); // Auto-hide after 5 seconds
   }
 
   clearAlert(): void {

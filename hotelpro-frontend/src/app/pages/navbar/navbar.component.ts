@@ -1,32 +1,87 @@
-import { Component, TemplateRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CrudService } from '../../core/services/crud.service';
 import { APIConstant } from '../../core/constants/APIConstant';
 import { AlertService } from '../../core/services/alert.service';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { CommonModule } from '@angular/common';
+import { NgbModal, NgbToast } from '@ng-bootstrap/ng-bootstrap';
+import { AsyncPipe, CommonModule, DatePipe, JsonPipe } from '@angular/common';
+import { NotificationSharedService } from '../../core/services/notification-shared.service';
+import { interval, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [FormsModule, CommonModule, RouterModule],
+  imports: [
+    FormsModule,
+    CommonModule,
+    RouterModule,
+    JsonPipe,
+    AsyncPipe,
+    DatePipe,
+    NgbToast,
+  ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit, OnDestroy {
   oldPassword: string = '';
   newPassword: string = '';
+  userInfo: any = {};
+  notifications: any[] = [];
+  private pollingSubscription: Subscription | null = null;
 
   constructor(
     private authService: AuthService,
     private router: Router,
     private crudService: CrudService,
     private alertService: AlertService,
+    private notificationService: NotificationSharedService,
     private modalService: NgbModal
-  ) { }
+  ) {}
 
+  ngOnInit(): void {
+    this.userInfo = this.authService.getUserInfo()?.user;
+
+    this.readNotifications();
+    this.monitorForNotifications();
+  }
+  monitorForNotifications() {
+    // this.pollingSubscription = interval(60000) // 1 minute interval
+    //   .subscribe(() => {
+    //     this.readNotifications();
+    //   });
+  }
+  readNotifications() {
+    this.crudService
+      .post(
+        APIConstant.READ_ALL_NOTIFICATION,
+        {
+          propertyUnitId: this.userInfo?.propertyUnitId,
+        },
+        {
+          skipLoader: true,
+        }
+      )
+      .then((response: any) => {
+        console.log(response?.data);
+        response?.data?.forEach((e: any) => {
+          if (e.message && typeof e.message === 'string') {
+            try {
+              e.message = JSON.parse(e.message);
+            } catch (err) {
+              console.error('Failed to parse message', err);
+            }
+          }
+        });
+        this.notificationService.sendNewNotifications(response?.data);
+        this.notifications = response?.data;
+      })
+      .catch((error: any) => {
+        this.alertService.errorAlert(error?.error?.message);
+      });
+  }
   async logOut() {
     try {
       await this.authService.logout();
@@ -76,5 +131,55 @@ export class NavbarComponent {
       hasUpperCase && hasLowerCase && hasNumeric && hasSpecialCharacter;
 
     return !passwordValid ? { passwordStrength: true } : null;
+  }
+  updateNotifications(ids: any[]) {
+    this.crudService
+      .post(
+        APIConstant.UPDATE_MULTIPLE_NOTIFICATION,
+        {
+          ids,
+        },
+        {
+          skipLoader: true,
+        }
+      )
+      .then((response: any) => {
+        console.log(response?.data);
+        this.notifications = this.notifications.filter(
+          (d) => !ids.includes(d._id)
+        );
+        this.notificationService.sendNewNotifications(this.notifications);
+      })
+      .catch((error: any) => {
+        this.alertService.errorAlert(error?.error?.message);
+      });
+  }
+
+  async switchPropertyUnit() {
+    await this.authService.switchProperty({
+      propertyUnitId: this.userInfo.propertyUnitId,
+    });
+  }
+  dismiss(id: any) {
+    this.updateNotifications([id]);
+  }
+  markAsRead() {
+    this.closeDropDown();
+    this.updateNotifications(this.notifications.map((e) => e._id));
+  }
+  goToPage(link: string, id?: any) {
+    this.router.navigateByUrl(link);
+    this.closeDropDown();
+    if (id) this.dismiss(id);
+  }
+  closeDropDown() {
+    let el = document?.getElementById('notificationId');
+    if (el) el.classList.remove('show');
+  }
+  ngOnDestroy(): void {
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
+      this.pollingSubscription = null; // Clean up
+    }
   }
 }
