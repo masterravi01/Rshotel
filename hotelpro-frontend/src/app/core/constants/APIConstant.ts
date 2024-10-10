@@ -75,6 +75,8 @@ export const APIConstant = {
   READ_FUTURE_AVAILABILITY: 'ratemanagement/read-future-availability',
 
   READ_TAPECHART: 'ratemanagement/get-tapechart',
+  READ_FUTURE_RATES: 'ratemanagement/get-future-rates',
+  UPDATE_FUTURE_RATES: 'ratemanagement/update-future-rates',
 
   READ_RESERVATION_RATE: 'reservation/read-reservation-rate/',
   CREATE_RESERVATION: 'reservation/create-reservation',

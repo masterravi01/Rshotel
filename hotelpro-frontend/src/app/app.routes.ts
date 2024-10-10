@@ -264,6 +264,15 @@ export const routes: Routes = [
         title: 'Tape Chart',
         canActivate: [authGuard],
       },
+      {
+        path: 'future-rates',
+        loadComponent: () =>
+          import(
+            './pages/rate-management/future-rates/future-rates.component'
+          ).then((m) => m.FutureRatesComponent),
+        title: 'Future Rates',
+        canActivate: [authGuard],
+      },
     ],
   },
 

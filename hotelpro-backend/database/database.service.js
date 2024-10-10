@@ -187,11 +187,12 @@ class HotelProDatabase {
     });
   };
 
-  bulkwriteupdateone = (filter_query, update_obj) => {
+  bulkwriteupdateone = (filter_query, update_obj, options = {}) => {
     return {
       updateOne: {
         filter: filter_query,
         update: update_obj,
+        upsert: options.upsert || false,
       },
     };
   };

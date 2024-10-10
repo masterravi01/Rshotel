@@ -53,4 +53,6 @@ router.post(
 );
 
 router.post("/get-tapechart", ratemanagementIndex.getTapechart);
+router.post("/get-future-rates", ratemanagementIndex.getFutureRates);
+router.post("/update-future-rates", ratemanagementIndex.updateFutureRates);
 export default router;
