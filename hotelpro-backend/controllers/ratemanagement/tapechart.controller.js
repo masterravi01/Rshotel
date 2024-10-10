@@ -222,6 +222,14 @@ const getTapechart = asyncHandler(async (req, res) => {
                 path: "$roomTypeRates",
               },
             },
+            {
+              $lookup: {
+                from: "rateplanroomdaterates",
+                localField: "_id",
+                foreignField: "ratePlanRoomRateId",
+                as: "dateRates",
+              },
+            },
           ],
         },
       },
@@ -234,17 +242,34 @@ const getTapechart = asyncHandler(async (req, res) => {
       {
         $project: {
           _id: 0,
-          roomTypeId: { $toString: "$_id" },
+          roomTypeId: {
+            $toString: "$_id",
+          },
           baseRate: "$rateRoomTypes.roomTypeRates.baseRate",
+          dateRate: "$rateRoomTypes.dateRates",
         },
       },
     ]),
   ]);
 
   for (let tc of tapechartData) {
-    for (let rd of rateData) {
-      if (tc.roomTypeId == rd.roomTypeId) {
-        tc.dateRate = [rd];
+    tc.dailyRates = [];
+    for (let dr of rateData) {
+      if (tc.roomTypeId == dr.roomTypeId) {
+        for (let currDate = new Date(startDate); currDate < endDate; ) {
+          let todayRate = dr.baseRate;
+          for (let d of dr.dateRate) {
+            if (d.date.toString() == currDate.toString()) {
+              todayRate = d.baseRate;
+              break;
+            }
+          }
+          tc.dailyRates.push({
+            date: new Date(currDate),
+            baseRate: todayRate,
+          });
+          currDate.setDate(currDate.getDate() + 1);
+        }
       }
     }
   }
