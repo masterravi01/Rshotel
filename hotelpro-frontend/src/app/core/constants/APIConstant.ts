@@ -16,9 +16,11 @@ export const APIConstant = {
   CREATE_USER: 'property/create-user/',
   UPLOAD_PROFILE_PHOTO: 'property/upload-profile-photo',
   UPLOAD_ROOMS_PHOTOS: 'property/upload-rooms-photos',
+
   UPDATE_PROPERTY_UNIT: 'propertyunit/update-propertyunit/',
   CREATE_PROPERTY_UNIT: 'propertyunit/create-propertyunit',
   READ_PROPERTY_UNIT: 'propertyunit/read-propertyunit/',
+  SWITCH_PROPERTY: 'propertyunit/switch-property',
 
   GET_SUPERADMIN_DASHBOARD: 'admin/get-superadmin-dashboard/',
 

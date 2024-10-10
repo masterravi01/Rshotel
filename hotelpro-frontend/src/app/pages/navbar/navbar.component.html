@@ -255,7 +255,22 @@
           </div>
         </div>
       </div>
-
+      <div class="me-2">
+        <select
+          id="options"
+          [(ngModel)]="userInfo.propertyUnitId"
+          class="form-control"
+          style="appearance: auto"
+          (change)="switchPropertyUnit()"
+        >
+          <option
+            *ngFor="let item of userInfo.propertyUnits"
+            [value]="item._id"
+          >
+            {{ item.propertyUnitName }}({{ item.propertyUnitCode }})
+          </option>
+        </select>
+      </div>
       <form class="d-flex" role="search">
         <input
           class="form-control me-2"

@@ -18,7 +18,7 @@ export class AuthService {
     private router: Router,
     private userInfoService: UserInfoService,
     private alertService: AlertService
-  ) { }
+  ) {}
 
   get tokenRefreshInProgress(): Observable<boolean> {
     return this.tokenRefreshInProgressSubject.asObservable();
@@ -67,6 +67,27 @@ export class AuthService {
       let userData = response.data;
       this.userInfoService.setUserInfo(userData);
       this.router.navigate([`/${userData?.user?.userType}-dashboard`]);
+    } catch (error: any) {
+      console.error('Error during login:', error);
+      this.alertService.errorAlert(error.error.message);
+    }
+  }
+  async switchProperty(data: any): Promise<void> {
+    try {
+      const response = await this.crudService.post(
+        APIConstant.SWITCH_PROPERTY,
+        data
+      );
+      let userData = this.userInfoService.getUserInfo();
+      userData.user.propertyUnitId = data.propertyUnitId;
+      let hasProperty = userData.user.propertyUnits.find((p: any) => {
+        return p._id == data.propertyUnitId;
+      });
+      userData.user.propertyUnitCode = hasProperty.propertyUnitCode;
+      userData.user.propertyUnitName = hasProperty.propertyUnitName;
+      userData.user.propertyUnitId = hasProperty._id;
+      this.userInfoService.setUserInfo(userData);
+      window.location.href = `/${userData?.user?.userType}-dashboard`;
     } catch (error: any) {
       console.error('Error during login:', error);
       this.alertService.errorAlert(error.error.message);

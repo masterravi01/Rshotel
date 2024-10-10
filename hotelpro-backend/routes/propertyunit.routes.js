@@ -13,7 +13,7 @@ router.post(
   "/read-propertyunit/:propertyUnitId",
   propertyUnitController.getPropertyUnitById
 );
-
+router.post("/switch-property", propertyUnitController.switchProperty);
 router.post("/create-tax", taxController.createTax);
 router.post("/update-tax/:taxId", taxController.updateTaxById);
 router.post("/get-tax-by-id/:taxId", taxController.getTaxById);

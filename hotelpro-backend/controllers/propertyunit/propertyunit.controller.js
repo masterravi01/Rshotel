@@ -194,10 +194,28 @@ const deletePropertyUnitById = asyncHandler(async (req, res) => {
     );
 });
 
+const switchProperty = asyncHandler(async (req, res) => {
+  const { propertyUnitId } = req.body;
+  const newUserCred = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      propertyUnitId,
+    },
+    { new: true }
+  );
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, newUserCred, "Property unit updated successfully")
+    );
+});
+
 export default {
   getAllPropertyUnits,
   getPropertyUnitById,
   createPropertyUnit,
   updatePropertyUnitById,
   deletePropertyUnitById,
+  switchProperty,
 };

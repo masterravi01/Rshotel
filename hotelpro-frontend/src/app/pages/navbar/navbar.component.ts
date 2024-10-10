@@ -154,6 +154,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.alertService.errorAlert(error?.error?.message);
       });
   }
+
+  async switchPropertyUnit() {
+    await this.authService.switchProperty({
+      propertyUnitId: this.userInfo.propertyUnitId,
+    });
+  }
   dismiss(id: any) {
     this.updateNotifications([id]);
   }
