@@ -150,12 +150,12 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'baserate-setup',
+        path: 'baserate-setup/:propertyUnitId',
         loadComponent: () =>
           import('./pages/property-setup/rateplan/rateplan.component').then(
             (m) => m.RateplanComponent
           ),
-        title: 'RatePlan Setup',
+        title: 'BaseRate Setup',
         canActivate: [authGuard],
       },
       {

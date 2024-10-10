@@ -17,7 +17,7 @@
             style="cursor: pointer"
             [routerLink]="
               ratePlan.isBaseRate
-                ? '/baserate-setup'
+                ? '/baserate-setup/' + propertyUnitId
                 : '/rateplan-setup/' + ratePlan._id
             "
           >

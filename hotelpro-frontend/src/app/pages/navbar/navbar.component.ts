@@ -48,10 +48,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.monitorForNotifications();
   }
   monitorForNotifications() {
-    this.pollingSubscription = interval(60000) // 1 minute interval
-      .subscribe(() => {
-        this.readNotifications();
-      });
+    // this.pollingSubscription = interval(60000) // 1 minute interval
+    //   .subscribe(() => {
+    //     this.readNotifications();
+    //   });
   }
   readNotifications() {
     this.crudService
