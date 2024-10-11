@@ -14,11 +14,19 @@ import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { CommonModule } from '@angular/common';
 import { CustomValidators } from '../../../core/shared/validators/custom-validators';
+import { AuthService } from '../../../core/services/auth.service';
+import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
 @Component({
   selector: 'app-manage-user',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule,
+    NgMultiSelectDropDownModule,
+  ],
   templateUrl: './manage-user.component.html',
   styleUrl: './manage-user.component.css',
 })
@@ -28,19 +36,23 @@ export class ManageUserComponent implements OnInit {
   userData: any[] = [];
   selectedUserIndex = 0;
   createUserForm!: FormGroup;
-
+  clientInfo: any;
+  selectedItems = [];
+  dropdownSettings = {};
   constructor(
     private crudService: CrudService,
     private fb: FormBuilder,
     private alertService: AlertService,
     private activeRoute: ActivatedRoute,
     private router: Router,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.propertyUnitId =
       this.activeRoute.snapshot.paramMap.get('propertyUnitId');
+    this.clientInfo = this.authService.getUserInfo()?.user;
     this.initForms();
     this.fetchData();
   }
@@ -66,6 +78,8 @@ export class ManageUserComponent implements OnInit {
       phone: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       active: [true, [Validators.required]],
+      userType: ['frontdesk', [Validators.required]],
+      propertyUnits: [],
     });
 
     this.createUserForm = this.fb.group({
@@ -82,6 +96,7 @@ export class ManageUserComponent implements OnInit {
       phone: ['', [Validators.required]],
       userType: ['frontdesk', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(4)]],
+      propertyUnits: [],
     });
   }
 
@@ -106,12 +121,20 @@ export class ManageUserComponent implements OnInit {
 
   selectUser(user: any, index: number): void {
     this.selectedUserIndex = index; // Track the selected row index
+    let propertyUnits = [];
+    if (user.userType == 'manager' && user?.accessPropertyUnitIds) {
+      propertyUnits = this.clientInfo.propertyUnits.filter((p: any) => {
+        return user.accessPropertyUnitIds.includes(p._id);
+      });
+    }
     this.userForm.patchValue({
       firstName: user.firstName,
       lastName: user.lastName,
       phone: user.phone,
       email: user.email,
       active: user.isLoginable,
+      userType: user.userType,
+      propertyUnits: propertyUnits,
     });
   }
 

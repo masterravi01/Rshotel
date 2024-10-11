@@ -6,6 +6,7 @@ import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { Property, User, Address } from "../../database/database.schema.js";
 import { SALT_WORK_FACTOR } from "../../constants.js";
+import { UserTypesEnum } from "../../constants.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 const readClientDashboard = asyncHandler(async (req, res) => {
@@ -114,18 +115,31 @@ const readClientDashboard = asyncHandler(async (req, res) => {
 const readUserByPropertyUnit = asyncHandler(async (req, res) => {
   const { propertyUnitId } = req.body;
   const response = {};
-
+  let matchquerry = {};
+  if (req.user.userType == UserTypesEnum.MANAGER) {
+    matchquerry = {
+      userType: UserTypesEnum.FRONTDESK,
+      propertyUnitId: new ObjectId(propertyUnitId),
+    };
+  } else {
+    matchquerry = {
+      userType: { $in: [UserTypesEnum.FRONTDESK, UserTypesEnum.MANAGER] },
+      $or: [
+        { propertyUnitId: new ObjectId(propertyUnitId) },
+        { accessPropertyUnitIds: { $in: [new ObjectId(propertyUnitId)] } },
+      ],
+    };
+  }
   const [users] = await Promise.all([
     User.aggregate([
       {
-        $match: {
-          propertyUnitId: new ObjectId(propertyUnitId),
-        },
+        $match: matchquerry,
       },
       {
         $project: {
           firstName: 1,
           lastName: 1,
+          accessPropertyUnitIds: 1,
           email: 1,
           phone: 1,
           isLoginable: 1,
@@ -146,22 +160,34 @@ const readUserByPropertyUnit = asyncHandler(async (req, res) => {
 });
 
 const updateUser = asyncHandler(async (req, res) => {
-  const {
+  let {
     userId,
     firstName,
     lastName,
     active: isLoginable,
     email,
     phone,
+    propertyUnits,
   } = req.body;
   const response = {};
-
+  if (propertyUnits) {
+    propertyUnits = propertyUnits.map((user) => user._id);
+  } else {
+    propertyUnits = [];
+  }
   let user = await User.findById(userId);
   user.firstName = firstName;
   user.lastName = lastName;
   user.isLoginable = isLoginable;
   user.email = email;
   user.phone = phone;
+  if (
+    user.propertyUnitId &&
+    !propertyUnits.includes(user.propertyUnitId.toString())
+  ) {
+    user.propertyUnitId = propertyUnits[0];
+  }
+  user.accessPropertyUnitIds = propertyUnits;
   await user.save();
 
   return res
@@ -170,7 +196,7 @@ const updateUser = asyncHandler(async (req, res) => {
 });
 
 const createUser = asyncHandler(async (req, res) => {
-  const {
+  let {
     firstName,
     lastName,
     userType,
@@ -178,9 +204,14 @@ const createUser = asyncHandler(async (req, res) => {
     phone,
     password,
     propertyUnitId,
+    propertyUnits,
   } = req.body;
   const response = {};
-
+  if (propertyUnits) {
+    propertyUnits = propertyUnits.map((user) => user._id);
+  } else {
+    propertyUnits = [];
+  }
   const existedUser = await User.findOne({
     email,
   });
@@ -198,6 +229,7 @@ const createUser = asyncHandler(async (req, res) => {
     phone,
     userType,
     propertyUnitId,
+    accessPropertyUnitIds: propertyUnits,
     isEmailVerified: true,
   });
   await user.save();

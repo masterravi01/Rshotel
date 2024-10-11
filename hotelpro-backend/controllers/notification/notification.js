@@ -5,10 +5,12 @@ import {
   Reservation,
   User,
   Notification,
+  PropertyUnit,
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
 const ObjectId = mongoose.Types.ObjectId;
 import { IsValidObjectId } from "../../utils/helpers.js";
+import { UserTypesEnum } from "../../constants.js";
 
 // Define notification handler functions first
 const reservationNotification = async (
@@ -223,7 +225,7 @@ const readNotification = asyncHandler(async (req, res) => {
         createdUser: 0, // Exclude the createdUser field
       },
     },
-    { $sort: { createdAt: 1 } },
+    { $sort: { createdAt: -1 } },
     { $limit: 20 },
   ]);
 
@@ -251,13 +253,70 @@ const sendNotification = async (
       : new ObjectId(propertyUnitId);
 
     // Fetch all users related to the property
-    let allUsers = await User.find(
-      {
-        propertyUnitId,
-        $or: [{ reservationStatus: "frontdesk" }, { userType: "client" }],
-      },
-      { _id: 1 }
-    );
+
+    let [allUsers, clients] = await Promise.all([
+      User.find(
+        {
+          userType: { $in: [UserTypesEnum.FRONTDESK, UserTypesEnum.MANAGER] },
+          $or: [
+            { propertyUnitId: propertyUnitId },
+            { accessPropertyUnitIds: { $in: [propertyUnitId] } },
+          ],
+        },
+        { _id: 1 }
+      ),
+      PropertyUnit.aggregate([
+        {
+          $match: {
+            _id: propertyUnitId,
+          },
+        },
+        {
+          $lookup: {
+            from: "properties",
+            localField: "propertyId",
+            foreignField: "_id",
+            as: "property",
+            pipeline: [
+              {
+                $lookup: {
+                  from: "users",
+                  localField: "ownerId",
+                  foreignField: "_id",
+                  as: "client",
+                },
+              },
+
+              {
+                $unwind: {
+                  path: "$client",
+                },
+              },
+              {
+                $project: {
+                  client: 1,
+                  _id: 0,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $unwind: {
+            path: "$property",
+          },
+        },
+        {
+          $project: {
+            client: "$property.client",
+            _id: 0,
+          },
+        },
+      ]),
+    ]);
+    if (clients?.[0]?.client) {
+      allUsers = allUsers.concat(clients[0].client);
+    }
 
     allUsers = allUsers.map((user) => user._id);
 

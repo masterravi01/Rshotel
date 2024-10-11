@@ -74,6 +74,15 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
+        path: 'manager-dashboard',
+        loadComponent: () =>
+          import(
+            './pages/client/client-dashboard/client-dashboard.component'
+          ).then((m) => m.ClientDashboardComponent),
+        title: 'Manager Dashboard',
+        canActivate: [authGuard],
+      },
+      {
         path: 'frontdesk-dashboard',
         loadComponent: () =>
           import(

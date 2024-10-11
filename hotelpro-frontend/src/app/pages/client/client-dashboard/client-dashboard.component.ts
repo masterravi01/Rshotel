@@ -6,13 +6,12 @@ import { CrudService } from '../../../core/services/crud.service';
 import { APIConstant } from '../../../core/constants/APIConstant';
 import { AlertService } from '../../../core/services/alert.service';
 
-
 @Component({
   selector: 'app-client-dashboard',
   standalone: true,
   imports: [],
   templateUrl: './client-dashboard.component.html',
-  styleUrl: './client-dashboard.component.css'
+  styleUrl: './client-dashboard.component.css',
 })
 export class ClientDashboardComponent {
   userInfo: any;
@@ -21,15 +20,21 @@ export class ClientDashboardComponent {
     private authService: AuthService,
     private router: Router,
     private crudService: CrudService,
-    private alertService: AlertService,
-  ) { }
+    private alertService: AlertService
+  ) {}
 
   ngOnInit(): void {
     this.userInfo = this.authService.getUserInfo()?.user;
     console.log(this.userInfo);
+    let obj = {};
+    if (this.userInfo.userType == 'manager') {
+      obj = { accessPropertyUnitIds: this.userInfo.accessPropertyUnitIds };
+    } else {
+      obj = { propertyId: this.userInfo.propertyId };
+    }
 
     this.crudService
-      .post(APIConstant.READ_CLIENT_DASHBOARD, { propertyId: this.userInfo.propertyId })
+      .post(APIConstant.READ_CLIENT_DASHBOARD, obj)
       .then((response: any) => {
         this.dashboardData = response.data;
         console.log(this.dashboardData);
@@ -37,7 +42,6 @@ export class ClientDashboardComponent {
       .catch((error) => {
         this.alertService.errorAlert(error?.error?.message || error.message);
       });
-
   }
 
   addPropertyUnit() {
@@ -51,5 +55,4 @@ export class ClientDashboardComponent {
   manageUser(propertyUnitId: any) {
     this.router.navigate(['/manage-user', propertyUnitId]);
   }
-
 }

@@ -39,6 +39,12 @@ const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    accessPropertyUnitIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "PropertyUnit",
+      },
+    ],
     phone: String,
     addressId: {
       type: Schema.Types.ObjectId,

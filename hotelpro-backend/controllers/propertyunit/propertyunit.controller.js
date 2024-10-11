@@ -119,7 +119,7 @@ const createPropertyUnit = asyncHandler(async (req, res) => {
   propertyUnit.addressId = address._id;
   propertyUnit.managerId = manager._id;
   manager.propertyUnitId = propertyUnit._id;
-  manager.password = "Hotel@123";
+  manager.accessPropertyUnitIds = [propertyUnit._id];
   await Promise.all([propertyUnit.save(), address.save(), manager.save()]);
 
   return res

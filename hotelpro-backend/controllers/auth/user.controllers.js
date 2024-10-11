@@ -265,6 +265,85 @@ const loginUser = asyncHandler(async (req, res) => {
         loggedInUser[0].propertyUnits[0].propertyUnitName;
       loggedInUser[0].propertyUnitId = loggedInUser[0].propertyUnits[0]._id;
     }
+  } else if (user.userType == UserTypesEnum.MANAGER) {
+    loggedInUser = await User.aggregate([
+      {
+        $match: {
+          _id: user._id,
+        },
+      },
+      {
+        $lookup: {
+          from: "propertyunits",
+          let: { ids: "$accessPropertyUnitIds" }, // Using '$' to reference the field in the outer document
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$_id", "$$ids"], // Use $$ to reference the let variable
+                },
+              },
+            },
+          ],
+          as: "propertyUnits",
+        },
+      },
+      {
+        $unwind: {
+          path: "$propertyUnits",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          firstName: {
+            $first: "$firstName",
+          },
+          lastName: {
+            $first: "$lastName",
+          },
+          email: {
+            $first: "$email",
+          },
+          userType: {
+            $first: "$userType",
+          },
+          accessPropertyUnitIds: {
+            $first: "$accessPropertyUnitIds",
+          },
+          avatar: {
+            $first: "$avatar",
+          },
+          propertyUnitId: {
+            $first: "$propertyUnitId",
+          },
+          propertyUnitCode: {
+            $first: "$propertyUnits.propertyUnitCode",
+          },
+          propertyUnitName: {
+            $first: "$propertyUnits.propertyUnitName",
+          },
+          propertyUnits: {
+            $push: "$propertyUnits",
+          },
+        },
+      },
+    ]);
+    if (loggedInUser[0].propertyUnitId) {
+      let hasProperty = loggedInUser[0].propertyUnits.find((p) => {
+        return p._id.toString() == loggedInUser[0].propertyUnitId.toString();
+      });
+      loggedInUser[0].propertyUnitCode = hasProperty.propertyUnitCode;
+      loggedInUser[0].propertyUnitName = hasProperty.propertyUnitName;
+      loggedInUser[0].propertyUnitId = hasProperty._id;
+    } else {
+      loggedInUser[0].propertyUnitCode =
+        loggedInUser[0].propertyUnits[0].propertyUnitCode;
+      loggedInUser[0].propertyUnitName =
+        loggedInUser[0].propertyUnits[0].propertyUnitName;
+      loggedInUser[0].propertyUnitId = loggedInUser[0].propertyUnits[0]._id;
+    }
   } else if (user.userType == UserTypesEnum.FRONTDESK) {
     loggedInUser = await User.aggregate([
       {

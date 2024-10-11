@@ -11,7 +11,12 @@ import {
   sendEmail,
 } from "../../utils/mail.js";
 
-import { Property, User, Address } from "../../database/database.schema.js";
+import {
+  Property,
+  User,
+  Address,
+  PropertyUnit,
+} from "../../database/database.schema.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 // GET all properties
@@ -185,30 +190,48 @@ const uploadProfilePhoto = asyncHandler(async (req, res) => {
 });
 
 const getClientDashboard = asyncHandler(async (req, res) => {
-  const { propertyId } = req.body;
+  let { propertyId, accessPropertyUnitIds } = req.body;
   const response = {};
+  let matchQuery = {};
 
+  if (accessPropertyUnitIds && accessPropertyUnitIds.length > 0) {
+    // Convert accessPropertyUnitIds to ObjectId
+    accessPropertyUnitIds = accessPropertyUnitIds.map((e) => new ObjectId(e));
+
+    // Fetch the propertyId from the first property unit
+    const propertyUnit = await PropertyUnit.findById(accessPropertyUnitIds[0]);
+
+    if (!propertyUnit) {
+      throw new ApiError(404, "Property Unit not found");
+    }
+    propertyId = propertyUnit.propertyId;
+    matchQuery = { _id: { $in: accessPropertyUnitIds } };
+  } else if (propertyId) {
+    propertyId = new ObjectId(propertyId); // Convert to ObjectId if it's passed
+  } else {
+    throw new ApiError(
+      400,
+      "Either propertyId or accessPropertyUnitIds must be provided"
+    );
+  }
+
+  // Fetch property and rooms data using Promise.all
   const [property, rooms] = await Promise.all([
+    // First aggregation pipeline for property details
     Property.aggregate([
       {
-        $match: {
-          _id: new ObjectId(propertyId),
-        },
+        $match: { _id: propertyId },
       },
       {
         $lookup: {
           from: "propertyunits",
           localField: "_id",
           foreignField: "propertyId",
-          as: "propertyunits",
           pipeline: [
-            {
-              $project: {
-                propertyUnitName: 1,
-                active: 1,
-              },
-            },
+            { $match: matchQuery },
+            { $project: { propertyUnitName: 1, active: 1 } },
           ],
+          as: "propertyunits",
         },
       },
       {
@@ -220,25 +243,20 @@ const getClientDashboard = asyncHandler(async (req, res) => {
         },
       },
     ]),
+
+    // Second aggregation pipeline for room details
     Property.aggregate([
-      {
-        $match: {
-          _id: new ObjectId(propertyId),
-        },
-      },
+      { $match: { _id: propertyId } },
       {
         $lookup: {
           from: "propertyunits",
           localField: "_id",
           foreignField: "propertyId",
+          pipeline: [{ $match: matchQuery }],
           as: "propertyUnits",
         },
       },
-      {
-        $unwind: {
-          path: "$propertyUnits",
-        },
-      },
+      { $unwind: "$propertyUnits" },
       {
         $lookup: {
           from: "roomtypes",
@@ -247,11 +265,7 @@ const getClientDashboard = asyncHandler(async (req, res) => {
           as: "roomTypes",
         },
       },
-      {
-        $unwind: {
-          path: "$roomTypes",
-        },
-      },
+      { $unwind: "$roomTypes" },
       {
         $lookup: {
           from: "rooms",
@@ -260,28 +274,26 @@ const getClientDashboard = asyncHandler(async (req, res) => {
           as: "rooms",
         },
       },
-      {
-        $unwind: {
-          path: "$rooms",
-        },
-      },
+      { $unwind: "$rooms" },
       {
         $group: {
           _id: "$_id",
-          totalRooms: {
-            $sum: 1,
-          },
+          totalRooms: { $sum: 1 },
         },
       },
     ]),
   ]);
 
-  if (!property || property.length == 0) {
+  // Check if property data exists
+  if (!property || property.length === 0) {
     throw new ApiError(404, "Property not found");
   }
 
+  // Prepare the response data
   response.property = property[0];
-  response.rooms = rooms[0];
+  response.rooms = rooms.length > 0 ? rooms[0] : { totalRooms: 0 };
+
+  // Send the response
   return res
     .status(200)
     .json(new ApiResponse(200, response, "Property retrieved successfully"));
