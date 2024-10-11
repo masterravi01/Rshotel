@@ -26,10 +26,9 @@ import { CommonModule, DatePipe } from '@angular/common';
     RouterModule,
   ],
   templateUrl: './tape-chart.component.html',
-  styleUrl: './tape-chart.component.css'
+  styleUrl: './tape-chart.component.css',
 })
 export class TapeChartComponent {
-
   propertyUnitId: string | null = '';
   startDate!: any;
   endDate!: any;
@@ -58,8 +57,8 @@ export class TapeChartComponent {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private modalService: NgbModal,
-    private authService: AuthService,
-  ) { }
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
@@ -83,7 +82,15 @@ export class TapeChartComponent {
 
   fetchdata() {
     if (this.Week < 2) this.Week = 2;
-    this.startDate = new Date(this.Date.replace(/-/g, "/"));
+    if (
+      new Date(this.Date).toISOString() < new Date(this.Today).toISOString()
+    ) {
+      this.Date = this.Today; // if user enter past date using input
+      this.alertService.errorAlert('You can not visit past data');
+      return;
+    }
+
+    this.startDate = new Date(this.Date.replace(/-/g, '/'));
     this.endDate = new Date(this.startDate);
     this.endDate.setDate(this.endDate.getDate() + this.Week * 7);
     this.DateArr = [];
@@ -221,7 +228,6 @@ export class TapeChartComponent {
     //   ],
     // }];
 
-
     this.crudService
       .post(APIConstant.READ_TAPECHART, {
         startDate: this.startDate,
@@ -308,7 +314,6 @@ export class TapeChartComponent {
   }
 
   test(d: any, r: any) {
-
     if (
       d.toString() == r.arrival.toString() ||
       (r.arrival <= this.startDate && d.toString() == this.startDate.toString())
@@ -320,7 +325,11 @@ export class TapeChartComponent {
   }
 
   testmaintainance(d: any, m: any) {
-    console.log(d.toString(), m.startDate.toString(), d.toString() == m.startDate.toString());
+    console.log(
+      d.toString(),
+      m.startDate.toString(),
+      d.toString() == m.startDate.toString()
+    );
     if (
       d.toString() == m.startDate.toString() ||
       (m.startDate <= this.startDate &&
@@ -388,5 +397,4 @@ export class TapeChartComponent {
       }
     }
   }
-
 }

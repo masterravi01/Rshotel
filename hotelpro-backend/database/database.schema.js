@@ -354,15 +354,12 @@ export const RatePlanRoomRate = mongoose.model(
 
 const ratePlanRoomDateRateSchema = new Schema(
   {
-    ratePlanRoomDetailId: {
+    ratePlanRoomRateId: {
       type: Schema.Types.ObjectId,
       ref: "RatePlanRoomType",
     },
-    ratePlanRoomRateId: {
-      type: Schema.Types.ObjectId,
-      ref: "RatePlanRoomRate",
-    },
     baseRate: Number,
+    date: Date,
   },
   { timestamps: true }
 );

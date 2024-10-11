@@ -77,8 +77,8 @@ export class RoomMaintenanceComponent implements OnInit {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private modalService: NgbModal,
-    private authService: AuthService,
-  ) { }
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
@@ -91,7 +91,10 @@ export class RoomMaintenanceComponent implements OnInit {
 
     this.Tomorrow = new Date(this.Today);
     this.Tomorrow.setDate(this.Tomorrow.getDate() + 1);
-    this.Tomorrow = new DatePipe('en-US').transform(this.Tomorrow, 'yyyy-MM-dd');
+    this.Tomorrow = new DatePipe('en-US').transform(
+      this.Tomorrow,
+      'yyyy-MM-dd'
+    );
 
     this.dropdownListRoom = [];
 
@@ -129,6 +132,14 @@ export class RoomMaintenanceComponent implements OnInit {
 
   fetchdata() {
     if (this.Week < 2) this.Week = 2;
+    if (
+      new Date(this.Date).toISOString() < new Date(this.Today).toISOString()
+    ) {
+      this.Date = this.Today; // if user enter past date using input
+      this.alertService.errorAlert('You can not visit past data');
+      return;
+    }
+
     this.AddMaintenance.reset({
       onlyMaintenance: true,
       roomType: '',
@@ -137,7 +148,7 @@ export class RoomMaintenanceComponent implements OnInit {
     });
 
     this.ShowAdd = false;
-    this.startDate = new Date(this.Date.replace(/-/g, "/"));
+    this.startDate = new Date(this.Date.replace(/-/g, '/'));
     this.endDate = new Date(this.startDate);
     this.endDate.setDate(this.endDate.getDate() + this.Week * 7);
     this.DateArr = [];
@@ -223,7 +234,6 @@ export class RoomMaintenanceComponent implements OnInit {
   }
 
   getAvailRoomdata() {
-
     this.AddMaintenance.patchValue({
       onlyMaintenance: true,
       roomType: '',
@@ -236,7 +246,7 @@ export class RoomMaintenanceComponent implements OnInit {
       this.AddMaintenance.controls.endDate.value?.toString()
     ) {
       this.AddMaintenance.patchValue({
-        endDate: this.getTomorrow()
+        endDate: this.getTomorrow(),
       });
     }
 
@@ -323,7 +333,10 @@ export class RoomMaintenanceComponent implements OnInit {
   getTomorrow() {
     this.Tomorrow = new Date(this.AddMaintenance.controls.startDate.value);
     this.Tomorrow.setDate(this.Tomorrow.getDate() + 1);
-    this.Tomorrow = new DatePipe('en-US').transform(this.Tomorrow, 'yyyy-MM-dd');
+    this.Tomorrow = new DatePipe('en-US').transform(
+      this.Tomorrow,
+      'yyyy-MM-dd'
+    );
     return this.Tomorrow;
   }
 
@@ -464,9 +477,7 @@ export class RoomMaintenanceComponent implements OnInit {
     this.crudService
       .post(APIConstant.UPDATE_ROOM_MAINTENANCE, this.CurrentMaintainance)
       .then((response: any) => {
-        this.alertService.successAlert(
-          'Room maintenance updated successfully'
-        );
+        this.alertService.successAlert('Room maintenance updated successfully');
         this.fetchdata();
       })
       .catch((error) => {
@@ -489,13 +500,15 @@ export class RoomMaintenanceComponent implements OnInit {
 
   rangeUpdate() {
     let obj = {
-      RangeMaintenance: this.RangeMaintenance
+      RangeMaintenance: this.RangeMaintenance,
     };
 
     this.crudService
       .post(APIConstant.UPDATE_ROOM_MAINTENANCE_RANGE, obj)
       .then((response: any) => {
-        this.alertService.successAlert('Room maintainance completed Successfully!');
+        this.alertService.successAlert(
+          'Room maintainance completed Successfully!'
+        );
         this.modalService.dismissAll();
         this.ngOnInit();
       })
@@ -533,6 +546,4 @@ export class RoomMaintenanceComponent implements OnInit {
       this.RangeMaintenance = [];
     }
   }
-
-
 }
