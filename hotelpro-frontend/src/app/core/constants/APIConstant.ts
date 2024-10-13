@@ -80,6 +80,10 @@ export const APIConstant = {
   READ_FUTURE_RATES: 'ratemanagement/get-future-rates',
   UPDATE_FUTURE_RATES: 'ratemanagement/update-future-rates',
 
+  READ_YIELD: 'ratemanagement/get-yield',
+  CREATE_YIELD: 'ratemanagement/create-yield',
+  UPDATE_YIELD: 'ratemanagement/update-yield',
+
   READ_RESERVATION_RATE: 'reservation/read-reservation-rate/',
   CREATE_RESERVATION: 'reservation/create-reservation',
   GUEST_FOLIO: 'reservation/guest-folio',

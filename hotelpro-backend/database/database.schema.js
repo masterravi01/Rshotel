@@ -371,7 +371,10 @@ export const RatePlanRoomDateRate = mongoose.model(
 const yieldSchema = new Schema(
   {
     yieldName: String,
-    active: Boolean,
+    active: {
+      type: Boolean,
+      default: true,
+    },
     yieldDescription: String,
     propertyUnitId: {
       type: Schema.Types.ObjectId,
