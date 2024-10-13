@@ -20,12 +20,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              *ngFor="let user of userData; let i = index"
-              (click)="selectUser(user, i)"
-              [ngClass]="{ selected: selectedUserIndex === i }"
-              style="cursor: pointer"
-            >
+            <tr *ngFor="let user of userData; let i = index" (click)="selectUser(user, i)"
+              [ngClass]="{ selected: selectedUserIndex === i }" style="cursor: pointer">
               <td>{{ i + 1 }}</td>
               <td>{{ user.firstName }} {{ user.lastName }}</td>
               <td>{{ user.phone }}</td>
@@ -48,51 +44,31 @@
             <tr>
               <td>First Name</td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  formControlName="firstName"
-                />
+                <input type="text" class="form-control" formControlName="firstName" />
               </td>
             </tr>
             <tr>
               <td>Last Name</td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  formControlName="lastName"
-                />
+                <input type="text" class="form-control" formControlName="lastName" />
               </td>
             </tr>
             <tr>
               <td>Phone</td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  formControlName="phone"
-                />
+                <input type="text" class="form-control" formControlName="phone" />
               </td>
             </tr>
             <tr>
               <td>Email</td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  formControlName="email"
-                />
+                <input type="text" class="form-control" formControlName="email" />
               </td>
             </tr>
             <tr>
               <td>Status</td>
               <td>
-                <select
-                  class="form-control"
-                  id="active"
-                  formControlName="active"
-                >
+                <select class="form-control" id="active" formControlName="active">
                   <option [value]="true">Active</option>
                   <option [value]="false">Deactive</option>
                 </select>
@@ -101,10 +77,7 @@
             <tr *ngIf="userForm.get('userType')?.value == 'manager'">
               <td>Property</td>
               <td>
-                <ng-multiselect-dropdown
-                  name="roomtype"
-                  [placeholder]="'Select Room'"
-                  [settings]="{
+                <ng-multiselect-dropdown name="roomtype" [placeholder]="'Select Property'" [settings]="{
                     singleSelection: false,
                     idField: '_id',
                     textField: 'propertyUnitName',
@@ -112,11 +85,8 @@
                     unSelectAllText: 'UnSelect All',
                     itemsShowLimit: 2,
                     allowSearchFilter: true
-                  }"
-                  [data]="clientInfo.propertyUnits"
-                  formControlName="propertyUnits"
-                  class="multiselect_dropdown"
-                ></ng-multiselect-dropdown>
+                  }" [data]="clientInfo.propertyUnits" formControlName="propertyUnits"
+                  class="multiselect_dropdown"></ng-multiselect-dropdown>
               </td>
             </tr>
           </table>
@@ -132,12 +102,7 @@
 <ng-template #AddUser let-modal>
   <div class="modal-header">
     <h4 class="modal-title" id="modal-basic-title">Create user</h4>
-    <button
-      type="button"
-      class="btn-close"
-      aria-label="Close"
-      (click)="modal.dismiss(false)"
-    ></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss(false)"></button>
   </div>
   <form [formGroup]="createUserForm" class="px-2 mt-2 fix_height">
     <table class="table table-sm table-borderless add_table">
@@ -161,33 +126,23 @@
         <td>
           <div class="d-flex justify-content-between p-0">
             <div>
-              <input
-                type="text"
-                formControlName="firstName"
-                class="form-control field"
-                placeholder="First Name"
+              <input type="text" formControlName="firstName" class="form-control field" placeholder="First Name"
                 [ngClass]="{
                   'is-invalid':
                     createUserForm.get('firstName')?.invalid &&
                     (createUserForm.get('firstName')?.dirty ||
                       createUserForm.get('firstName')?.touched)
-                }"
-              />
+                }" />
             </div>
 
             <div>
-              <input
-                type="text"
-                formControlName="lastName"
-                class="form-control field"
-                placeholder="Last Name"
+              <input type="text" formControlName="lastName" class="form-control field" placeholder="Last Name"
                 [ngClass]="{
                   'is-invalid':
                     createUserForm.get('lastName')?.invalid &&
                     (createUserForm.get('lastName')?.dirty ||
                       createUserForm.get('lastName')?.touched)
-                }"
-              />
+                }" />
             </div>
           </div>
         </td>
@@ -197,17 +152,12 @@
           <div>Email* :</div>
         </td>
         <td>
-          <input
-            type="email"
-            formControlName="email"
-            class="form-control field"
-            [ngClass]="{
+          <input type="email" formControlName="email" class="form-control field" [ngClass]="{
               'is-invalid':
                 createUserForm.get('email')?.invalid &&
                 (createUserForm.get('email')?.dirty ||
                   createUserForm.get('email')?.touched)
-            }"
-          />
+            }" />
         </td>
       </tr>
       <tr>
@@ -215,26 +165,18 @@
           <div>Contact Number* :</div>
         </td>
         <td>
-          <input
-            type="text"
-            class="form-control"
-            formControlName="phone"
-            [ngClass]="{
+          <input type="text" class="form-control" formControlName="phone" [ngClass]="{
               'is-invalid':
                 (createUserForm.get('phone')?.dirty ||
                   createUserForm.get('phone')?.touched) &&
                 createUserForm.get('phone')?.invalid
-            }"
-          />
+            }" />
         </td>
       </tr>
       <tr *ngIf="createUserForm.get('userType')?.value == 'manager'">
         <td class="custom_label">Property</td>
         <td>
-          <ng-multiselect-dropdown
-            name="roomtype"
-            [placeholder]="'Select Room'"
-            [settings]="{
+          <ng-multiselect-dropdown name="roomtype" [placeholder]="'Select Property'" [settings]="{
               singleSelection: false,
               idField: '_id',
               textField: 'propertyUnitName',
@@ -242,11 +184,8 @@
               unSelectAllText: 'UnSelect All',
               itemsShowLimit: 2,
               allowSearchFilter: true
-            }"
-            [data]="clientInfo.propertyUnits"
-            formControlName="propertyUnits"
-            class="multiselect_dropdown"
-          ></ng-multiselect-dropdown>
+            }" [data]="clientInfo.propertyUnits" formControlName="propertyUnits"
+            class="multiselect_dropdown"></ng-multiselect-dropdown>
         </td>
       </tr>
       <tr>
@@ -254,31 +193,20 @@
           <div>Password* :</div>
         </td>
         <td>
-          <input
-            class="form-control"
-            formControlName="password"
-            [ngClass]="{
+          <input class="form-control" formControlName="password" [ngClass]="{
               'is-invalid':
                 createUserForm.get('password')?.invalid &&
                 (createUserForm.get('password')?.dirty ||
                   createUserForm.get('password')?.touched)
-            }"
-          />
+            }" />
         </td>
       </tr>
     </table>
     <div class="d-flex justify-content-center pb-3">
-      <button
-        class="btn light_button button"
-        (click)="modal.close('Close click')"
-      >
+      <button class="btn light_button button" (click)="modal.close('Close click')">
         CANCEL
       </button>
-      <button
-        class="btn btn-success button ms-2"
-        [disabled]="!createUserForm.valid"
-        (click)="addUser()"
-      >
+      <button class="btn btn-success button ms-2" [disabled]="!createUserForm.valid" (click)="addUser()">
         Save
       </button>
     </div>
