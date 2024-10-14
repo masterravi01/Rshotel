@@ -26,18 +26,15 @@ const getDatesInRange = (startDate, endDate) => {
   }
   return dates;
 };
-const checkDateWiseRoomAvailability = async (
+
+const getDateWiseRoomAvailability = async (
   startDate,
   endDate,
   propertyUnitId
 ) => {
-  startDate = new Date(startDate);
-  startDate.setUTCHours(0, 0, 0, 0);
-  endDate = new Date(endDate);
-  endDate.setUTCHours(0, 0, 0, 0);
-  const dates = getDatesInRange(startDate, endDate);
-
   try {
+    const dates = getDatesInRange(startDate, endDate);
+
     const [roomTypes, rooms, maintenanceRooms, reservedRooms] =
       await Promise.all([
         RoomType.find({ propertyUnitId }).select("_id roomTypeName"),
@@ -205,7 +202,7 @@ const readFutureAvailability = asyncHandler(async (req, res) => {
   endDate = new Date(endDate);
   endDate.setUTCHours(0, 0, 0, 0);
 
-  const availabilityData = await checkDateWiseRoomAvailability(
+  const availabilityData = await getDateWiseRoomAvailability(
     startDate,
     endDate,
     propertyUnitId
@@ -224,4 +221,5 @@ const readFutureAvailability = asyncHandler(async (req, res) => {
 
 export default {
   readFutureAvailability,
+  getDateWiseRoomAvailability,
 };

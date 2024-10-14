@@ -62,7 +62,7 @@ export class FutureRatesComponent {
     private activeRoute: ActivatedRoute,
     private modalService: NgbModal,
     private authService: AuthService
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
@@ -141,6 +141,7 @@ export class FutureRatesComponent {
         startDate: this.startDate,
         endDate: this.endDate,
         ratePlanId: this.RatePlanId,
+        propertyUnitId: this.propertyUnitId,
       })
       .then((response: any) => {
         this.dropdownList = [];
