@@ -52,7 +52,7 @@ export class FutureRatesComponent {
   Today!: any;
   ratePlanList: any[] = [];
   RoomTypes: any[] = [];
-  RatePlanId = 'Best Available Rate';
+  RatePlanId = '';
 
   constructor(
     private crudService: CrudService,
@@ -62,7 +62,7 @@ export class FutureRatesComponent {
     private activeRoute: ActivatedRoute,
     private modalService: NgbModal,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;

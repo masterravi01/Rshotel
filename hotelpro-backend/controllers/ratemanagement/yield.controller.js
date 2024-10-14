@@ -1,83 +1,311 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
-import { Yield } from "../../database/database.schema.js";
+import {
+  RatePlanSetup,
+  YieldRoomType,
+  Yield,
+  RoomType,
+} from "../../database/database.schema.js";
+import mongoose from "mongoose";
+const ObjectId = mongoose.Types.ObjectId;
 
-// GET all yield data
-const getAllYields = asyncHandler(async (req, res) => {
-  const yields = await Yield.find();
+const readYield = asyncHandler(async (req, res) => {
+  const { propertyUnitId } = req.body;
+  let data = {};
+
+  [data.yieldDetails, data.roomType, data.ratePlan] = await Promise.all([
+    Yield.aggregate([
+      {
+        $match: {
+          propertyUnitId: new ObjectId(propertyUnitId),
+        },
+      },
+      {
+        $lookup: {
+          from: "rateplansetups",
+          localField: "ratePlanSetupId",
+          foreignField: "_id",
+          as: "ratePlanDetail",
+          pipeline: [
+            {
+              $project: {
+                ratePlanName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$ratePlanDetail",
+        },
+      },
+      {
+        $lookup: {
+          from: "yieldroomtypes",
+          localField: "_id",
+          foreignField: "yieldId",
+          as: "yieldDetail",
+        },
+      },
+      {
+        $unwind: {
+          path: "$yieldDetail",
+        },
+      },
+      {
+        $lookup: {
+          from: "roomtypes",
+          localField: "yieldDetail.roomTypeId",
+          foreignField: "_id",
+          as: "roomTypeDetail",
+          pipeline: [
+            {
+              $project: {
+                roomTypeName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$roomTypeDetail",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          yieldName: {
+            $first: "$yieldName",
+          },
+          yieldDescription: {
+            $first: "$yieldDescription",
+          },
+          ratePlanDetail: {
+            $first: "$ratePlanDetail",
+          },
+          active: {
+            $first: "$active",
+          },
+          startDate: {
+            $first: "$yieldDetail.startDate",
+          },
+          endDate: {
+            $first: "$yieldDetail.endDate",
+          },
+          occupancyRangeStart: {
+            $first: "$yieldDetail.occupancyRangeStart",
+          },
+          occupancyRangeEnd: {
+            $first: "$yieldDetail.occupancyRangeEnd",
+          },
+          changeType: {
+            $first: "$yieldDetail.changeType",
+          },
+          changeValue: {
+            $first: "$yieldDetail.changeValue",
+          },
+          roomTypes: {
+            $push: "$roomTypeDetail",
+          },
+        },
+      },
+      {
+        $sort: {
+          startDate: -1,
+        },
+      },
+    ]),
+    RoomType.aggregate([
+      {
+        $match: {
+          propertyUnitId: new ObjectId(propertyUnitId),
+        },
+      },
+      {
+        $project: {
+          roomTypeName: 1,
+          roomTypeId: "$_id",
+          _id: 0,
+        },
+      },
+    ]),
+    RatePlanSetup.aggregate([
+      {
+        $match: {
+          propertyUnitId: new ObjectId(propertyUnitId),
+        },
+      },
+      {
+        $project: {
+          ratePlanName: 1,
+          ratePlanId: "$_id",
+          _id: 0,
+        },
+      },
+    ]),
+  ]);
+
   return res
     .status(200)
-    .json(
-      new ApiResponse(200, yields, "All yield data retrieved successfully")
-    );
+    .json(new ApiResponse(200, data, "Yield retrieved successfully"));
 });
 
-// GET yield data by ID
-const getYieldById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const yieldData = await Yield.findById(id);
-  if (!yieldData) {
-    throw new ApiError(404, "Yield data not found");
-  }
-  return res
-    .status(200)
-    .json(new ApiResponse(200, yieldData, "Yield data retrieved successfully"));
-});
-
-// POST create new yield data
 const createYield = asyncHandler(async (req, res) => {
-  const { date, ratePlanId, occupancy, revenue } = req.body;
-  const yieldData = new Yield({
-    date,
-    ratePlanId,
-    occupancy,
-    revenue,
+  const {
+    yieldName,
+    yieldDescription,
+    ratePlanSetupId,
+    startDate,
+    endDate,
+    occupancyRangeStart,
+    occupancyRangeEnd,
+    changeType,
+    changeValue,
+    roomTypeIds,
+    propertyUnitId,
+  } = req.body;
+
+  let start = new Date(startDate);
+  start.setUTCHours(0, 0, 0, 0);
+  let end = new Date(endDate);
+  end.setUTCHours(0, 0, 0, 0);
+  const roomTypeIdArray = roomTypeIds.map((rt) => new ObjectId(rt.roomTypeId));
+
+  const existedYield = await Yield.aggregate([
+    {
+      $match: {
+        ratePlanSetupId: new ObjectId(ratePlanSetupId),
+        active: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "yieldroomtypes",
+        localField: "_id",
+        foreignField: "yieldId",
+        as: "yieldDetail",
+        pipeline: [
+          {
+            $match: {
+              $and: [
+                {
+                  endDate: {
+                    $gt: start,
+                  },
+                },
+                {
+                  startDate: {
+                    $lt: end,
+                  },
+                },
+                {
+                  roomTypeId: {
+                    $in: roomTypeIdArray,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: "$yieldDetail",
+      },
+    },
+  ]);
+
+  if (existedYield.length > 0) {
+    throw new ApiError(
+      409,
+      "You cannot create a new yield because it overlaps with an existing one for the selected date, room type, and rate plan.",
+      []
+    );
+  }
+
+  const yieldDetail = new Yield({
+    yieldName,
+    yieldDescription,
+    ratePlanSetupId: new ObjectId(ratePlanSetupId),
+    propertyUnitId,
   });
-  await yieldData.save();
+
+  const yieldRoomTypeEntries = roomTypeIdArray.map((rt) => {
+    return new YieldRoomType({
+      startDate,
+      endDate,
+      occupancyRangeStart,
+      occupancyRangeEnd,
+      changeType,
+      changeValue,
+      roomTypeId: rt,
+      yieldId: yieldDetail._id,
+    });
+  });
+
+  await Promise.all([
+    yieldDetail.save(),
+    YieldRoomType.insertMany(yieldRoomTypeEntries),
+  ]);
+
   return res
     .status(201)
-    .json(new ApiResponse(201, yieldData, "Yield data created successfully"));
+    .json(new ApiResponse(201, {}, "Yield created successfully"));
 });
 
-// PUT update yield data by ID
-const updateYieldById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { date, ratePlanId, occupancy, revenue } = req.body;
-  const yieldData = await Yield.findByIdAndUpdate(
-    id,
-    {
-      date,
-      ratePlanId,
-      occupancy,
-      revenue,
-    },
-    { new: true }
-  );
-  if (!yieldData) {
-    throw new ApiError(404, "Yield data not found");
-  }
-  return res
-    .status(200)
-    .json(new ApiResponse(200, yieldData, "Yield data updated successfully"));
-});
+const updateYield = asyncHandler(async (req, res) => {
+  const {
+    yieldId,
+    yieldName,
+    yieldDescription,
+    ratePlanSetupId,
+    startDate,
+    endDate,
+    occupancyRangeStart,
+    occupancyRangeEnd,
+    changeType,
+    changeValue,
+    roomTypeIds,
+    active,
+    propertyUnitId,
+  } = req.body;
 
-// DELETE yield data by ID
-const deleteYieldById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const yieldData = await Yield.findByIdAndDelete(id);
-  if (!yieldData) {
-    throw new ApiError(404, "Yield data not found");
-  }
+  let yieldDetail = await Yield.findById(yieldId);
+  yieldDetail.yieldName = yieldName;
+  yieldDetail.yieldDescription = yieldDescription;
+  yieldDetail.ratePlanSetupId = ratePlanSetupId;
+  yieldDetail.active = active;
+
+  const yieldRoomTypeEntries = roomTypeIds.map((rt) => {
+    return new YieldRoomType({
+      startDate,
+      endDate,
+      occupancyRangeStart,
+      occupancyRangeEnd,
+      changeType,
+      changeValue,
+      roomTypeId: new ObjectId(rt.roomTypeId),
+      yieldId: yieldDetail._id,
+    });
+  });
+
+  await YieldRoomType.deleteMany({ yieldId });
+  await Promise.all([
+    yieldDetail.save(),
+    YieldRoomType.insertMany(yieldRoomTypeEntries),
+  ]);
+
   return res
-    .status(200)
-    .json(new ApiResponse(200, { id }, "Yield data deleted successfully"));
+    .status(201)
+    .json(new ApiResponse(201, {}, "Yield created successfully"));
 });
 
 export default {
-  getAllYields,
-  getYieldById,
+  readYield,
   createYield,
-  updateYieldById,
-  deleteYieldById,
+  updateYield,
 };

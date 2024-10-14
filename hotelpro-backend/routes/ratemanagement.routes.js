@@ -55,4 +55,8 @@ router.post(
 router.post("/get-tapechart", ratemanagementIndex.getTapechart);
 router.post("/get-future-rates", ratemanagementIndex.getFutureRates);
 router.post("/update-future-rates", ratemanagementIndex.updateFutureRates);
+
+router.post("/get-yield", ratemanagementIndex.readYield);
+router.post("/create-yield", ratemanagementIndex.createYield);
+router.post("/update-yield", ratemanagementIndex.updateYield);
 export default router;

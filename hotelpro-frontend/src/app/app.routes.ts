@@ -101,7 +101,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'manage-user/:propertyUnitId',
+        path: 'manage-user',
         loadComponent: () =>
           import('./pages/client/manage-user/manage-user.component').then(
             (m) => m.ManageUserComponent
@@ -280,6 +280,14 @@ export const routes: Routes = [
             './pages/rate-management/future-rates/future-rates.component'
           ).then((m) => m.FutureRatesComponent),
         title: 'Future Rates',
+      },
+      {
+        path: 'yield-management',
+        loadComponent: () =>
+          import(
+            './pages/rate-management/yield-management/yield-management.component'
+          ).then((m) => m.YieldManagementComponent),
+        title: 'Yield Management',
       },
       {
         path: 'view-notification',
