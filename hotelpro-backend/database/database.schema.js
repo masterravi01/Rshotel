@@ -617,7 +617,6 @@ const roomMaintenanceSchema = new Schema(
     endDate: Date,
     reason: String,
     description: String,
-    onlyMaintenance: Boolean,
     isCompleted: {
       type: Boolean,
       default: false,

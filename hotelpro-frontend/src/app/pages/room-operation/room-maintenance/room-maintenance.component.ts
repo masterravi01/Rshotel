@@ -104,7 +104,6 @@ export class RoomMaintenanceComponent implements OnInit {
       endDate: ['', Validators.required],
       roomType: ['', Validators.required],
       Rooms: [[], Validators.required],
-      onlyMaintenance: [true],
       Reason: ['', Validators.required],
       Notes: [''],
     });
@@ -141,7 +140,6 @@ export class RoomMaintenanceComponent implements OnInit {
     }
 
     this.AddMaintenance.reset({
-      onlyMaintenance: true,
       roomType: '',
       Reason: '',
       Rooms: [],
@@ -235,7 +233,6 @@ export class RoomMaintenanceComponent implements OnInit {
 
   getAvailRoomdata() {
     this.AddMaintenance.patchValue({
-      onlyMaintenance: true,
       roomType: '',
       Reason: '',
       Rooms: [],
@@ -427,7 +424,6 @@ export class RoomMaintenanceComponent implements OnInit {
           reason: formdata.Reason,
           description: formdata.Notes,
           isCompleted: false,
-          onlyMaintenance: formdata.onlyMaintenance,
           today: this.Today,
         };
         objarr.push(obj);
