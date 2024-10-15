@@ -7,16 +7,17 @@ import {
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
 import { RateTypeEnum } from "../../constants.js";
+import yieldController from "./yield.controller.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 const getFutureRates = asyncHandler(async (req, res) => {
-  let { startDate, endDate, ratePlanId } = req.body;
+  let { startDate, endDate, ratePlanId, propertyUnitId } = req.body;
   startDate = new Date(startDate);
   startDate.setUTCHours(0, 0, 0, 0);
   endDate = new Date(endDate);
   endDate.setUTCHours(0, 0, 0, 0);
 
-  let [ratePlanDetails, dateRateDetails] = await Promise.all([
+  let [ratePlanDetails, dateRateDetails, yieldData] = await Promise.all([
     RatePlanSetup.aggregate([
       {
         $match: {
@@ -159,6 +160,12 @@ const getFutureRates = asyncHandler(async (req, res) => {
         },
       },
     ]),
+    yieldController.getDateWiseYield(
+      startDate,
+      endDate,
+      ratePlanId,
+      propertyUnitId
+    ),
   ]);
 
   for (let rp of ratePlanDetails) {
@@ -183,6 +190,24 @@ const getFutureRates = asyncHandler(async (req, res) => {
     }
   }
 
+  for (let rp of ratePlanDetails) {
+    for (let yd of yieldData) {
+      if (rp.roomTypeId == yd.roomTypeId) {
+        for (let dr of rp.dailyRates) {
+          for (let da of yd.dateArray) {
+            if (dr.date.getTime() == da.date.getTime()) {
+              dr.baseRate = await yieldController.applyYield(
+                dr.baseRate,
+                da.yieldChangeType,
+                da.yieldChangeValue
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
   return res
     .status(200)
     .json(
@@ -193,6 +218,7 @@ const getFutureRates = asyncHandler(async (req, res) => {
       )
     );
 });
+
 const updateFutureRates = asyncHandler(async (req, res) => {
   let { ratePlanRoomRateId } = req.body;
   let { startDate, endDate, newRate } = req.body.changeRates;

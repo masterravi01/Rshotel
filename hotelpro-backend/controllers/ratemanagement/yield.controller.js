@@ -7,7 +7,9 @@ import {
   Yield,
   RoomType,
 } from "../../database/database.schema.js";
+import availabilityController from "./availability.controller.js";
 import mongoose from "mongoose";
+import { ChangeValueEnum } from "../../constants.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 const readYield = asyncHandler(async (req, res) => {
@@ -304,8 +306,111 @@ const updateYield = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, {}, "Yield created successfully"));
 });
 
+const getDateWiseYield = async (
+  startDate,
+  endDate,
+  ratePlanId,
+  propertyUnitId
+) => {
+  try {
+    let [yieldDetails, availability] = await Promise.all([
+      Yield.aggregate([
+        {
+          $match: {
+            ratePlanSetupId: new ObjectId(ratePlanId),
+            active: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "yieldroomtypes",
+            localField: "_id",
+            foreignField: "yieldId",
+            as: "yieldDetail",
+          },
+        },
+        {
+          $unwind: {
+            path: "$yieldDetail",
+          },
+        },
+        {
+          $project: {
+            yieldName: 1,
+            roomTypeId: "$yieldDetail.roomTypeId",
+            startDate: "$yieldDetail.startDate",
+            endDate: "$yieldDetail.endDate",
+            occupancyRangeStart: "$yieldDetail.occupancyRangeStart",
+            occupancyRangeEnd: "$yieldDetail.occupancyRangeEnd",
+            changeType: "$yieldDetail.changeType",
+            changeValue: "$yieldDetail.changeValue",
+          },
+        },
+      ]),
+      availabilityController.getDateWiseRoomAvailability(
+        startDate,
+        endDate,
+        propertyUnitId
+      ),
+    ]);
+
+    let yieldDateWiseData = [];
+    for (let a of availability) {
+      let obj = {
+        roomTypeId: a._id.toString(),
+        dateArray: [],
+      };
+      for (let yd of yieldDetails) {
+        if (a._id.toString() == yd.roomTypeId.toString()) {
+          for (let o of a.Occupancy) {
+            let occupied = a.TotalRoom - o.Available;
+            let occupancyPercentage = (100 * occupied) / a.TotalRoom;
+            // console.log(
+            //   o.Date,
+            //   yd.startDate.getTime() <= new Date(o.Date).getTime(),
+            //   new Date(o.Date).getTime() < yd.endDate.getTime(),
+            //   new Date(o.Date).getTime(),
+            //   yd.endDate.getTime()
+            // );
+
+            if (
+              yd.startDate.getTime() <= new Date(o.Date).getTime() &&
+              new Date(o.Date).getTime() < yd.endDate.getTime() &&
+              yd.occupancyRangeStart <= occupancyPercentage &&
+              occupancyPercentage <= yd.occupancyRangeEnd
+            ) {
+              obj.dateArray.push({
+                date: new Date(o.Date),
+                roomTypeId: a._id.toString(),
+                yieldChangeValue: yd.changeValue,
+                yieldChangeType: yd.changeType,
+              });
+            }
+          }
+        }
+      }
+      yieldDateWiseData.push(obj);
+    }
+    return yieldDateWiseData;
+  } catch (error) {
+    console.error("Error fetching date-wise yield:", error);
+    throw error;
+  }
+};
+
+const applyYield = async (baseRate, yieldChangeType, yieldChangeValue) => {
+  if (yieldChangeType == ChangeValueEnum.FLAT) {
+    return baseRate + yieldChangeValue;
+  }
+  if (yieldChangeType == ChangeValueEnum.PERCENTAGE) {
+    return baseRate + (baseRate * yieldChangeValue) / 100;
+  }
+};
+
 export default {
   readYield,
   createYield,
   updateYield,
+  getDateWiseYield,
+  applyYield,
 };

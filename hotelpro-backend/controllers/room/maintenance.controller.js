@@ -221,7 +221,6 @@ const updateRoomMaintenance = asyncHandler(async (req, res) => {
     reason,
     description,
     isCompleted,
-    onlyMaintenance,
     Today,
     RoomMaintainanceId,
   } = req.body;
@@ -239,7 +238,6 @@ const updateRoomMaintenance = asyncHandler(async (req, res) => {
   room_maintainance_details.reason = reason;
   room_maintainance_details.description = description;
   room_maintainance_details.isCompleted = isCompleted;
-  room_maintainance_details.onlyMaintenance = onlyMaintenance;
 
   let room_details = {};
   if (room_maintainance_details.isCompleted == true) {

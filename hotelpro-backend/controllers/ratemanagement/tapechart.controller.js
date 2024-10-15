@@ -7,6 +7,7 @@ import {
   Room,
   Reservation,
   RoomMaintenance,
+  RatePlanSetup,
 } from "../../database/database.schema.js";
 import mongoose from "mongoose";
 import {
@@ -14,16 +15,17 @@ import {
   RoomConditionEnum,
   RoomStatusEnum,
 } from "../../constants.js";
+import yieldController from "./yield.controller.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 const getTapechart = asyncHandler(async (req, res) => {
-  let { startDate, endDate, propertyUnitId } = req.body;
+  let { startDate, endDate, propertyUnitId, from } = req.body;
   startDate = new Date(startDate);
   startDate.setUTCHours(0, 0, 0, 0);
   endDate = new Date(endDate);
   endDate.setUTCHours(0, 0, 0, 0);
 
-  let [tapechartData, rateData] = await Promise.all([
+  let [tapechartData, rateData, baseRatePlan] = await Promise.all([
     RoomType.aggregate([
       {
         $match: {
@@ -250,7 +252,19 @@ const getTapechart = asyncHandler(async (req, res) => {
         },
       },
     ]),
+    RatePlanSetup.findOne({
+      active: true,
+      isBaseRate: true,
+      propertyUnitId,
+    }),
   ]);
+
+  let yieldData = await yieldController.getDateWiseYield(
+    startDate,
+    endDate,
+    baseRatePlan._id.toString(),
+    propertyUnitId
+  );
 
   for (let tc of tapechartData) {
     tc.dailyRates = [];
@@ -272,6 +286,31 @@ const getTapechart = asyncHandler(async (req, res) => {
         }
       }
     }
+  }
+
+  for (let tc of tapechartData) {
+    for (let yd of yieldData) {
+      if (tc.roomTypeId == yd.roomTypeId) {
+        for (let dr of tc.dailyRates) {
+          for (let da of yd.dateArray) {
+            if (dr.date.getTime() == da.date.getTime()) {
+              dr.baseRate = await yieldController.applyYield(
+                dr.baseRate,
+                da.yieldChangeType,
+                da.yieldChangeValue
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (from == "dashboard") {
+    tapechartData = tapechartData.map(({ dailyRates, roomTypeName }) => ({
+      dailyRates,
+      roomTypeName,
+    }));
   }
 
   return res
