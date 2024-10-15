@@ -15,7 +15,7 @@ const port = process.env.APP_PORT;
 
 // Create HTTP server with Express app
 const server = http.createServer(app);
-socket.initializeSocketConnection(server);
+// socket.initializeSocketConnection(server);
 
 // Global middlewares
 app.use(

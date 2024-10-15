@@ -101,7 +101,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
-        path: 'manage-user',
+        path: 'manage-user/:propertyUnitId',
         loadComponent: () =>
           import('./pages/client/manage-user/manage-user.component').then(
             (m) => m.ManageUserComponent

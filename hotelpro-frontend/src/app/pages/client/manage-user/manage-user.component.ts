@@ -47,10 +47,11 @@ export class ManageUserComponent implements OnInit {
     private router: Router,
     private modalService: NgbModal,
     private authService: AuthService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.propertyUnitId = this.authService.getUserInfo()?.user?.propertyUnitId;
+    this.propertyUnitId =
+      this.activeRoute.snapshot.paramMap.get('propertyUnitId');
     this.clientInfo = this.authService.getUserInfo()?.user;
     this.initForms();
     this.fetchData();

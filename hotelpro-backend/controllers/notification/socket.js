@@ -83,7 +83,7 @@ const emitNotificationToUsers = async (userIds, notificationArray) => {
         }
       }
     } else {
-      throw new Error("Socket.io is not initialized");
+      console.log("Socket.io is not initialized");
     }
     return true;
   } catch (err) {

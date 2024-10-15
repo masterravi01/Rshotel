@@ -44,11 +44,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userInfo = this.authService.getUserInfo()?.user;
     this.readNotifications();
-    this.notificationService.joinToRoom(this.userInfo._id);
+    // this.notificationService.joinToRoom(this.userInfo._id);
 
-    this.notificationService.on('new-notification').subscribe((data) => {
-      this.notifications.push(data);
-    });
+    // this.notificationService.on('new-notification').subscribe((data) => {
+    //   this.notifications.unshift(data);
+    // });
     // this.monitorForNotifications();
   }
   monitorForNotifications() {
@@ -57,7 +57,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.readNotifications();
       });
   }
-
+  identify(index: any, item: any) {
+    return item._id;
+  }
   readNotifications() {
     this.crudService
       .post(
@@ -139,33 +141,33 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   async updateNotifications(ids: any[]) {
-    this.notificationService.emit('markNotificationAsRead', {
-      ids: ids,
-      _id: this.userInfo._id,
-    });
-
-    this.notifications = this.notifications.filter((d) => !ids.includes(d._id));
-
-    // this.crudService
-    // .post(
-    //   APIConstant.UPDATE_MULTIPLE_NOTIFICATION,
-    //   {
-    //     ids,
-    //   },
-    //   {
-    //     skipLoader: true,
-    //   }
-    // )
-    // .then((response: any) => {
-    //   console.log(response?.data);
-    //   this.notifications = this.notifications.filter(
-    //     (d) => !ids.includes(d._id)
-    //   );
-    //   this.notificationService.sendNewNotifications(this.notifications);
-    // })
-    // .catch((error: any) => {
-    //   this.alertService.errorAlert(error?.error?.message);
+    // this.notificationService.emit('markNotificationAsRead', {
+    //   ids: ids,
+    //   _id: this.userInfo._id,
     // });
+
+    // this.notifications = this.notifications.filter((d) => !ids.includes(d._id));
+
+    this.crudService
+      .post(
+        APIConstant.UPDATE_MULTIPLE_NOTIFICATION,
+        {
+          ids,
+        },
+        {
+          skipLoader: true,
+        }
+      )
+      .then((response: any) => {
+        console.log(response?.data);
+        this.notifications = this.notifications.filter(
+          (d) => !ids.includes(d._id)
+        );
+        this.notificationService.sendNewNotifications(this.notifications);
+      })
+      .catch((error: any) => {
+        this.alertService.errorAlert(error?.error?.message);
+      });
   }
 
   async switchPropertyUnit() {
