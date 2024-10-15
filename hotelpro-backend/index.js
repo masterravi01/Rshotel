@@ -6,18 +6,24 @@ import morganMiddleware from "./logger/morgan.logger.js";
 import mongo from "./database/database.service.js";
 import { errorHandler } from "./middleware/error.middlewares.js";
 import indexRouter from "./routes/index.routes.js";
+import http from "http"; // Import http to create the server
+import socket from "./controllers/notification/socket.js";
 
 configDotenv();
 const app = express();
 const port = process.env.APP_PORT;
+
+// Create HTTP server with Express app
+const server = http.createServer(app);
+socket.initializeSocketConnection(server);
 
 // Global middlewares
 app.use(
   cors({
     origin:
       process.env.CORS_ORIGIN === "*"
-        ? "*" // This might give CORS error for some origins due to credentials set to true
-        : process.env.CORS_ORIGIN?.split(","), // For multiple cors origin for production.
+        ? "*"
+        : process.env.CORS_ORIGIN?.split(","),
     credentials: true,
   })
 );
@@ -38,14 +44,15 @@ app.get("/", (req, res) => {
 });
 
 // Handling preflight requests
-// preflight requests sent by the browser to determine whether the actual request (e.g., a GET or POST request) is safe to send.
 app.options("*", cors());
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-});
-
-// set the view engine to ejs
+// Set the view engine to ejs
 app.set("view engine", "ejs");
 
+// Error handler middleware
 app.use(errorHandler);
+
+// Start the server and listen on the specified port
+server.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+});

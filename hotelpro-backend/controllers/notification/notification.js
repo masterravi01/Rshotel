@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 const ObjectId = mongoose.Types.ObjectId;
 import { IsValidObjectId } from "../../utils/helpers.js";
 import { UserTypesEnum } from "../../constants.js";
+import socket from "./socket.js";
 
 // Define notification handler functions first
 const reservationNotification = async (
@@ -88,7 +89,7 @@ const reservationNotification = async (
       }
       return obj;
     });
-
+    socket.emitNotificationToUsers(allUsers, notificationArray);
     await Notification.insertMany(notificationArray);
     return true;
   } catch (err) {
@@ -140,7 +141,7 @@ const rateNotification = async (
       }
       return obj;
     });
-
+    socket.emitNotificationToUsers(allUsers, notificationArray);
     await Notification.insertMany(notificationArray);
     return true;
   } catch (err) {
@@ -170,7 +171,7 @@ const defaultNotification = async (
         message: JSON.stringify(item), // Adjust based on actual message structure
       };
     });
-
+    socket.emitNotificationToUsers(allUsers, notificationArray);
     await Notification.insertMany(notificationArray);
     return true;
   } catch (err) {
