@@ -95,7 +95,7 @@
           </div>
           <div class="dropdown-menu dropdown-menu-end" id="notificationId">
             <div style="height: 50dvh; overflow: auto" *ngIf="notifications?.length != 0">
-              <ng-container *ngFor="let n of notifications">
+              <ng-container *ngFor="let n of notifications; trackBy: identify">
                 <div class="dropdown-item">
                   <!-- your rate is change to {{ n?.message?.rate }} at
               {{ n?.createdAt }} by {{ n?.createdBy }} -->

@@ -23,7 +23,7 @@ import { interval, Subscription } from 'rxjs';
     NgbToast,
   ],
   templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.css',
+  styleUrls: ['./navbar.component.css'],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   oldPassword: string = '';
@@ -43,15 +43,22 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.userInfo = this.authService.getUserInfo()?.user;
-
     this.readNotifications();
-    this.monitorForNotifications();
+    // this.notificationService.joinToRoom(this.userInfo._id);
+
+    // this.notificationService.on('new-notification').subscribe((data) => {
+    //   this.notifications.unshift(data);
+    // });
+    // this.monitorForNotifications();
   }
   monitorForNotifications() {
-    // this.pollingSubscription = interval(60000) // 1 minute interval
-    //   .subscribe(() => {
-    //     this.readNotifications();
-    //   });
+    this.pollingSubscription = interval(60000) // 1 minute interval
+      .subscribe(() => {
+        this.readNotifications();
+      });
+  }
+  identify(index: any, item: any) {
+    return item._id;
   }
   readNotifications() {
     this.crudService
@@ -75,7 +82,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
             }
           }
         });
-        this.notificationService.sendNewNotifications(response?.data);
+        // this.notificationService.sendNewNotifications(response?.data);
         this.notifications = response?.data;
       })
       .catch((error: any) => {
@@ -132,7 +139,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     return !passwordValid ? { passwordStrength: true } : null;
   }
-  updateNotifications(ids: any[]) {
+
+  async updateNotifications(ids: any[]) {
+    // this.notificationService.emit('markNotificationAsRead', {
+    //   ids: ids,
+    //   _id: this.userInfo._id,
+    // });
+
+    // this.notifications = this.notifications.filter((d) => !ids.includes(d._id));
+
     this.crudService
       .post(
         APIConstant.UPDATE_MULTIPLE_NOTIFICATION,
@@ -165,7 +180,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
   markAsRead() {
     this.closeDropDown();
-    this.updateNotifications(this.notifications.map((e) => e._id));
+    if (this.notifications.length) {
+      this.updateNotifications(this.notifications.map((e) => e._id));
+    }
   }
   goToPage(link: string, id?: any) {
     this.router.navigateByUrl(link);

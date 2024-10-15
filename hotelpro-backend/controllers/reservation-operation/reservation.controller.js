@@ -1475,13 +1475,13 @@ const readReservationRate = asyncHandler(async (req, res) => {
     }
     nextDate.setDate(nextDate.getDate() + 1);
   }
-  // notification.sendNotification(
-  //   propertyUnitId,
-  //   [{ rate: 232 }],
-  //   "Rate Change",
-  //   "RATE",
-  //   req.user
-  // );
+  notification.sendNotification(
+    propertyUnitId,
+    [{ rate: Math.floor(100000 + Math.random() * 900000) }],
+    "Rate Change",
+    "RATE",
+    req.user
+  );
   return res
     .status(200)
     .json(
