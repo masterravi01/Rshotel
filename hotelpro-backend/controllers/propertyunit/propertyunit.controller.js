@@ -1,7 +1,7 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
-import { Property } from "../../database/database.schema.js";
+import { Property, Reservation } from "../../database/database.schema.js";
 import { PropertyUnit, User, Address } from "../../database/database.schema.js";
 import { getRandomNumber } from "../../utils/helpers.js";
 import mongoose from "mongoose";
@@ -211,6 +211,173 @@ const switchProperty = asyncHandler(async (req, res) => {
     );
 });
 
+const getFrontDeskDashboard = asyncHandler(async (req, res) => {
+  const { propertyUnitId, startDate } = req.body;
+  let today = new Date(startDate);
+  today.setUTCHours(0, 0, 0, 0);
+  let response = {};
+
+  let [reservationData, totalReservation] = await Promise.all([
+    Reservation.aggregate([
+      [
+        {
+          $match: {
+            $and: [
+              {
+                $and: [
+                  {
+                    arrival: {
+                      $lte: today,
+                    },
+                  },
+                  {
+                    departure: {
+                      $gte: today,
+                    },
+                  },
+                ],
+              },
+              {
+                propertyUnitId: new ObjectId(propertyUnitId),
+              },
+            ],
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalArrival: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $eq: ["$arrival", today],
+                      },
+                      {
+                        $eq: ["$reservationStatus", "reserved"],
+                      },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            checkinCompleted: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $eq: ["$arrival", today],
+                      },
+                      {
+                        $eq: ["$reservationStatus", "inhouse"],
+                      },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            checkoutRemaining: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $eq: ["$departure", today],
+                      },
+                      {
+                        $eq: ["$reservationStatus", "inhouse"],
+                      },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            checkoutCompleted: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $eq: ["$departure", today],
+                      },
+                      {
+                        $eq: ["$reservationStatus", "checkedout"],
+                      },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            inhouse: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $eq: ["$reservationStatus", "inhouse"],
+                      },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            totalDeparture: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $eq: ["$departure", today],
+                      },
+                      {
+                        $eq: ["$reservationStatus", "inhouse"],
+                      },
+                      {
+                        $eq: ["$reservationStatus", "checkedout"],
+                      },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+          },
+        },
+      ],
+    ]),
+    Reservation.countDocuments({ propertyUnitId }),
+  ]);
+
+  if (reservationData.length == 0) {
+    reservationData.totalArrival = 0;
+    reservationData.checkinCompleted = 0;
+    reservationData.checkoutRemaining = 0;
+    reservationData.checkoutCompleted = 0;
+    reservationData.inhouse = 0;
+    reservationData.totalDeparture = 0;
+  } else {
+    reservationData = reservationData[0];
+  }
+
+  response = { ...reservationData, totalReservation };
+  return res
+    .status(200)
+    .json(new ApiResponse(200, response, "Dashboard retrieved successfully"));
+});
+
 export default {
   getAllPropertyUnits,
   getPropertyUnitById,
@@ -218,4 +385,5 @@ export default {
   updatePropertyUnitById,
   deletePropertyUnitById,
   switchProperty,
+  getFrontDeskDashboard,
 };

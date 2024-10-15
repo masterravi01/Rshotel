@@ -17,6 +17,10 @@ import { AlertService } from '../../../core/services/alert.service';
 export class FrontdeskDashboardComponent {
   userInfo: any;
   availabilityData: any;
+  totalRooms = 0;
+  availableRooms = 0;
+  reservationData: any;
+  roomData: any;
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -44,9 +48,43 @@ export class FrontdeskDashboardComponent {
       .then((response: any) => {
         this.availabilityData = response.data;
         console.log(this.availabilityData);
+        for (let ad of this.availabilityData) {
+          this.totalRooms += ad.TotalRoom;
+          this.availableRooms += ad.Occupancy?.[0]?.Available;
+        }
       })
       .catch((error) => {
         this.alertService.errorAlert(error?.error?.message || error.message);
+      });
+
+    this.crudService
+      .post(APIConstant.READ_FRONTDESK_DASHBOARD, {
+        propertyUnitId: this.userInfo.propertyUnitId,
+        startDate,
+      })
+      .then((response: any) => {
+        this.reservationData = response.data;
+        console.log(this.reservationData);
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(error?.error?.message || error.message);
+      });
+
+    let tomorrow = new Date(startDate);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    this.crudService
+      .post(APIConstant.READ_TAPECHART, {
+        startDate,
+        endDate: tomorrow,
+        propertyUnitId: this.userInfo.propertyUnitId,
+        from: 'dashboard',
+      })
+      .then((response: any) => {
+        this.roomData = response.data;
+        console.log(this.roomData);
+      })
+      .catch((error) => {
+        this.alertService.errorAlert(error.statusMessage);
       });
   }
 }

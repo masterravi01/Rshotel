@@ -14,6 +14,10 @@ router.post(
   propertyUnitController.getPropertyUnitById
 );
 router.post("/switch-property", propertyUnitController.switchProperty);
+router.post(
+  "/get-frontdesk-dashboard",
+  propertyUnitController.getFrontDeskDashboard
+);
 router.post("/create-tax", taxController.createTax);
 router.post("/update-tax/:taxId", taxController.updateTaxById);
 router.post("/get-tax-by-id/:taxId", taxController.getTaxById);

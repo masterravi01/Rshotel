@@ -21,6 +21,7 @@ export const APIConstant = {
   CREATE_PROPERTY_UNIT: 'propertyunit/create-propertyunit',
   READ_PROPERTY_UNIT: 'propertyunit/read-propertyunit/',
   SWITCH_PROPERTY: 'propertyunit/switch-property',
+  READ_FRONTDESK_DASHBOARD: 'propertyunit/get-frontdesk-dashboard',
 
   GET_SUPERADMIN_DASHBOARD: 'admin/get-superadmin-dashboard/',
 

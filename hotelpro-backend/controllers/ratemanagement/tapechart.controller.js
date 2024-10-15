@@ -19,7 +19,7 @@ import yieldController from "./yield.controller.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 const getTapechart = asyncHandler(async (req, res) => {
-  let { startDate, endDate, propertyUnitId } = req.body;
+  let { startDate, endDate, propertyUnitId, from } = req.body;
   startDate = new Date(startDate);
   startDate.setUTCHours(0, 0, 0, 0);
   endDate = new Date(endDate);
@@ -304,6 +304,13 @@ const getTapechart = asyncHandler(async (req, res) => {
         }
       }
     }
+  }
+
+  if (from == "dashboard") {
+    tapechartData = tapechartData.map(({ dailyRates, roomTypeName }) => ({
+      dailyRates,
+      roomTypeName,
+    }));
   }
 
   return res

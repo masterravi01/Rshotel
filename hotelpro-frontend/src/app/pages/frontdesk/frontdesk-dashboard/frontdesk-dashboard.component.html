@@ -3,32 +3,32 @@
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="card bg-light text-dark shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Reservations</h5>
-                    <p class="card-text">23</p>
+                    <h5 class="card-title">Total Arrivals</h5>
+                    <p class="card-text">{{reservationData?.totalArrival}}</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="card bg-light text-dark shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Guests</h5>
-                    <p class="card-text">45</p>
+                    <h5 class="card-title">Checkin Completed</h5>
+                    <p class="card-text">{{reservationData?.checkinCompleted}}</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="card bg-light text-dark shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Available Rooms</h5>
-                    <p class="card-text">5</p>
+                    <h5 class="card-title">Checkout Remaining</h5>
+                    <p class="card-text">{{reservationData?.checkoutRemaining}}</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="card bg-light text-dark shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Today's Revenue</h5>
-                    <p class="card-text">3200 </p>
+                    <h5 class="card-title">Checkout Completed</h5>
+                    <p class="card-text">{{reservationData?.checkoutCompleted}}</p>
                 </div>
             </div>
         </div>
@@ -39,23 +39,23 @@
             <div class="card bg-light text-dark shadow">
                 <div class="card-body">
                     <h5 class="card-title">Total Inhouse</h5>
-                    <p class="card-text">120</p>
+                    <p class="card-text">{{reservationData?.inhouse}}</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="card bg-light text-dark shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Total Arrivals</h5>
-                    <p class="card-text">30</p>
+                    <h5 class="card-title">Total Reservations</h5>
+                    <p class="card-text">{{reservationData?.totalReservation}}</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="card bg-light text-dark shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Total Departure</h5>
-                    <p class="card-text">25</p>
+                    <h5 class="card-title">Available Rooms</h5>
+                    <p class="card-text">{{ availableRooms }}</p>
                 </div>
             </div>
         </div>
@@ -63,7 +63,7 @@
             <div class="card bg-light text-dark shadow">
                 <div class="card-body">
                     <h5 class="card-title">Total Rooms</h5>
-                    <p class="card-text">200</p>
+                    <p class="card-text">{{ totalRooms }} </p>
                 </div>
             </div>
         </div>
@@ -116,22 +116,12 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @for (rt of roomData; track rt; let i = $index) {
                             <tr>
-                                <th scope="row">Single Room</th>
-                                <td>2000</td>
+                                <th scope="row">{{rt?.roomTypeName}}</th>
+                                <td>{{rt?.dailyRates?.[0].baseRate}}</td>
                             </tr>
-                            <tr>
-                                <th scope="row">Double Room</th>
-                                <td>1500</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Suite</th>
-                                <td>2500</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Deluxe Room</th>
-                                <td>3000</td>
-                            </tr>
+                        }
                         </tbody>
                     </table>
                 </div>
