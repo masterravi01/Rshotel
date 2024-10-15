@@ -1,15 +1,8 @@
 <nav class="navbar navbar-expand-lg bg-body-tertiary custom-bar">
   <div class="container-fluid">
     <a class="navbar-brand" href="#">Fun World</a>
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#navbarSupportedContent"
-      aria-controls="navbarSupportedContent"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -18,51 +11,31 @@
           <a class="nav-link active" aria-current="page" href="#">Home</a>
         </li>
         <li class="nav-item dropdown">
-          <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Create
           </a>
           <ul class="dropdown-menu">
             <li>
-              <a class="dropdown-item" routerLink="/create-reservation"
-                >Reservation</a
-              >
+              <a class="dropdown-item" routerLink="/create-reservation">Reservation</a>
             </li>
             <li>
-              <a class="dropdown-item" routerLink="/create-reservation"
-                >Walkin</a
-              >
+              <a class="dropdown-item" routerLink="/create-reservation">Walkin</a>
             </li>
           </ul>
         </li>
         <li class="nav-item dropdown">
-          <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             View
           </a>
           <ul class="dropdown-menu">
             <li>
-              <a class="dropdown-item" routerLink="/reservation-list"
-                >Booking</a
-              >
+              <a class="dropdown-item" routerLink="/reservation-list">Booking</a>
             </li>
             <li>
               <a class="dropdown-item" routerLink="/tape-chart">Tape chart</a>
             </li>
             <li>
-              <a class="dropdown-item" routerLink="/future-availability"
-                >Future availibility</a
-              >
+              <a class="dropdown-item" routerLink="/future-availability">Future availibility</a>
             </li>
             <!-- <li><a class="dropdown-item" href="#">Arrivals</a></li>
             <li><a class="dropdown-item" href="#">In house</a></li>
@@ -73,41 +46,26 @@
           </ul>
         </li>
         <li class="nav-item dropdown">
-          <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Manage
           </a>
           <ul class="dropdown-menu">
             <li>
-              <a class="dropdown-item" routerLink="/future-rates"
-                >Manage Rates</a
-              >
+              <a class="dropdown-item" routerLink="/future-rates">Manage Rates</a>
             </li>
             <li>
-              <a class="dropdown-item" routerLink="/house-keeping"
-                >House keeping</a
-              >
+              <a class="dropdown-item" routerLink="/yield-management">Yield management</a>
             </li>
             <li>
-              <a class="dropdown-item" routerLink="/room-maintenance"
-                >Room maintenance</a
-              >
+              <a class="dropdown-item" routerLink="/house-keeping">House keeping</a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/room-maintenance">Room maintenance</a>
             </li>
           </ul>
         </li>
         <li class="nav-item dropdown">
-          <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Statistics
           </a>
           <ul class="dropdown-menu">
@@ -116,58 +74,34 @@
           </ul>
         </li>
         <li class="nav-item">
-          <div
-            class="nav-link"
-            style="cursor: pointer"
-            (click)="openChangePassword(content)"
-          >
+          <div class="nav-link" style="cursor: pointer" (click)="openChangePassword(content)">
             Change Password
           </div>
         </li>
       </ul>
       <div *ngIf="notifications">
         <div class="dropdown">
-          <div
-            class="dropdown-toggle custom_btn"
-            type="button"
-            data-bs-toggle="dropdown"
-            data-bs-auto-close="outside"
-            aria-expanded="false"
-          >
+          <div class="dropdown-toggle custom_btn" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+            aria-expanded="false">
             <i class="material-symbols-rounded" style="vertical-align: middle">
               notifications
             </i>
-            <span
-              class="badge text-bg-secondary rounded-circle"
-              style="
+            <span class="badge text-bg-secondary rounded-circle" style="
                 position: relative;
                 left: -6px;
                 top: -15px;
                 font-size: 10px;
-              "
-              *ngIf="notifications?.length != 0"
-              >{{ notifications.length }}</span
-            >
+              " *ngIf="notifications?.length != 0">{{ notifications.length }}</span>
           </div>
           <div class="dropdown-menu dropdown-menu-end" id="notificationId">
-            <div
-              style="height: 50dvh; overflow: auto"
-              *ngIf="notifications?.length != 0"
-            >
+            <div style="height: 50dvh; overflow: auto" *ngIf="notifications?.length != 0">
               <ng-container *ngFor="let n of notifications">
                 <div class="dropdown-item">
                   <!-- your rate is change to {{ n?.message?.rate }} at
               {{ n?.createdAt }} by {{ n?.createdBy }} -->
                   @if(n.eventName=='Rate Updated'){
-                  <ngb-toast
-                    [header]="n.eventName"
-                    [autohide]="false"
-                    (hidden)="dismiss(n._id)"
-                  >
-                    <div
-                      style="text-wrap: pretty"
-                      (click)="goToPage('/create-reservation', n._id)"
-                    >
+                  <ngb-toast [header]="n.eventName" [autohide]="false" (hidden)="dismiss(n._id)">
+                    <div style="text-wrap: pretty" (click)="goToPage('/create-reservation', n._id)">
                       <p class="mb-0">Date: {{ n.createdAt | date }}</p>
                       <p class="mb-0">{{ n.message | json }}</p>
                     </div>
@@ -177,23 +111,16 @@
                     </div>
                   </ngb-toast>
                   }@else if(n.eventName=='Reservation Created'){
-                  <ngb-toast
-                    [header]="
+                  <ngb-toast [header]="
                       n?.message?.customerName +
                       '  Reserved (' +
                       n?.message?.groupNumber +
                       ')'
-                    "
-                    [autohide]="false"
-                    (hidden)="dismiss(n._id)"
-                  >
-                    <div
-                      style="text-wrap: pretty"
-                      (click)="goToPage('/create-reservation', n._id)"
-                    >
+                    " [autohide]="false" (hidden)="dismiss(n._id)">
+                    <div style="text-wrap: pretty" (click)="goToPage('/create-reservation', n._id)">
                       <p class="mb-0">
                         Arrival: {{ n.message?.arrival | date }}=> Departure:{{
-                          n.message?.departure | date
+                        n.message?.departure | date
                         }}
                       </p>
                       <p class="mb-0">
@@ -204,7 +131,7 @@
                       </p>
                       <p class="mb-0" *ngFor="let r of n.message.rooms">
                         {{ r.roomtype }}-{{ r.rateName }} (Room:{{
-                          r.roomName
+                        r.roomName
                         }})
                       </p>
                     </div>
@@ -214,15 +141,8 @@
                     </div>
                   </ngb-toast>
                   } @else{
-                  <ngb-toast
-                    [header]="n.eventName"
-                    [autohide]="false"
-                    (hidden)="dismiss(n._id)"
-                  >
-                    <div
-                      style="text-wrap: pretty"
-                      (click)="goToPage('/', n._id)"
-                    >
+                  <ngb-toast [header]="n.eventName" [autohide]="false" (hidden)="dismiss(n._id)">
+                    <div style="text-wrap: pretty" (click)="goToPage('/', n._id)">
                       <p class="mb-0">{{ n.message | json }}</p>
                     </div>
                     <div class="text-body-secondary mt-1">
@@ -235,24 +155,13 @@
               </ng-container>
             </div>
 
-            <div
-              class="d-flex justify-content-end m-2"
-              style="min-width: 300px"
-            >
-              <button
-                type="button"
-                class="btn btn-primary me-1"
-                *ngIf="notifications?.length != 0"
-                (click)="goToPage('view-notification')"
-              >
+            <div class="d-flex justify-content-end m-2" style="min-width: 300px">
+              <button type="button" class="btn btn-primary me-1" *ngIf="notifications?.length != 0"
+                (click)="goToPage('view-notification')">
                 View All
               </button>
-              <button
-                type="button"
-                class="btn btn-secondary ms-1"
-                (click)="markAsRead()"
-                *ngIf="notifications?.length != 0"
-              >
+              <button type="button" class="btn btn-secondary ms-1" (click)="markAsRead()"
+                *ngIf="notifications?.length != 0">
                 Mark All As Read
               </button>
               <div *ngIf="notifications?.length == 0">
@@ -263,36 +172,19 @@
         </div>
       </div>
       <div class="me-2" *ngIf="userInfo?.propertyUnitId">
-        <select
-          id="options"
-          [(ngModel)]="userInfo.propertyUnitId"
-          class="form-control"
-          style="appearance: auto"
-          (change)="switchPropertyUnit()"
-        >
-          <option
-            *ngFor="let item of userInfo.propertyUnits"
-            [value]="item._id"
-          >
+        <select id="options" [(ngModel)]="userInfo.propertyUnitId" class="form-control" style="appearance: auto"
+          (change)="switchPropertyUnit()">
+          <option *ngFor="let item of userInfo.propertyUnits" [value]="item._id">
             {{ item.propertyUnitName }}({{ item.propertyUnitCode }})
           </option>
         </select>
       </div>
       <form class="d-flex" role="search">
-        <input
-          class="form-control me-2"
-          type="search"
-          placeholder="Search"
-          aria-label="Search"
-        />
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
         <button class="btn btn-outline-success" type="submit">Search</button>
       </form>
 
-      <button
-        class="btn btn-outline-danger ms-2 border-0"
-        type="submit"
-        (click)="logOut()"
-      >
+      <button class="btn btn-outline-danger ms-2 border-0" type="submit" (click)="logOut()">
         Logout
         <i class="material-symbols-rounded" style="vertical-align: middle">
           logout
@@ -305,38 +197,19 @@
 <ng-template #content let-modal>
   <div class="modal-header">
     <h4 class="modal-title" id="modal-basic-title">Change Password</h4>
-    <button
-      type="button"
-      class="btn-close"
-      aria-label="Close"
-      (click)="modal.dismiss(false)"
-    ></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss(false)"></button>
   </div>
   <div class="modal-body">
     <form>
       <div class="mb-3">
-        <label for="exampleInputPassword1" class="form-label"
-          >Current Password</label
-        >
-        <input
-          type="password"
-          placeholder="Enter Current Password"
-          name="oldPassword"
-          class="form-control"
-          [(ngModel)]="oldPassword"
-        />
+        <label for="exampleInputPassword1" class="form-label">Current Password</label>
+        <input type="password" placeholder="Enter Current Password" name="oldPassword" class="form-control"
+          [(ngModel)]="oldPassword" />
       </div>
       <div class="mb-3">
-        <label for="exampleInputPassword2" class="form-label"
-          >New Password</label
-        >
-        <input
-          type="password"
-          placeholder="Enter New Password"
-          class="form-control"
-          name="newPassword"
-          [(ngModel)]="newPassword"
-        />
+        <label for="exampleInputPassword2" class="form-label">New Password</label>
+        <input type="password" placeholder="Enter New Password" class="form-control" name="newPassword"
+          [(ngModel)]="newPassword" />
         <small class="text-danger" *ngIf="passwordValidator()">
           Password must be at least 8 characters long ,must contain at least one
           uppercase letter, one lowercase letter, one number, and one special
@@ -346,12 +219,8 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button
-      type="button"
-      class="btn btn-outline-secondary"
-      [disabled]="passwordValidator()"
-      (click)="modal.close(true)"
-    >
+    <button type="button" class="btn btn-outline-secondary" [disabled]="passwordValidator()"
+      (click)="modal.close(true)">
       Update
     </button>
   </div>

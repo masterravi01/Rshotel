@@ -227,6 +227,19 @@ export class YieldManagementComponent implements OnInit {
   }
 
   openModalCreateYield(content: any) {
+
+    this.createYieldForm.patchValue({
+      yieldName: '',
+      yieldDescription: '',
+      ratePlanSetupId: '',
+      roomTypeIds: [],
+      startDate: this.Today,
+      endDate: this.Tomorrow,
+      occupancyRangeStart: 0,
+      occupancyRangeEnd: 0,
+      changeType: 'percentage',
+      changeValue: 0,
+    });
     this.modalService.open(content, { centered: true });
   }
 }

@@ -156,7 +156,7 @@ const readYield = asyncHandler(async (req, res) => {
 });
 
 const createYield = asyncHandler(async (req, res) => {
-  const {
+  let {
     yieldName,
     yieldDescription,
     ratePlanSetupId,
@@ -170,10 +170,10 @@ const createYield = asyncHandler(async (req, res) => {
     propertyUnitId,
   } = req.body;
 
-  let start = new Date(startDate);
-  start.setUTCHours(0, 0, 0, 0);
-  let end = new Date(endDate);
-  end.setUTCHours(0, 0, 0, 0);
+  startDate = new Date(startDate);
+  startDate.setUTCHours(0, 0, 0, 0);
+  endDate = new Date(endDate);
+  endDate.setUTCHours(0, 0, 0, 0);
   const roomTypeIdArray = roomTypeIds.map((rt) => new ObjectId(rt.roomTypeId));
 
   const existedYield = await Yield.aggregate([
@@ -195,12 +195,12 @@ const createYield = asyncHandler(async (req, res) => {
               $and: [
                 {
                   endDate: {
-                    $gt: start,
+                    $gt: startDate,
                   },
                 },
                 {
                   startDate: {
-                    $lt: end,
+                    $lt: endDate,
                   },
                 },
                 {
@@ -275,6 +275,65 @@ const updateYield = asyncHandler(async (req, res) => {
     active,
     propertyUnitId,
   } = req.body;
+
+  let start = new Date(startDate);
+  start.setUTCHours(0, 0, 0, 0);
+  let end = new Date(endDate);
+  end.setUTCHours(0, 0, 0, 0);
+  const roomTypeIdArray = roomTypeIds.map((rt) => new ObjectId(rt.roomTypeId));
+  const existedYield = await Yield.aggregate([
+    {
+      $match: {
+        ratePlanSetupId: new ObjectId(ratePlanSetupId),
+        active: true,
+        _id: { $ne: new ObjectId(yieldId) },
+      },
+    },
+    {
+      $lookup: {
+        from: "yieldroomtypes",
+        localField: "_id",
+        foreignField: "yieldId",
+        as: "yieldDetail",
+        pipeline: [
+          {
+            $match: {
+              $and: [
+                {
+                  endDate: {
+                    $gt: start,
+                  },
+                },
+                {
+                  startDate: {
+                    $lt: end,
+                  },
+                },
+                {
+                  roomTypeId: {
+                    $in: roomTypeIdArray,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: "$yieldDetail",
+      },
+    },
+  ]);
+
+  if (existedYield.length > 0) {
+    throw new ApiError(
+      409,
+      "You cannot update yield because it overlaps with an existing one for the selected date, room type, and rate plan.",
+      []
+    );
+  }
 
   let yieldDetail = await Yield.findById(yieldId);
   yieldDetail.yieldName = yieldName;

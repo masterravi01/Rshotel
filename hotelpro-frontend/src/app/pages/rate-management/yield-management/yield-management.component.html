@@ -175,7 +175,7 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-between p-0">
-                                    <div>
+                                    <div style="width: 70%;">
                                         <select class="form-control" id="active" formControlName="changeType">
                                             <option [value]="'percentage'">Percentage</option>
                                             <option [value]="'flat'">Flat</option>
@@ -194,7 +194,9 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Status</td>
+                            <td class="custom_label">
+                                <div>Status :</div>
+                            </td>
                             <td>
                                 <select class="form-control" id="active" formControlName="active">
                                     <option [value]="true">Active</option>
@@ -355,7 +357,7 @@
                 </td>
                 <td>
                     <div class="d-flex justify-content-between p-0">
-                        <div>
+                        <div style="width: 70%;">
                             <select class="form-control" id="active" formControlName="changeType">
                                 <option [value]="'percentage'">Percentage</option>
                                 <option [value]="'flat'">Flat</option>
