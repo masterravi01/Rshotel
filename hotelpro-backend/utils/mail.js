@@ -33,8 +33,8 @@ export const sendEmail = async (options) => {
     },
   });
 
-  const mail = {
-    from: "help.hotelpro@gmail.com", // We can name this anything. The mail will go to your Mailtrap inbox
+  const mailOptions = {
+    from: "hotelpro@gmail.com", // We can name this anything. The mail will go to your Mailtrap inbox
     to: options.email, // receiver's mail
     subject: options.subject, // mail subject
     text: emailTextual, // mailgen content textual variant
@@ -42,7 +42,13 @@ export const sendEmail = async (options) => {
   };
 
   try {
-    await transporter.sendMail(mail);
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error occurred:", error);
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
   } catch (error) {
     // As sending email is not strongly coupled to the business logic it is not worth to raise an error when email sending fails
     // So it's better to fail silently rather than breaking the app
@@ -93,7 +99,7 @@ export const forgotPasswordMailgenContent = (username, passwordResetUrl) => {
   return {
     body: {
       name: username,
-      intro: "We got a request to reset the password of our account",
+      intro: "We got a request to reset the password of your account",
       action: {
         instructions:
           "To reset your password click on the following button or link:",
@@ -104,7 +110,7 @@ export const forgotPasswordMailgenContent = (username, passwordResetUrl) => {
         },
       },
       outro:
-        "Need help, or have questions? Just reply to this email, we'd love to help.",
+        "Need help, or have questions? Just send to help.hotelpro@gmail.com email, we'd love to help.",
     },
   };
 };

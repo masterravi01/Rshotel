@@ -11,16 +11,16 @@
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="card shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Total Rooms</h5>
-                    <p class="card-text"> {{ dashboardData?.rooms?.totalRooms ?? 0 }} </p>
+                    <h5 class="card-title">Active Properties</h5>
+                    <p class="card-text">{{activePropertyUnit}}</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="card shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Available Rooms</h5>
-                    <p class="card-text">0</p>
+                    <h5 class="card-title">Total Rooms</h5>
+                    <p class="card-text"> {{ dashboardData?.rooms?.totalRooms ?? 0 }} </p>
                 </div>
             </div>
         </div>

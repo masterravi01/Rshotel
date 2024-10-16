@@ -16,6 +16,7 @@ import { AlertService } from '../../../core/services/alert.service';
 export class ClientDashboardComponent {
   userInfo: any;
   dashboardData: any;
+  activePropertyUnit = 0;
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -37,6 +38,9 @@ export class ClientDashboardComponent {
       .post(APIConstant.READ_CLIENT_DASHBOARD, obj)
       .then((response: any) => {
         this.dashboardData = response.data;
+        for (let p of this.dashboardData?.property?.propertyUnits) {
+          this.activePropertyUnit += p.active == true ? 1 : 0;
+        }
         console.log(this.dashboardData);
       })
       .catch((error) => {
