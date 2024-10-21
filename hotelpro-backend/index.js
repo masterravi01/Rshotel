@@ -2,12 +2,7 @@ import express from "express";
 import cors from "cors";
 import { configDotenv } from "dotenv";
 import cookieParser from "cookie-parser";
-import morganMiddleware from "./logger/morgan.logger.js";
-import mongo from "./database/database.service.js";
-import { errorHandler } from "./middleware/error.middlewares.js";
-import indexRouter from "./routes/index.routes.js";
 import http from "http"; // Import http to create the server
-import socket from "./controllers/notification/socket.js";
 
 configDotenv();
 const app = express();
@@ -35,10 +30,6 @@ app.use(
 );
 app.use(cookieParser());
 
-app.use(morganMiddleware);
-
-app.use("/hotelpro", indexRouter);
-
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
@@ -48,9 +39,6 @@ app.options("*", cors());
 
 // Set the view engine to ejs
 app.set("view engine", "ejs");
-
-// Error handler middleware
-app.use(errorHandler);
 
 // Start the server and listen on the specified port
 server.listen(port, () => {
