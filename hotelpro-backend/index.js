@@ -8,6 +8,7 @@ import { errorHandler } from "./middleware/error.middlewares.js";
 import indexRouter from "./routes/index.routes.js";
 import http from "http"; // Import http to create the server
 import socket from "./controllers/notification/socket.js";
+import path from "path"; // Import path for resolving paths
 
 configDotenv();
 const app = express();
@@ -15,7 +16,7 @@ const port = process.env.APP_PORT;
 
 // Create HTTP server with Express app
 const server = http.createServer(app);
-// socket.initializeSocketConnection(server);
+//socket.initializeSocketConnection(server); // Uncommented to initialize WebSocket
 
 // Global middlewares
 app.use(
@@ -39,8 +40,11 @@ app.use(morganMiddleware);
 
 app.use("/hotelpro", indexRouter);
 
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
+// Serve static files from dist directory
+let distDir = "./dist/browser";
+app.use(express.static(distDir));
+app.get("/*", (req, res) => {
+  res.sendFile(path.resolve(distDir, "index.html"));
 });
 
 // Handling preflight requests
