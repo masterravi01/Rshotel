@@ -3,7 +3,7 @@ import express from "express";
 import { configDotenv } from "dotenv";
 configDotenv();
 const app = express();
-const port = process.env.APP_PORT || 3000;
+const port = process.env.APP_PORT || 8000;
 
 app.get("/", (req, res) => {
   res.send("Hello World! This is a simple Node.js app");
