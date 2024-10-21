@@ -6,17 +6,21 @@ import morganMiddleware from "./logger/morgan.logger.js";
 import mongo from "./database/database.service.js";
 import { errorHandler } from "./middleware/error.middlewares.js";
 import indexRouter from "./routes/index.routes.js";
-import http from "http"; // Import http to create the server
+import http from "http";
 import socket from "./controllers/notification/socket.js";
-import path from "path"; // Import path for resolving paths
+import path from "path";
+import { fileURLToPath } from "url"; // Import fileURLToPath for ES modules
 
 configDotenv();
 const app = express();
-const port = process.env.APP_PORT;
+const port = process.env.APP_PORT || 8080; // Default to 8080 if not set
 
 // Create HTTP server with Express app
 const server = http.createServer(app);
-//socket.initializeSocketConnection(server); // Uncommented to initialize WebSocket
+
+// Create __dirname equivalent in ES module
+const __filename = fileURLToPath(import.meta.url); // Get the current module's URL
+const __dirname = path.dirname(__filename); // Get the directory name
 
 // Global middlewares
 app.use(
@@ -41,7 +45,7 @@ app.use(morganMiddleware);
 app.use("/hotelpro", indexRouter);
 
 // Serve static files from dist directory
-let distDir = "./dist/browser";
+const distDir = path.join(__dirname, "dist", "browser"); // Use the new __dirname
 app.use(express.static(distDir));
 app.get("/*", (req, res) => {
   res.sendFile(path.resolve(distDir, "index.html"));
