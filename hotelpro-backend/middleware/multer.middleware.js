@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 // Ensure the path is correctly resolved
-const uploadPath = path.resolve("public/temp");
+const uploadPath = path.join("/tmp", "temp");
 // Ensure the directory exists
 fs.mkdirSync(uploadPath, { recursive: true });
 const storage = multer.diskStorage({
