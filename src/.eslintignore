@@ -1,6 +1,0 @@
-.eslint.config.js
-node_modules/
-.env
-.dockerignore
-docker-compose.yml
-dockerfile
