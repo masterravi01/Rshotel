@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import morganMiddleware from "./logger/morgan.logger.js";
 import { errorHandler } from "./middleware/error.middlewares.js";
+import indexRouter from "./routes/index.routes.js";
 const app = express();
 
 const corsOptions = {
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: false, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 app.use(morganMiddleware);
+app.use("/hotelpro", indexRouter);
 
 app.get("/*", (req, res) => {
   res.send("Hello World!!!!");
