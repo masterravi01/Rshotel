@@ -1,26 +1,46 @@
 {
   "name": "rshotel",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "hello this is for learing",
   "type": "module",
+  "main": "index.js",
   "scripts": {
-    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "format": "prettier --write .",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint --fix ."
   },
-  "author": "",
+  "keywords": [
+    "node"
+  ],
+  "author": "Ravi parmar",
   "license": "ISC",
   "dependencies": {
-    "cookie-parser": "^1.4.7",
+    "bcrypt": "^5.1.1",
+    "cloudinary": "^2.2.0",
+    "cloudinary-build-url": "^0.2.4",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "env": "^0.0.2",
-    "express": "^4.19.2"
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.0",
+    "mongoose-aggregate-paginate-v2": "^1.0.7",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nanoid": "^5.0.7",
+    "razorpay": "^2.9.4",
+    "winston": "^3.13.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.7.0",
-    "eslint": "^9.7.0"
+    "@eslint/js": "^9.4.0",
+    "eslint": "^9.4.0",
+    "globals": "^15.4.0",
+    "husky": "^9.0.11",
+    "nodemon": "^3.1.0",
+    "prettier": "^3.3.2"
   }
 }
