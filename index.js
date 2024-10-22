@@ -1,8 +1,8 @@
-import "./config.js";
+import "./src/config.js";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { errorHandler } from "./middlewares/error.middlewares.js";
+import { errorHandler } from "./src/middlewares/error.middlewares.js";
 import path from "path";
 
 const app = express();
@@ -26,11 +26,17 @@ import { fileURLToPath } from "url"; // Import fileURLToPath for ES modules
 const __filename = fileURLToPath(import.meta.url); // Get the current module's URL
 const __dirname = path.dirname(__filename); // Get the directory name
 //routes import
-import indexRouter from "./routes/index.routes.js";
+import indexRouter from "./src/routes/index.routes.js";
 
 //routes declaration
 app.use("/api/v1", indexRouter);
-const distDir = path.join(__dirname, "dist", "hotelpro-frontend", "browser"); // Use the new __dirname
+const distDir = path.join(
+  __dirname,
+  "src",
+  "dist",
+  "hotelpro-frontend",
+  "browser"
+); // Use the new __dirname
 app.use(express.static(distDir));
 app.get("/*", (req, res) => {
   res.sendFile(path.resolve(distDir, "index.html"));
