@@ -18,12 +18,6 @@ app.use(express.urlencoded({ extended: false, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-//routes import
-import indexRouter from "./src/routes/index.routes.js";
-
-//routes declaration
-app.use("/api/v1", indexRouter);
-
 app.get("/*", (req, res) => {
   res.send("Hello World!!!!");
 });
