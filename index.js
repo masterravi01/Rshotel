@@ -1,10 +1,11 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { configDotenv } from "dotenv";
-configDotenv();
+import path from "path";
+
+const port = process.env.APP_PORT ||8000 ;
+
 const app = express();
-const port = process.env.APP_PORT || 8000;
 
 const corsOptions = {
   origin:
@@ -17,19 +18,19 @@ app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: false, limit: "16kb" }));
+app.use(express.static("public"));
 app.use(cookieParser());
-app.options(
-  "*",
-  cors({
-    origin: true,
 
-    credentials: true,
-  })
-);
+
+app.set("view engine", "ejs");
+app.set("views", path.join(path.resolve(), "views"));
+
 app.get("/", (req, res) => {
-  res.send("Hello World! This is a simple Node.js app");
+  res.render('home');
 });
-
+app.get("/zz", (req, res) => {
+  res.send("Hello World!");
+});
 app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`);
+  console.log(`App is listening on port ${port}`);
 });
