@@ -1,65 +1,41 @@
-import "./config.js";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import morganMiddleware from "./logger/morgan.logger.js";
-import mongo from "./database/database.service.js";
-import { errorHandler } from "./middleware/error.middlewares.js";
-import indexRouter from "./routes/index.routes.js";
-import http from "http";
-import path from "path";
-import { fileURLToPath } from "url"; // Import fileURLToPath for ES modules
-
 const app = express();
-console.log(process.env.APP_PORT);
-const port = process.env.APP_PORT || 8080; // Default to 8080 if not set
 
-// Create HTTP server with Express app
-const server = http.createServer(app);
+const corsOptions = {
+  origin:
+    process.env.CORS_ORIGIN === "*"
+      ? "*" // This might give CORS error for some origins due to credentials set to true
+      : process.env.CORS_ORIGIN?.split(","), // For multiple cors origin for production.
+  credentials: true,
+};
+app.use(cors(corsOptions));
 
-// Create __dirname equivalent in ES module
-const __filename = fileURLToPath(import.meta.url); // Get the current module's URL
-const __dirname = path.dirname(__filename); // Get the directory name
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: false, limit: "16kb" }));
+app.use(express.static("public"));
+app.use(cookieParser());
 
-// Global middlewares
-app.use(
+app.get("/*", (req, res) => {
+  res.send("Hello World!!!!");
+});
+// Handling preflight requests
+// preflight requests sent by the browser to determine whether the actual request (e.g., a GET or POST request) is safe to send.
+app.options(
+  "*",
   cors({
-    origin:
-      process.env.CORS_ORIGIN === "*"
-        ? "*"
-        : process.env.CORS_ORIGIN?.split(","),
+    origin: true,
+
     credentials: true,
   })
 );
 
-app.use(
-  express.json({
-    limit: "16kb",
-  })
-);
-app.use(cookieParser());
+const port = process.env.PORT || 8000;
 
-app.use(morganMiddleware);
-
-app.use("/hotelpro", indexRouter);
-
-// Serve static files from dist directory
-const distDir = path.join(__dirname, "dist", "browser"); // Use the new __dirname
-app.use(express.static(distDir));
-app.get("/*", (req, res) => {
-  res.sendFile(path.resolve(distDir, "index.html"));
+app.listen(port, () => {
+  console.log(`App is listening on port ${port}`);
 });
-
-// Handling preflight requests
-app.options("*", cors());
-
-// Set the view engine to ejs
-app.set("view engine", "ejs");
-
-// Error handler middleware
-app.use(errorHandler);
-
-// Start the server and listen on the specified port
-server.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+app.get("/zz", (req, res) => {
+  res.send("Hello World!");
 });
